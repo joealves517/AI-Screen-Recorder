@@ -15,20 +15,23 @@ const Setup = () => {
     style.href = chrome.runtime.getURL("assets/fonts/fonts.css");
     document.body.appendChild(style);
 
+    // Inject Favicon
+    const favicon = document.createElement("link");
+    favicon.rel = "icon";
+    favicon.type = "image/png";
+    favicon.href = chrome.runtime.getURL("assets/img/icon-34.png");
+    document.head.appendChild(favicon);
+
     // Return
     return () => {
       document.body.removeChild(script);
       document.body.removeChild(style);
+      document.head.removeChild(favicon);
     };
   }, []);
 
   return (
     <div className="setupBackground">
-      <img
-        src={chrome.runtime.getURL("assets/logo-text.svg")}
-        className="setupLogo"
-      />
-      <div className="setupBackgroundSVG"></div>
       <style>
         {`
 				body {
@@ -43,42 +46,8 @@ const Setup = () => {
 					text-decoration: none!important;
 					color: #4C7DE2;
 				}
-				.setupBackgroundSVG {
-					position: absolute;
-					top: 0px;
-					left: 0px;
-
-					width: 100%;
-					height: 100%;
-					background: url('` +
-          chrome.runtime.getURL("assets/helper/pattern-svg.svg") +
-          `') repeat;
-					background-size: 62px 23.5px;
-					animation: moveBackground 138s linear infinite;
-				}
-				
-				@keyframes moveBackground {
-					0% {
-						background-position: 0 0;
-					}
-					100% {
-						background-position: 100% 0;
-					}
-				}
-
-
-				.setupLogo {
-					position: absolute;
-					bottom: 30px;
-					left: 0px;
-					right: 0px;
-					margin: auto;
-					width: 120px;
-				}
-
-
 				.setupBackground {
-					background-color: #f5f5f5;
+					background: linear-gradient(135deg, #f5f7fa 0%, #e4ebf5 100%);
 					height: 100vh;
 					width: 100vw;
 					display: flex;

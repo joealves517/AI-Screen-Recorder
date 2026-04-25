@@ -14,7 +14,7 @@ export const sendChunks = async (override = false, target = null) => {
       await chunksStore.iterate(() => {
         chunkCount += 1;
       });
-      console.debug("[Screenity][BG] sendChunks: chunkCount check", {
+      console.debug("[AISR][BG] sendChunks: chunkCount check", {
         attempt,
         chunkCount,
       });
@@ -29,7 +29,7 @@ export const sendChunks = async (override = false, target = null) => {
 
     if (chunkCount === 0) {
       console.warn(
-        "[Screenity][BG] sendChunks: no chunks available after waiting",
+        "[AISR][BG] sendChunks: no chunks available after waiting",
       );
       try {
         await chrome.storage.local.set({
@@ -49,7 +49,7 @@ export const sendChunks = async (override = false, target = null) => {
     await chunksStore.iterate((value) => {
       chunks.push(value);
     });
-    console.debug("[Screenity][BG] sendChunks: collected chunks", {
+    console.debug("[AISR][BG] sendChunks: collected chunks", {
       count: chunks.length,
     });
     // Await handleChunks to ensure messaging completes before returning

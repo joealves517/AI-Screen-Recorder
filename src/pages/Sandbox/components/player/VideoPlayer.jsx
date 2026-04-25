@@ -53,6 +53,7 @@ const VideoPlayer = (props) => {
         "pip",
         "fullscreen",
       ],
+      captions: { active: true, update: true },
       urls: null,
       ratio: "16:9",
       blankVideo:
@@ -66,62 +67,81 @@ const VideoPlayer = (props) => {
     []
   );
 
-  /*
+  const [vidUrl, setVidUrl] = useState(null);
+
   useEffect(() => {
+    let vid;
     if (contentState.blob) {
-      const objectURL = URL.createObjectURL(contentState.blob);
-      setSource({
-        type: "video",
-        sources: [
-          {
-            src: objectURL,
-            type: "video/mp4",
-          },
-        ],
-      });
-      setUrl(objectURL);
+      if (bannerRef.current) {
+        bannerRef.current.style.display = "none";
+        bannerRef.current.remove();
+      }
+      vid = contentState.blob;
+    } else if (contentState.webm) {
+      vid = contentState.webm;
+    }
+
+    if (vid) {
+      const url = URL.createObjectURL(vid);
+      setVidUrl(url);
 
       return () => {
-        URL.revokeObjectURL(objectURL);
+        URL.revokeObjectURL(url);
       };
     }
-  }, [contentState.blob, playerRef]);
-	*/
+  }, [contentState.blob, contentState.webm, contentState.hasBeenEdited]);
 
   useEffect(() => {
-    if (contentState.webm || contentState.blob) {
-      let vid;
-      if (contentState.blob) {
-        if (bannerRef.current) {
-          bannerRef.current.style.display = "none";
-          bannerRef.current.remove();
+    if (vidUrl) {
+      let currentTime = 0;
+      let isPlaying = false;
+      if (playerRef.current && playerRef.current.plyr) {
+        currentTime = playerRef.current.plyr.currentTime;
+        isPlaying = playerRef.current.plyr.playing;
+        
+        // Pause the current player before updating source to prevent background audio looping
+        if (isPlaying) {
+          playerRef.current.plyr.pause();
         }
-        vid = contentState.blob;
-      } else if (contentState.webm) {
-        vid = contentState.webm;
       }
-      const objectURL = URL.createObjectURL(vid);
-      setSource({
+
+      const newSource = {
         type: "video",
         sources: [
           {
-            src: objectURL,
+            src: vidUrl,
             type: contentState.blob ? "video/mp4" : "video/webm",
           },
         ],
-      });
-      setUrl(objectURL);
-
-      return () => {
-        URL.revokeObjectURL(objectURL);
       };
+
+      if (contentState.subtitleVtt) {
+        newSource.tracks = [
+          {
+            kind: "captions",
+            label: "AI Subtitles",
+            srclang: "en",
+            src: contentState.subtitleVtt,
+            default: true,
+          }
+        ];
+      }
+
+      setSource(newSource);
+      setUrl(vidUrl);
+
+      // Restore playback state if possible
+      setTimeout(() => {
+        if (playerRef.current && playerRef.current.plyr) {
+          if (currentTime > 0) playerRef.current.plyr.currentTime = currentTime;
+          if (isPlaying) playerRef.current.plyr.play();
+          if (contentState.subtitleVtt) {
+             playerRef.current.plyr.toggleCaptions(true);
+          }
+        }
+      }, 200);
     }
-  }, [
-    contentState.webm,
-    contentState.blob,
-    contentState.hasBeenEdited,
-    playerRef,
-  ]);
+  }, [vidUrl, contentState.subtitleVtt]);
 
   // Use a mutation observer to check if .plyr--video is added to the DOM
   useEffect(() => {

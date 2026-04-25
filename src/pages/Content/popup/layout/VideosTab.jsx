@@ -256,61 +256,8 @@ const VideosTab = (props) => {
   };
 
   return (
-    <div
-      className={contentState.isSubscribed ? "video-ui" : "video-ui blurred"}
-    >
-      {!contentState.isSubscribed && (
-        <div className="ModalSoon">
-          {/* 👇 Embed the video here */}
-          <video
-            src={chrome.runtime.getURL("assets/videos/pro.mp4")}
-            autoPlay
-            loop
-            muted
-            playsInline
-            style={{
-              width: "100%",
-              borderRadius: "6px",
-              marginBottom: "20px",
-            }}
-          />
-          <div className="ModalSoonTitle">
-            {chrome.i18n.getMessage("shareModalSandboxTitle")}
-          </div>
+    <div className="video-ui">
 
-          <div className="ModalSoonDescription">
-            {chrome.i18n.getMessage("shareModalSandboxDescription")}
-          </div>
-
-          <div
-            className="ModalSoonButton"
-            onClick={() => {
-              chrome.runtime.sendMessage({ type: "pricing" });
-            }}
-          >
-            {chrome.i18n.getMessage("shareModalSandboxButton")}
-          </div>
-
-          <button
-            onClick={() => {
-              chrome.runtime.sendMessage({ type: "handle-login" });
-            }}
-            className="ModalSoonSecondary"
-            style={{
-              marginTop: 16,
-              width: "100%",
-              background: "transparent",
-              border: "none",
-              color: "#6B7280",
-              fontSize: 13,
-              textAlign: "center",
-              cursor: "pointer",
-            }}
-          >
-            {chrome.i18n.getMessage("shareModalSandboxLogin")}
-          </button>
-        </div>
-      )}
       <Tabs.Root className="TabsRoot" defaultValue="personal">
         <Tabs.List className="TabsList" aria-label="Manage your account">
           <div className="TabsTriggerWrap">
@@ -415,65 +362,57 @@ const VideosTab = (props) => {
                   <span>{chrome.i18n.getMessage("noVideosFound")}</span>
                 </div>
               )}
-            {(contentState.isSubscribed
-              ? videos
-              : [
-                  {
-                    title: "Bug report",
-                    createdAt: "3 minutes ago",
-                    data: { thumbnail: TempTwitter },
-                  },
-                  {
-                    title: "Figma async review",
-                    createdAt: "1 hour ago",
-                    data: { thumbnail: TempFigma },
-                  },
-                  {
-                    title: "Design systems onboarding",
-                    createdAt: "4 days ago",
-                    data: { thumbnail: TempDesignSystem },
-                  },
-                  {
-                    title: "Cool SaaS resources",
-                    createdAt: "Feb 12",
-                    data: { thumbnail: TempMarketing },
-                  },
-                  {
-                    title: "Newsletter promo",
-                    createdAt: "Jan 23",
-                    data: { thumbnail: TempSubstack },
-                  },
-                  {
-                    title: "Product demo",
-                    createdAt: "Jan 15",
-                    data: { thumbnail: PlaceholderThumb },
-                  },
-                ]
-            ).map((video, i) => (
-              <VideoItem
-                key={i}
-                title={video.title}
-                date={video.createdAt}
-                thumbnail={
-                  video.signedThumbnail ||
-                  (video.data?.useCustomThumbnail &&
-                    video.data?.customThumbnail) ||
-                  video.data?.tempThumbnail ||
-                  PlaceholderThumb
-                }
-                onOpen={
-                  contentState.isSubscribed
-                    ? () => handleVideoClick(video._id)
-                    : undefined
-                }
-                onCopyLink={
-                  contentState.isSubscribed
-                    ? () => handleCopyLink(video._id)
-                    : undefined
-                }
-              />
-            ))}
-            {loading && (
+            {contentState.isSubscribed ? (
+              videos.map((video, i) => (
+                <VideoItem
+                  key={i}
+                  title={video.title}
+                  date={video.createdAt}
+                  thumbnail={
+                    video.signedThumbnail ||
+                    (video.data?.useCustomThumbnail &&
+                      video.data?.customThumbnail) ||
+                    video.data?.tempThumbnail ||
+                    PlaceholderThumb
+                  }
+                  onOpen={() => handleVideoClick(video._id)}
+                  onCopyLink={() => handleCopyLink(video._id)}
+                />
+              ))
+            ) : (
+              <div className="empty-state" style={{ padding: "40px 20px", textAlign: "center", marginTop: "20px" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>
+                  🔒
+                </div>
+                <h3 style={{ fontSize: "18px", fontWeight: "600", marginBottom: "8px", color: "#111827" }}>
+                  Sign in to view your videos
+                </h3>
+                <p style={{ fontSize: "14px", color: "#6B7280", marginBottom: "24px", lineHeight: "1.5" }}>
+                  Access your cloud recordings from anywhere. Log in to your account to manage your videos.
+                </p>
+                <button 
+                  onClick={() => chrome.runtime.sendMessage({ type: "handle-login" })}
+                  style={{
+                    background: "#3080F8",
+                    color: "white",
+                    border: "none",
+                    padding: "12px 28px",
+                    borderRadius: "99px",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "background 0.2s",
+                    boxShadow: "0 2px 8px rgba(48, 128, 248, 0.25)"
+                  }}
+                >
+                  Log in to Account
+                </button>
+              </div>
+            )}
+            {loading && contentState.isSubscribed && (
               <div className="spinner-container">
                 <div className="spinner" />
                 <span>{chrome.i18n.getMessage("loadingVideosLabel")}</span>

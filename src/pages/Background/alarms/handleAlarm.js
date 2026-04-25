@@ -278,7 +278,7 @@ export const handleAlarm = async (alarm) => {
 
     await chunksStore.clear().catch((err) => {
       console.warn(
-        "[Screenity][BG] Failed to clear chunksStore for local playback expiry",
+        "[AISR][BG] Failed to clear chunksStore for local playback expiry",
         err,
       );
     });

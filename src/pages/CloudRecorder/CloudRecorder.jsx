@@ -309,7 +309,7 @@ const CloudRecorder = () => {
   const logStartFlow = (event, data = {}) => {
     if (!DEBUG_START_FLOW) return;
     const payload = { ts: Date.now(), event, ...data };
-    console.info("[Screenity][StartFlow]", payload);
+    console.info("[AISR][StartFlow]", payload);
     try {
       const update = {
         startFlowDebug: {
@@ -341,13 +341,13 @@ const CloudRecorder = () => {
         typeof countdownFinishedAt === "number" &&
         firstChunkAt < countdownFinishedAt
       ) {
-        console.error("[Screenity][StartFlow] Chunk before countdown end", {
+        console.error("[AISR][StartFlow] Chunk before countdown end", {
           firstChunkAt,
           countdownFinishedAt,
         });
       }
     } catch (err) {
-      console.warn("[Screenity][StartFlow] Countdown assert failed", err);
+      console.warn("[AISR][StartFlow] Countdown assert failed", err);
     }
   };
 
@@ -961,8 +961,8 @@ const CloudRecorder = () => {
     try {
       if (navigator.mediaSession && !keepAliveMediaSessionActive.current) {
         navigator.mediaSession.metadata = new window.MediaMetadata({
-          title: "Screenity recording",
-          artist: "Screenity",
+          title: "AI Screen Recording",
+          artist: "AI Screen Recorder",
         });
         navigator.mediaSession.playbackState = "playing";
         try {
@@ -1571,7 +1571,7 @@ const CloudRecorder = () => {
         chrome.storage.local.remove(["recorderSession", sessionStateKey]);
         sendRecordingError(
           result?.error ||
-            "Another Screenity recorder is already running. Please close it and try again.",
+            "Another AI Screen Recorder instance is already running. Please close it and try again.",
         );
         return false;
       }
@@ -1770,7 +1770,7 @@ const CloudRecorder = () => {
       try {
         await chrome.downloads.download({
           url: objectUrl,
-          filename: `Screenity-Finalize-Diagnostics-${new Date().toISOString()}.json`,
+          filename: `AIScreenRecorder-Finalize-Diagnostics-${new Date().toISOString()}.json`,
           saveAs: false,
         });
       } finally {
@@ -1831,7 +1831,7 @@ const CloudRecorder = () => {
       try {
         await chrome.downloads.download({
           url: objectUrl,
-          filename: `Screenity-Recovery-${new Date().toISOString()}-${reason}.webm`,
+          filename: `AIScreenRecorder-Recovery-${new Date().toISOString()}-${reason}.webm`,
           saveAs: false,
         });
         chrome.runtime.sendMessage({
@@ -1973,7 +1973,7 @@ const CloudRecorder = () => {
             try {
               await chrome.downloads.download({
                 url: objectUrl,
-                filename: `Screenity-Recovered-${ts}.webm`,
+                filename: `AIScreenRecorder-Recovered-${ts}.webm`,
                 saveAs: false,
               });
             } finally {
@@ -1997,7 +1997,7 @@ const CloudRecorder = () => {
             try {
               await chrome.downloads.download({
                 url: cameraObjectUrl,
-                filename: `Screenity-Recovered-Camera-${ts}.webm`,
+                filename: `AIScreenRecorder-Recovered-Camera-${ts}.webm`,
                 saveAs: false,
               });
             } finally {
@@ -2337,7 +2337,7 @@ const CloudRecorder = () => {
 
     emptyCleanupRef.current = true;
 
-    console.warn("[Screenity] empty upload cleanup", {
+    console.warn("[AISR] empty upload cleanup", {
       reason,
       screenOffset,
       cameraOffset,
@@ -3762,7 +3762,7 @@ const CloudRecorder = () => {
 
     const shouldNotifyEditor = !multiMode || recordingToScene;
     if (!shouldNotifyEditor || !projectId || !sceneId) {
-      console.warn("[Screenity][CloudRecorder] Skipping editor-ready", {
+      console.warn("[AISR][CloudRecorder] Skipping editor-ready", {
         shouldNotifyEditor,
         hasProjectId: Boolean(projectId),
         hasSceneId: Boolean(sceneId),
@@ -3772,7 +3772,7 @@ const CloudRecorder = () => {
       return;
     }
 
-    console.info("[Screenity][CloudRecorder] Sending editor-ready", {
+    console.info("[AISR][CloudRecorder] Sending editor-ready", {
       projectId,
       sceneId,
       recordingToScene: Boolean(recordingToScene),
@@ -4065,7 +4065,7 @@ const CloudRecorder = () => {
     clearPendingStart();
 
     if (DEBUG_START_FLOW) {
-      console.debug("[Screenity] stopRecording invoked", {
+      console.debug("[AISR] stopRecording invoked", {
         reason,
         shouldFinalize,
         screenState: screenRecorder.current?.state,

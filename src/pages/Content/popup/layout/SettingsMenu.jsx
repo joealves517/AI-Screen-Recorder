@@ -9,8 +9,6 @@ import TooltipWrap from "../components/TooltipWrap";
 
 import { CheckWhiteIcon, DropdownGroup } from "../../images/popup/images";
 
-import { buildDiagnosticZip } from "../../../utils/buildDiagnosticZip";
-
 // Context
 import { contentStateContext } from "../../context/ContentState";
 import {
@@ -54,60 +52,6 @@ const SettingsMenu = (props) => {
       setOldChrome(true);
     }
   }, []);
-
-  const handleTroubleshooting = () => {
-    if (typeof contentState.openModal === "function") {
-      contentState.openModal(
-        chrome.i18n.getMessage("troubleshootModalTitle"),
-        chrome.i18n.getMessage("troubleshootModalDescription"),
-        chrome.i18n.getMessage("troubleshootModalButton"),
-        chrome.i18n.getMessage("sandboxEditorCancelButton"),
-        async () => {
-          try {
-            const { blob, filename } = await buildDiagnosticZip({
-              source: "popup-settings",
-              extraConfig: {
-                defaultAudioInput: contentState.defaultAudioInput,
-                defaultAudioOutput: contentState.defaultAudioOutput,
-                defaultVideoInput: contentState.defaultVideoInput,
-                quality: contentState.quality,
-                systemAudio: contentState.systemAudio,
-                audioInput: contentState.audioInput,
-                audioOutput: contentState.audioOutput,
-                backgroundEffectsActive: contentState.backgroundEffectsActive,
-                recording: contentState.recording,
-                recordingType: contentState.recordingType,
-                askForPermissions: contentState.askForPermissions,
-                cameraPermission: contentState.cameraPermission,
-                microphonePermission: contentState.microphonePermission,
-                askMicrophone: contentState.askMicrophone,
-                cursorMode: contentState.cursorMode,
-                zoomEnabled: contentState.zoomEnabled,
-                offscreenRecording: contentState.offscreenRecording,
-                updateChrome: contentState.updateChrome,
-                permissionsChecked: contentState.permissionsChecked,
-                permissionsLoaded: contentState.permissionsLoaded,
-                hideUI: contentState.hideUI,
-                alarm: contentState.alarm,
-                alarmTime: contentState.alarmTime,
-                surface: contentState.surface,
-                blurMode: contentState.blurMode,
-              },
-            });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            a.click();
-            window.URL.revokeObjectURL(url);
-          } catch (err) {
-            console.error("[Screenity] Troubleshooting export failed:", err);
-          }
-        },
-        () => {},
-      );
-    }
-  };
 
   useEffect(() => {
     // More accurate screen detection
@@ -787,19 +731,7 @@ const SettingsMenu = (props) => {
               {chrome.i18n.getMessage("restoreRecording")}
             </DropdownMenu.Item>
           )}
-          {!contentState.isSubscribed && !contentState.isLoggedIn && (
-            <DropdownMenu.Item
-              className="DropdownMenuItem"
-              onSelect={(e) => {
-                e.preventDefault();
-                handleTroubleshooting();
-              }}
-            >
-              {chrome.i18n.getMessage("downloadForTroubleshootingOption")}
-            </DropdownMenu.Item>
-          )}
-
-          {contentState.isLoggedIn && !CLOUD_FEATURES_ENABLED && (
+        {contentState.isLoggedIn && !CLOUD_FEATURES_ENABLED && (
             <DropdownMenu.Item
               className="DropdownMenuItem"
               onSelect={(e) => {

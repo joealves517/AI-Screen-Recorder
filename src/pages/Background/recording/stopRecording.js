@@ -177,7 +177,7 @@ export const stopRecording = async () => {
       },
     );
 
-    chrome.runtime.sendMessage({ type: "turn-off-pip" });
+    chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
   } else if (duration > maxDuration) {
     diagEvent("editor-open", { type: "editorviewer", duration });
     // Fallback for large recordings without WebCodecs - use viewer mode
@@ -214,7 +214,7 @@ export const stopRecording = async () => {
       },
     );
 
-    chrome.runtime.sendMessage({ type: "turn-off-pip" });
+    chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
   } else {
     diagEvent("editor-open", { type: "editor-ffmpeg" });
     // Use FFmpeg (editor.html) for browsers without WebCodecs
@@ -247,7 +247,7 @@ export const stopRecording = async () => {
       });
     });
 
-    chrome.runtime.sendMessage({ type: "turn-off-pip" });
+    chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
   }
 
   // NOTE: Do NOT clear recordingTab here. The pinned recorder tab may still
@@ -349,7 +349,7 @@ export const handleStopRecordingTab = async (request) => {
     const lockAcquired = await acquirePostStopEditorLock(recordingId);
     if (!lockAcquired) {
       console.warn(
-        "[Screenity][BG] Duplicate stop-recording-tab suppressed (editor opening)",
+        "[AISR][BG] Duplicate stop-recording-tab suppressed (editor opening)",
       );
       sendMessageRecord({ type: "stop-recording-tab" });
       return;
@@ -379,7 +379,7 @@ export const handleStopRecordingTab = async (request) => {
           const safetyTimer = setTimeout(() => {
             if (!settled) {
               settled = true;
-              console.warn("[Screenity][BG] Editor tab load timed out — releasing lock");
+              console.warn("[AISR][BG] Editor tab load timed out — releasing lock");
               diagEvent("editor-open-timeout", { tabId: tab.id, type: "editorwebcodecs" });
               releasePostStopEditorLock();
             }
@@ -425,7 +425,7 @@ export const handleStopRecordingTab = async (request) => {
         const safetyTimer = setTimeout(() => {
           if (!settled) {
             settled = true;
-            console.warn("[Screenity][BG] Editor tab load timed out — releasing lock");
+            console.warn("[AISR][BG] Editor tab load timed out — releasing lock");
             diagEvent("editor-open-timeout", { tabId: tab.id, type: editorUrl });
             releasePostStopEditorLock({ postStopRecordingId: null });
           }
@@ -469,7 +469,7 @@ export const handleStopRecordingTab = async (request) => {
                 }
                 if (!sent) {
                   console.warn(
-                    "[Screenity][BG] editor opened but chunks are still unavailable",
+                    "[AISR][BG] editor opened but chunks are still unavailable",
                   );
                   try {
                     await chrome.storage.local.set({
@@ -529,6 +529,6 @@ export const handleStopRecordingTabBackup = async (request) => {
 
   const { activeTab } = await chrome.storage.local.get(["activeTab"]);
 
-  sendMessageTab(activeTab, { type: "stop-pending" });
+  sendMessageTab(activeTab, { type: "stop-pending" }).catch(() => {});
   focusTab(activeTab);
 };

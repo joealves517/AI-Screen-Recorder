@@ -7,7 +7,7 @@ const CAMERA_KEY = "proCameraInfo";
 const POPOVER_CLASS = "ScreenityOnboardingPopover onboarding-popover";
 const DRIVER_STYLE_ID = "screenity-driver-onboarding-style";
 const TOOLBAR_HELP_URL =
-  "https://help.screenity.io/recording/how-to-hide-the-toolbar";
+  "";
 const IDLE_START_DELAY_MS = 420;
 
 const STEP_IDS = {
@@ -61,7 +61,7 @@ let pendingStartToken = 0;
 const logDebug = (event, payload = {}) => {
   if (!DEBUG) return;
   // eslint-disable-next-line no-console
-  console.debug("[Screenity][Onboarding]", event, payload);
+  console.debug("[AISR][Onboarding]", event, payload);
 };
 
 const getRoot = (context) => (context?.querySelector ? context : document);
@@ -77,7 +77,7 @@ const t = (key, fallback) => {
 const getOnboardingText = () => ({
   welcomeTitle: t(
     "proOnboardingWelcomeTitle",
-    "Welcome to the Screenity Pro extension",
+    "Welcome to the AI Screen Recorder Pro extension",
   ),
   welcomeDescription: t(
     "proOnboardingWelcomeDescription",

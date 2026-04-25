@@ -1,17 +1,15 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import styles from "../../styles/player/_Content.module.scss";
 
 // Components
 import VideoPlayer from "../../components/player/VideoPlayer";
 import CropperWrap from "../../components/editor/CropperWrap";
-import HelpButton from "../../components/player/HelpButton";
-import ProBanner from "../../components/global/ProBanner";
 
 // Context
-import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
+import { ContentStateContext } from "../../context/ContentState";
 
 const Content = () => {
-  const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context
+  const [contentState] = useContext(ContentStateContext);
   return (
     <div className={styles.content}>
       <div className={styles.wrap}>
@@ -19,8 +17,6 @@ const Content = () => {
         {contentState.mode === "player" && <VideoPlayer />}
         {contentState.mode === "crop" && <CropperWrap />}
       </div>
-      {contentState.mode === "crop" && <HelpButton />}
-      {contentState.bannerSupport && <ProBanner />}
     </div>
   );
 };

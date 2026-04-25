@@ -310,7 +310,7 @@ const ContentState = (props) => {
       const handleStatus = (status) => {
         if (!status || done) return;
         if (DEBUG_POSTSTOP)
-          console.debug("[Screenity][Sandbox] waitForFinalizeReady status", {
+          console.debug("[AISR][Sandbox] waitForFinalizeReady status", {
             status,
           });
         const rawPct = typeof status.percent === "number" ? status.percent : 0;
@@ -398,12 +398,12 @@ const ContentState = (props) => {
     await chunksStore.ready();
     if (DEBUG_POSTSTOP)
       console.debug(
-        "[Screenity][Sandbox] buildBlobFromChunks: chunksStore ready, iterating",
+        "[AISR][Sandbox] buildBlobFromChunks: chunksStore ready, iterating",
       );
 
     await chunksStore.iterate((value) => (items.push(value), undefined));
     if (DEBUG_POSTSTOP)
-      console.debug("[Screenity][Sandbox] buildBlobFromChunks: items loaded", {
+      console.debug("[AISR][Sandbox] buildBlobFromChunks: items loaded", {
         count: items.length,
       });
 
@@ -416,7 +416,7 @@ const ContentState = (props) => {
       debug("No chunks found in IndexedDB");
       if (DEBUG_POSTSTOP)
         console.warn(
-          "[Screenity][Sandbox] buildBlobFromChunks: no parts found in IndexedDB",
+          "[AISR][Sandbox] buildBlobFromChunks: no parts found in IndexedDB",
         );
       debugRecordingEventWithSession(recdbgSessionRef.current, "blob-empty", {
         chunkCount: 0,
@@ -430,7 +430,7 @@ const ContentState = (props) => {
     const blob = new Blob(parts, { type: inferredType });
     if (DEBUG_POSTSTOP)
       console.debug(
-        "[Screenity][Sandbox] buildBlobFromChunks: reconstructed blob",
+        "[AISR][Sandbox] buildBlobFromChunks: reconstructed blob",
         {
           size: blob.size,
           type: blob.type,
@@ -466,7 +466,7 @@ const ContentState = (props) => {
         minute: "2-digit",
         hour12: true,
       });
-      const fallbackTitle = `Screenity video - ${formattedDate}`;
+      const fallbackTitle = `AI Screen Recorder video - ${formattedDate}`;
 
       try {
         const { recordingMeta } = await chrome.storage.local.get([
@@ -638,7 +638,7 @@ const ContentState = (props) => {
             inferredType = "video/mp4";
           }
           if (DEBUG_RECORDER)
-            console.log("[Screenity][Sandbox] reconstructVideo inferred type", {
+            console.log("[AISR][Sandbox] reconstructVideo inferred type", {
               magic,
               inferredType,
               chunkCount: videoChunks.current.length,
@@ -646,7 +646,7 @@ const ContentState = (props) => {
             });
         }
       } catch (e) {
-        console.warn("[Screenity][Sandbox] reconstructVideo type sniff failed", e);
+        console.warn("[AISR][Sandbox] reconstructVideo type sniff failed", e);
       }
     }
 
@@ -682,7 +682,7 @@ const ContentState = (props) => {
     });
     if (blob.type === "video/mp4") {
       if (DEBUG_RECORDER)
-        console.log("[Screenity][Sandbox] reconstructVideo: fast MP4 path taken", {
+        console.log("[AISR][Sandbox] reconstructVideo: fast MP4 path taken", {
           size: blob.size,
         });
       //const TOO_BIG_BYTES = 200 * 1024 * 1024;
@@ -773,7 +773,7 @@ const ContentState = (props) => {
     // If recordingDuration is missing or 0, try to probe it from the blob
     if (!recordingDuration || recordingDuration <= 0) {
       console.warn(
-        "[Screenity][WebM] recordingDuration missing or 0, probing from blob",
+        "[AISR][WebM] recordingDuration missing or 0, probing from blob",
       );
       try {
         const probeDuration = await new Promise((resolve) => {
@@ -804,7 +804,7 @@ const ContentState = (props) => {
           recordingDuration = probeDuration;
         }
       } catch (err) {
-        console.warn("[Screenity][WebM] blob duration probe failed:", err);
+        console.warn("[AISR][WebM] blob duration probe failed:", err);
       }
     }
 
@@ -901,7 +901,7 @@ const ContentState = (props) => {
       } else {
         // Duration unknown — skip fixing, use raw blob as-is
         console.warn(
-          "[Screenity][WebM] skipping duration fix: safeDuration=0, blob will have broken seek metadata",
+          "[AISR][WebM] skipping duration fix: safeDuration=0, blob will have broken seek metadata",
         );
         // Skip conversion only if Chrome is outdated or recording exceeds edit limit
         if (
@@ -934,7 +934,7 @@ const ContentState = (props) => {
       }
     } catch (error) {
       console.error(
-        "[Screenity][WebM] duration fix failed, using unfixed blob:",
+        "[AISR][WebM] duration fix failed, using unfixed blob:",
         error,
       );
       setContentState((prevState) => ({
@@ -953,7 +953,7 @@ const ContentState = (props) => {
         const s = contentStateRef.current;
         if (s?.ready) return;
         console.warn(
-          "[Screenity][WebM] reconstructVideo(blob) safety timeout: forcing ready with raw blob",
+          "[AISR][WebM] reconstructVideo(blob) safety timeout: forcing ready with raw blob",
         );
         setContentState((prev) => {
           if (prev.ready) return prev;
@@ -1008,7 +1008,7 @@ const ContentState = (props) => {
 
   const handleBatch = (chunks, sendResponse) => {
     if (DEBUG_POSTSTOP)
-      console.debug("[Screenity][Sandbox] handleBatch called", {
+      console.debug("[AISR][Sandbox] handleBatch called", {
         chunksLen: chunks?.length,
       });
     // Process chunks asynchronously, but do not make this function async
@@ -1029,7 +1029,7 @@ const ContentState = (props) => {
                 : videoChunks.current.length;
             const alreadyFilled = videoChunks.current[idx] != null;
             if (DEBUG_POSTSTOP)
-              console.debug("[Screenity][Sandbox] handleBatch slot", {
+              console.debug("[AISR][Sandbox] handleBatch slot", {
                 index: idx,
                 size: chunkData?.size || chunkData?.length || null,
                 duplicate: alreadyFilled,
@@ -1079,7 +1079,7 @@ const ContentState = (props) => {
     if (makeVideoCheck.current) return;
     makeVideoCheck.current = true;
     if (DEBUG_POSTSTOP)
-      console.debug("[Screenity][Sandbox] makeVideoTab invoked", {
+      console.debug("[AISR][Sandbox] makeVideoTab invoked", {
         override: message?.override,
       });
     setContentState((prevState) => ({
@@ -1095,7 +1095,7 @@ const ContentState = (props) => {
     const safetyCheck = () => {
       const s = contentStateRef.current;
       if (DEBUG_POSTSTOP)
-        console.debug("[Screenity][Sandbox] makeVideoTab: safety-check", {
+        console.debug("[AISR][Sandbox] makeVideoTab: safety-check", {
           chunkCount: s?.chunkCount,
           chunkIndex: s?.chunkIndex,
           rawBlob: Boolean(s?.rawBlob),
@@ -1121,7 +1121,7 @@ const ContentState = (props) => {
         if (s?.webm) {
           if (DEBUG_RECORDER)
             console.log(
-              "[Screenity][WebM] safety timeout: webm already set by fix, marking ready",
+              "[AISR][WebM] safety timeout: webm already set by fix, marking ready",
             );
           setContentState((prev) => ({
             ...prev,
@@ -1131,7 +1131,7 @@ const ContentState = (props) => {
           }));
         } else {
           console.warn(
-            "[Screenity][WebM] safety timeout: duration fix did not complete in time, using unfixed rawBlob",
+            "[AISR][WebM] safety timeout: duration fix did not complete in time, using unfixed rawBlob",
           );
           setContentState((prev) => ({
             ...prev,
@@ -1153,7 +1153,7 @@ const ContentState = (props) => {
     setTimeout(() => {
       if (!contentStateRef.current?.ready) {
         console.warn(
-          "[Screenity][WebM] 60s safety timeout: force-marking ready",
+          "[AISR][WebM] 60s safety timeout: force-marking ready",
         );
         safetyCheck();
       }
@@ -1177,7 +1177,7 @@ const ContentState = (props) => {
     (request, sender, sendResponse) => {
       const message = request;
       if (DEBUG_POSTSTOP)
-        console.debug("[Screenity][Sandbox] onChromeMessage", {
+        console.debug("[AISR][Sandbox] onChromeMessage", {
           type: message?.type,
           senderTab: sender?.tab?.id,
         });
@@ -1190,7 +1190,7 @@ const ContentState = (props) => {
       }
       if (message.type === "chunk-count") {
         if (DEBUG_POSTSTOP)
-          console.debug("[Screenity][Sandbox] received chunk-count", {
+          console.debug("[AISR][Sandbox] received chunk-count", {
             count: message.count,
           });
         diagForward("sandbox-chunk-count-received", {
@@ -1205,13 +1205,13 @@ const ContentState = (props) => {
         sendResponse({ status: "ready" });
       } else if (message.type === "new-chunk-tab") {
         if (DEBUG_POSTSTOP)
-          console.debug("[Screenity][Sandbox] received new-chunk-tab", {
+          console.debug("[AISR][Sandbox] received new-chunk-tab", {
             chunksLen: message?.chunks?.length,
           });
         return handleBatch(message.chunks, sendResponse);
       } else if (message.type === "make-video-tab") {
         if (DEBUG_POSTSTOP)
-          console.debug("[Screenity][Sandbox] received make-video-tab");
+          console.debug("[AISR][Sandbox] received make-video-tab");
         diagMakeVideoAtRef.current = Date.now();
         diagForward("sandbox-make-video-tab", null);
         makeVideoTab(sendResponse, message);
@@ -1454,7 +1454,7 @@ const ContentState = (props) => {
         const key = `chunks_ready_for:${tabId}`;
         if (changes[key]) {
           if (DEBUG_POSTSTOP)
-            console.debug("[Screenity][Sandbox] storage fallback triggered", {
+            console.debug("[AISR][Sandbox] storage fallback triggered", {
               key,
             });
           // Ensure IndexedDB is available in this frame before attempting
@@ -1463,7 +1463,7 @@ const ContentState = (props) => {
           if (!window.indexedDB) {
             if (DEBUG_POSTSTOP)
               console.warn(
-                "[Screenity][Sandbox] storage fallback: no indexedDB in this context, skipping",
+                "[AISR][Sandbox] storage fallback: no indexedDB in this context, skipping",
               );
             return;
           }
@@ -1474,13 +1474,13 @@ const ContentState = (props) => {
               if (!blob) {
                 if (DEBUG_POSTSTOP)
                   console.warn(
-                    "[Screenity][Sandbox] storage fallback: no blob built",
+                    "[AISR][Sandbox] storage fallback: no blob built",
                   );
                 return;
               }
               if (DEBUG_POSTSTOP)
                 console.debug(
-                  "[Screenity][Sandbox] storage fallback: blob built",
+                  "[AISR][Sandbox] storage fallback: blob built",
                   {
                     size: blob.size,
                   },
@@ -1489,14 +1489,14 @@ const ContentState = (props) => {
             .catch((err) => {
               if (DEBUG_POSTSTOP)
                 console.warn(
-                  "[Screenity][Sandbox] storage fallback build error",
+                  "[AISR][Sandbox] storage fallback build error",
                   err,
                 );
             });
         }
       } catch (err) {
         if (DEBUG_POSTSTOP)
-          console.warn("[Screenity][Sandbox] storageListener error", err);
+          console.warn("[AISR][Sandbox] storageListener error", err);
       }
     };
 
@@ -1509,7 +1509,7 @@ const ContentState = (props) => {
       storageListenerAttached = true;
     } else if (DEBUG_POSTSTOP) {
       console.debug(
-        "[Screenity][Sandbox] running inside an iframe; skipping storage fallback listener",
+        "[AISR][Sandbox] running inside an iframe; skipping storage fallback listener",
       );
     }
 
@@ -1654,7 +1654,7 @@ const ContentState = (props) => {
         ffmpegLoaded: true,
         isFfmpegRunning: false,
       }));
-      console.log("[Screenity][Editor] recording-complete sent from ffmpeg-load-error fallback");
+      console.log("[AISR][Editor] recording-complete sent from ffmpeg-load-error fallback");
       chrome.runtime.sendMessage({ type: "recording-complete" });
 
       // if (!navigator.onLine) {
@@ -1845,7 +1845,7 @@ const ContentState = (props) => {
             : {}),
         };
       });
-      console.log("[Screenity][Editor] recording-complete sent from ffmpeg-load-timeout fallback");
+      console.log("[AISR][Editor] recording-complete sent from ffmpeg-load-timeout fallback");
       chrome.runtime.sendMessage({ type: "recording-complete" });
     }, 30000);
 
@@ -2056,14 +2056,14 @@ const ContentState = (props) => {
     out = out.replace(/\s+/g, " ").trim();
     out = out.replace(/[. ]+$/g, "");
 
-    if (!out) out = "Screenity recording";
+    if (!out) out = "AI Screen Recording";
     if (out.length > maxLen) out = out.slice(0, maxLen).trim();
 
     return out;
   };
 
   const requestDownload = async (url, ext) => {
-    const rawTitle = contentStateRef.current.title || "Screenity recording";
+    const rawTitle = contentStateRef.current.title || "AI Screen Recording";
 
     const base = sanitizeDownloadFilename(rawTitle);
     const filename = `${base}${ext}`;

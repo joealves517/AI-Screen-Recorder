@@ -9,7 +9,7 @@ export const discardOffscreenDocuments = async ({
   reason = "discard",
   flush = true,
 } = {}) => {
-  console.warn("[Screenity][discardOffscreenDocuments]", { reason, flush, stack: new Error().stack });
+  console.warn("[AISR][discardOffscreenDocuments]", { reason, flush, stack: new Error().stack });
   try {
     if (flush) {
       await closeOffscreenDocumentWithFlush({ reason });

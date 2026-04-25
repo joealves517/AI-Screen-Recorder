@@ -76,7 +76,7 @@ export const loginWithWebsite = async () => {
   }
 
   try {
-    const response = await fetch(`${API_BASE}/auth/verify`, {
+    const response = await fetch(`${API_BASE}/api/user`, {
       headers: {
         Authorization: `Bearer ${screenityToken}`,
       },
@@ -88,8 +88,17 @@ export const loginWithWebsite = async () => {
     }
 
     const responseData = await response.json();
-    const { subscribed, subscription, hasSubscribedBefore, ...user } =
-      responseData;
+
+    // Map /api/user response to expected shape
+    const user = {
+      id: responseData.userId,
+      email: responseData.email,
+      name: responseData.displayName,
+      avatar: responseData.picture,
+    };
+    const subscribed = responseData.tier === "premium";
+    const subscription = responseData.subscription || null;
+    const hasSubscribedBefore = subscribed;
 
     await chrome.storage.local.set({
       screenityUser: user,
@@ -138,13 +147,9 @@ export const loginWithWebsite = async () => {
   } catch (err) {
     if (isTokenInvalid) {
       try {
-        const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
-          credentials: "include",
-        });
-        if (refreshRes.ok) {
-          const { token: newToken } = await refreshRes.json();
-          await chrome.storage.local.set({ screenityToken: newToken });
-
+        const { refreshSupabaseToken } = await import("./supabaseAuth");
+        const newToken = await refreshSupabaseToken();
+        if (newToken) {
           return await loginWithWebsite();
         }
       } catch (refreshErr) {

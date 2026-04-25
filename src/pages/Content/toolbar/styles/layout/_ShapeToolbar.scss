@@ -14,9 +14,10 @@
 	transform-origin: 0 100%;
 	border-radius: 15px;
 	z-index: 99999999;
-	transition: transform 0.25s cubic-bezier(.61,.11,.08,.96), opacity 0.25s cubic-bezier(.61,.11,.08,.96);
+	transition: transform 0.25s cubic-bezier(.61,.11,.08,.96), opacity 0.25s cubic-bezier(.61,.11,.08,.96), visibility 0s linear 0.25s;
 	transform: scale(0.5) translatY(calc(-50% + 16px), 10px);
 	pointer-events: none;
+	visibility: hidden;
 
 	&::after {
 		content: '';
@@ -36,5 +37,7 @@
 .shapeToolbar.show-toolbar {
 	opacity: 1!important;
 	pointer-events: all!important;
+	visibility: visible!important;
 	transform: scale(1) translateY(calc(-50% + 16px), 0px)!important;
+	transition: transform 0.25s cubic-bezier(.61,.11,.08,.96), opacity 0.25s cubic-bezier(.61,.11,.08,.96), visibility 0s linear 0s!important;
 }

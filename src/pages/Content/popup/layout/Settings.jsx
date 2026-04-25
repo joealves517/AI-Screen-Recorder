@@ -31,61 +31,49 @@ const Settings = () => {
   useEffect(() => {
     setContentState((prevContentState) => ({
       ...prevContentState,
-      settingsOpen: open,
+      settingsOpen: true, // Always open now
     }));
-  }, [open]);
+  }, []);
 
   return (
-    <Collapsible.Root
-      className="CollapsibleRoot"
-      open={open}
-      onOpenChange={setOpen}
-    >
-      <Collapsible.Trigger className="CollapsibleTrigger">
-        <div className="CollapsibleLabel">
-          ✨ {chrome.i18n.getMessage("showMoreOptionsLabel")}{" "}
-          <img src={DropdownIcon} />
-        </div>
-      </Collapsible.Trigger>
-      <Collapsible.Content>
-        <Switch
-          label={chrome.i18n.getMessage("hideToolbarLabel")}
-          name="hideUI"
-          value="hideUI"
-          anchorId="pro-onboarding-toolbar-toggle"
-        />
-        <Switch
-          label={chrome.i18n.getMessage("countdownLabel")}
-          name="countdown"
-          value="countdown"
-        />
-        <Switch
-          label={chrome.i18n.getMessage("alarmLabel")}
-          name="alarm"
-          value="alarm"
-        />
-        {contentState.alarm && <TimeSetter />}
-        <Switch
-          label={chrome.i18n.getMessage("micReminderPopup")}
-          name="askMicrophone"
-          value="askMicrophone"
-        />
-        {contentState.recordingType != "camera" &&
-          !contentState.isSubscribed && (
-            <Switch
-              label={
-                chrome.i18n.getMessage("zoomToPointPopup") +
-                " (" +
-                shortcut +
-                ")"
-              }
-              name="zoomEnabled"
-              value="zoomEnabled"
-              experimental={true}
-            />
-          )}
-      </Collapsible.Content>
-    </Collapsible.Root>
+    <div className="SettingsRoot" style={{ marginTop: "16px" }}>
+      <Switch
+        label={chrome.i18n.getMessage("hideToolbarLabel")}
+        name="hideUI"
+        value="hideUI"
+        anchorId="pro-onboarding-toolbar-toggle"
+      />
+      <Switch
+        label={chrome.i18n.getMessage("countdownLabel")}
+        name="countdown"
+        value="countdown"
+      />
+      <Switch
+        label={chrome.i18n.getMessage("alarmLabel")}
+        name="alarm"
+        value="alarm"
+      />
+      {contentState.alarm && <TimeSetter />}
+      <Switch
+        label={chrome.i18n.getMessage("micReminderPopup")}
+        name="askMicrophone"
+        value="askMicrophone"
+      />
+      {contentState.recordingType != "camera" &&
+        !contentState.isSubscribed && (
+          <Switch
+            label={
+              chrome.i18n.getMessage("zoomToPointPopup") +
+              " (" +
+              shortcut +
+              ")"
+            }
+            name="zoomEnabled"
+            value="zoomEnabled"
+            experimental={true}
+          />
+        )}
+    </div>
   );
 };
 

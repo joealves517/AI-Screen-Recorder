@@ -25,7 +25,7 @@
   border-radius: $container-border-radius;
   box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
     hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
-  padding: 14px 20px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: row;
   justify-content: center;
@@ -36,15 +36,24 @@
   overflow: hidden;
   align-items: center;
   text-align: left;
-  align-items: flex-start;
 }
 .warning-content {
   display: flex;
   flex-direction: column;
-  justify-content: left;
+  justify-content: center;
   align-items: flex-start;
   gap: 8px;
   width: 100%;
+}
+.warning-icon, .warning-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  & > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 .warning-root[data-state="open"] {
   animation: slideIn2 150ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -93,7 +102,11 @@
 .warning-title {
   color: $color-text-contrast;
   font-family: $font-medium;
-  line-height: 1.4;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
 }
 
 .warning-description {

@@ -48,7 +48,6 @@ const entryPoints = {
   waveform: path.join(__dirname, "src", "pages", "Waveform", "index.jsx"),
   sandbox: path.join(__dirname, "src", "pages", "Sandbox", "index.jsx"),
   permissions: path.join(__dirname, "src", "pages", "Permissions", "index.jsx"),
-  setup: path.join(__dirname, "src", "pages", "Setup", "index.jsx"),
   playground: path.join(__dirname, "src", "pages", "Playground", "index.jsx"),
   editor: path.join(__dirname, "src", "pages", "Editor", "index.jsx"),
   region: path.join(__dirname, "src", "pages", "Region", "index.jsx"),
@@ -105,17 +104,8 @@ const htmlPlugins = Object.keys(entryPoints)
       cache: true,
     };
 
-    // Add favicon only for backup page
-    if (entryName === "backup") {
-      options.favicon = path.join(
-        __dirname,
-        "src",
-        "assets",
-        "backup-favicon.ico"
-      );
-    } else {
-      options.favicon = path.join(__dirname, "src", "assets", "favicon.png");
-    }
+    // Use the 48px icon as favicon for all extension pages
+    options.favicon = path.join(__dirname, "src", "assets", "img", "icon-48.png");
 
     return new HtmlWebpackPlugin(options);
   })

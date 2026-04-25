@@ -93,7 +93,7 @@ const Download = () => {
           const url = URL.createObjectURL(blob);
           await chrome.downloads.download({
             url,
-            filename: `Screenity-Recovery-${label}-${ts}.webm`,
+            filename: `AIScreenRecorder-Recovery-${label}-${ts}.webm`,
             saveAs: false,
           });
           URL.revokeObjectURL(url);

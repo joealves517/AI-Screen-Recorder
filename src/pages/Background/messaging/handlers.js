@@ -14,7 +14,6 @@ import {
 } from "../recording/stopRecording";
 import { sendChunks } from "../recording/sendChunks";
 import { chunksStore } from "../recording/chunkHandler";
-import { handleSaveToDrive } from "../drive/handleSaveToDrive";
 import { addAlarmListener } from "../alarms/addAlarmListener";
 import { cancelRecording, handleDismiss } from "../recording/cancelRecording";
 import { handleDismissRecordingTab } from "../recording/discardRecording";
@@ -65,8 +64,8 @@ import {
 } from "../recording/recordingHelpers";
 import { newChunk, clearAllRecordings } from "../recording/chunkHandler";
 import { setMicActiveTab } from "../tabManagement/tabHelpers";
-import { handleSignOutDrive } from "../drive/handleSignOutDrive";
 import { loginWithWebsite } from "../auth/loginWithWebsite";
+import { supabaseGoogleLogin } from "../auth/supabaseAuth";
 import {
   getDiagnosticLog,
   getErrorSnapshot,
@@ -147,7 +146,7 @@ const scheduleLocalPlaybackAlarm = async (offer) => {
       when: Number(offer.expiresAt),
     });
   } catch (err) {
-    console.warn("[Screenity][BG] Failed to schedule local playback alarm", err);
+    console.warn("[AISR][BG] Failed to schedule local playback alarm", err);
   }
 };
 
@@ -174,7 +173,7 @@ const clearStoredLocalPlaybackOffer = async ({
   if (clearChunks) {
     await chunksStore.clear().catch((err) => {
       console.warn(
-        "[Screenity][BG] Failed to clear chunksStore while clearing local playback offer",
+        "[AISR][BG] Failed to clear chunksStore while clearing local playback offer",
         err,
       );
     });
@@ -191,7 +190,7 @@ const clearStoredLocalPlaybackOffer = async ({
   });
 
   if (existing?.offerId) {
-    console.info("[Screenity][BG] Cleared local screen playback offer", {
+    console.info("[AISR][BG] Cleared local screen playback offer", {
       reason,
       offerId: existing.offerId,
       clearChunks: Boolean(clearChunks),
@@ -255,7 +254,7 @@ const logStopRecordingTabEvent = (message, sender) => {
     const senderTabId = message?.tabId || sender?.tab?.id || null;
     const senderUrl = sender?.url || null;
     const stack = new Error().stack;
-    console.warn("[Screenity][BG] stop-recording-tab received", {
+    console.warn("[AISR][BG] stop-recording-tab received", {
       reason,
       senderTabId,
       senderUrl,
@@ -270,7 +269,7 @@ const logStopRecordingTabEvent = (message, sender) => {
       },
     });
   } catch (err) {
-    console.warn("[Screenity][BG] stop-recording-tab logging failed", err);
+    console.warn("[AISR][BG] stop-recording-tab logging failed", err);
   }
 };
 
@@ -496,13 +495,13 @@ const handleFinishMultiRecording = async () => {
           projectId: projectId || null,
         }).catch((err) =>
           console.warn(
-            "[Screenity][BG] Failed to send update-project-ready (finish-multi-recording)",
+            "[AISR][BG] Failed to send update-project-ready (finish-multi-recording)",
             err,
           ),
         );
       } else {
         console.warn(
-          "[Screenity][BG] No tab available for update-project-ready (finish-multi-recording)",
+          "[AISR][BG] No tab available for update-project-ready (finish-multi-recording)",
           { projectId, instantMode: Boolean(instantMode) },
         );
       }
@@ -671,7 +670,7 @@ const resolveActiveSessionConflict = async (incomingSession) => {
 
   const alive = await isActiveSessionAlive(activeRecordingSession);
   if (alive) {
-    console.warn("[Screenity][BG] session_conflict_rejected", {
+    console.warn("[AISR][BG] session_conflict_rejected", {
       activeId: activeRecordingSession.id,
       incomingId: incomingSession.id,
       activeRecorderTabId:
@@ -683,7 +682,7 @@ const resolveActiveSessionConflict = async (incomingSession) => {
   await clearRecordingSessionSafe("stale-conflict-recovered", {
     incomingId: incomingSession.id,
   });
-  console.warn("[Screenity][BG] session_conflict_stale_recovered", {
+  console.warn("[AISR][BG] session_conflict_stale_recovered", {
     incomingId: incomingSession.id,
   });
   return { allow: true, staleRecovered: true };
@@ -755,7 +754,7 @@ export const setupHandlers = () => {
     }
   });
   registerMessage("offscreen-diag", async (message) => {
-    console.warn("[Screenity][OffscreenDiag]", message.source, message.payload);
+    console.warn("[AISR][OffscreenDiag]", message.source, message.payload);
     return { ok: true };
   });
   registerMessage("offscreen-ready", async () => {
@@ -764,7 +763,7 @@ export const setupHandlers = () => {
     ]);
     if (!pendingOffscreenLoad) return { ok: true, delivered: false };
     await chrome.storage.local.set({ pendingOffscreenLoad: null });
-    chrome.runtime.sendMessage(pendingOffscreenLoad).catch(() => {});
+    chrome.runtime.sendMessage(pendingOffscreenLoad).catch(() => {}).catch(() => {});
     return { ok: true, delivered: true };
   });
   registerMessage("offscreen-request-stream", async (message, sender) => {
@@ -905,7 +904,7 @@ export const setupHandlers = () => {
   registerMessage("restarted", (message) => restartActiveTab(message));
   const sendChunksToSandbox = async (sender) => {
     if (DEBUG_POSTSTOP)
-      console.debug("[Screenity][BG] sendChunksToSandbox invoked", {
+      console.debug("[AISR][BG] sendChunksToSandbox invoked", {
         senderTab: sender?.tab?.id,
       });
 
@@ -914,7 +913,7 @@ export const setupHandlers = () => {
     const targetTab = sandboxTab || sender?.tab?.id || null;
     if (!targetTab) {
       if (DEBUG_POSTSTOP)
-        console.warn("[Screenity][BG] no targetTab for sendChunksToSandbox");
+        console.warn("[AISR][BG] no targetTab for sendChunksToSandbox");
       throw new Error("no-sandbox-tab");
     }
 
@@ -935,7 +934,7 @@ export const setupHandlers = () => {
       // eslint-disable-next-line no-await-in-loop
       pingOk = await pingReady();
       if (DEBUG_POSTSTOP)
-        console.debug("[Screenity][BG] ping attempt", { attempt, pingOk });
+        console.debug("[AISR][BG] ping attempt", { attempt, pingOk });
       if (pingOk) break;
       // eslint-disable-next-line no-await-in-loop
       await new Promise((r) => setTimeout(r, 200));
@@ -944,7 +943,7 @@ export const setupHandlers = () => {
     if (!pingOk) {
       if (DEBUG_POSTSTOP)
         console.warn(
-          "[Screenity][BG] sandbox not ready after pings, proceeding anyway",
+          "[AISR][BG] sandbox not ready after pings, proceeding anyway",
           { targetTab },
         );
       // Proceed even if ping failed — runtime message ports can be unreliable
@@ -960,7 +959,7 @@ export const setupHandlers = () => {
         chunkCount += 1;
       });
       if (DEBUG_POSTSTOP)
-        console.debug("[Screenity][BG] checking chunks in IndexedDB", {
+        console.debug("[AISR][BG] checking chunks in IndexedDB", {
           attempt,
           chunkCount,
         });
@@ -976,7 +975,7 @@ export const setupHandlers = () => {
       deliveryAttempt += 1
     ) {
       if (DEBUG_POSTSTOP)
-        console.debug("[Screenity][BG] calling sendChunks() to deliver", {
+        console.debug("[AISR][BG] calling sendChunks() to deliver", {
           targetTab,
           chunkCount,
           deliveryAttempt,
@@ -988,7 +987,7 @@ export const setupHandlers = () => {
       });
       if (result?.status === "ok") {
         if (DEBUG_POSTSTOP)
-          console.debug("[Screenity][BG] sendChunks() completed", result);
+          console.debug("[AISR][BG] sendChunks() completed", result);
         return { status: "ok", chunkCount: result.chunkCount };
       }
       // eslint-disable-next-line no-await-in-loop
@@ -996,7 +995,7 @@ export const setupHandlers = () => {
     }
 
     if (DEBUG_POSTSTOP)
-      console.warn("[Screenity][BG] sendChunks() did not find chunks", {
+      console.warn("[AISR][BG] sendChunks() did not find chunks", {
         targetTab,
         result,
       });
@@ -1026,7 +1025,7 @@ export const setupHandlers = () => {
     ) {
       if (DEBUG_POSTSTOP) {
         console.warn(
-          "[Screenity][BG] Suppressed duplicate stop-recording-tab message",
+          "[AISR][BG] Suppressed duplicate stop-recording-tab message",
           {
             inFlight: stopRecordingTabInFlight,
             deltaMs: now - stopRecordingTabLastAt,
@@ -1130,46 +1129,38 @@ export const setupHandlers = () => {
     });
   });
 
-  registerMessage("review-screenity", () =>
-    createTab(
-      "https://chrome.google.com/webstore/detail/screenity-screen-recorder/kbbdabhdfibnancpjfhlkhafgdilcnji/reviews",
-      false,
-      true,
-    ),
-  );
-  registerMessage("follow-twitter", () =>
-    createTab("https://alyssax.substack.com/", false, true),
-  );
+  registerMessage("review-screenity", () => {});
+  registerMessage("follow-twitter", () => {});
   registerMessage("pricing", () =>
-    createTab("https://screenity.io/pro", false, true),
+    createTab("https://graphosai.lemonsqueezy.com/checkout/buy/2a8c453e-7b12-4743-bf50-8571c9cfae30", false, true),
   );
   registerMessage("open-processing-info", () =>
     createTab(
-      "https://help.screenity.io/editing-and-exporting/dJRFpGq56JFKC7k8zEvsqb/why-is-there-a-5-minute-limit-for-editing/ddy4e4TpbnrFJ8VoRT37tQ",
+      "https://graphosai.lemonsqueezy.com/checkout/buy/2a8c453e-7b12-4743-bf50-8571c9cfae30",
       true,
       true,
     ),
   );
   registerMessage("upgrade-info", () =>
     createTab(
-      "https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screenity/6kdB6qru6naVD8ZLFvX3m9",
+      "https://graphosai.lemonsqueezy.com/checkout/buy/2a8c453e-7b12-4743-bf50-8571c9cfae30",
       true,
       true,
     ),
   );
   registerMessage("trim-info", () =>
     createTab(
-      "https://help.screenity.io/editing-and-exporting/dJRFpGq56JFKC7k8zEvsqb/how-to-cut-trim-or-mute-parts-of-your-video/svNbM7YHYY717MuSWXrKXH",
+      "",
       true,
       true,
     ),
   );
   registerMessage("join-waitlist", () =>
-    createTab("https://tally.so/r/npojNV", true, true),
+    createTab("", true, true),
   );
   registerMessage("chrome-update-info", () =>
     createTab(
-      "https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screenity/6kdB6qru6naVD8ZLFvX3m9",
+      "",
       true,
       true,
     ),
@@ -1177,27 +1168,20 @@ export const setupHandlers = () => {
   registerMessage("set-surface", (message) => setSurface(message));
   registerMessage("pip-ended", () => handlePip(false));
   registerMessage("pip-started", () => handlePip(true));
-  registerMessage("sign-out-drive", (message) => handleSignOutDrive(message));
   registerMessage("open-help", () =>
-    createTab("https://help.screenity.io/", true, true),
+    createTab("", true, true),
   );
   registerMessage("memory-limit-help", () =>
     createTab(
-      "https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/what-does-%E2%80%9Cmemory-limit-reached%E2%80%9D-mean-when-recording/8WkwHbt3puuXunYqQnyPcb",
+      "",
       true,
       true,
     ),
   );
   registerMessage("open-home", () =>
-    createTab("https://screenity.io/", false, true),
+    createTab("", false, true),
   );
-  registerMessage("report-bug", async () => {
-    const qs = await supportContextQuery({
-      includeRecordingState: true,
-      source: "settings",
-    });
-    createTab(`https://tally.so/r/3ElpXq?${qs}`, false, true);
-  });
+  registerMessage("report-bug", async () => {});
   registerMessage("report-error", async (message) => {
     const errorCode = message?.errorCode || null;
     const errorWhy = message?.errorWhy || null;
@@ -1224,11 +1208,7 @@ export const setupHandlers = () => {
       user: isLoggedIn ? { name: user.name, email: user.email } : undefined,
     });
 
-    if (isLoggedIn) {
-      createTab(`https://tally.so/r/310MNg?extension=true&${qs}`, false, true);
-    } else {
-      createTab(`https://tally.so/r/3ElpXq?feedbackType=Bug&${qs}`, false, true);
-    }
+    // No external feedback form configured
   });
   registerMessage("clear-recordings", () => clearAllRecordings());
   registerMessage("force-processing", (message) => forceProcessing(message));
@@ -1345,14 +1325,6 @@ export const setupHandlers = () => {
     setTabAutoDiscardableSafe(message, sender),
   );
 
-  registerMessage(
-    "save-to-drive",
-    async (message) => await handleSaveToDrive(message, false),
-  );
-  registerMessage(
-    "save-to-drive-fallback",
-    async (message) => await handleSaveToDrive(message, true),
-  );
   registerMessage("request-download", (message) =>
     requestDownload(message.base64, message.title),
   );
@@ -1415,15 +1387,22 @@ export const setupHandlers = () => {
     // User is explicitly initiating login — clear the stay-logged-out flag.
     await chrome.storage.local.set({ stayLoggedOut: false });
 
-    const currentTab = await getCurrentTab();
+    // Remember the active tab before OAuth popup opens
+    const originTab = await getCurrentTab();
 
-    if (currentTab?.id) {
-      await chrome.storage.local.set({ originalTabId: currentTab.id });
+    try {
+      const result = await supabaseGoogleLogin();
+
+      if (result.success && originTab?.id) {
+        // Refocus the original tab (in case user landed on playground.html)
+        try { chrome.tabs.update(originTab.id, { active: true }); } catch {}
+
+        // Notify the content script to refresh auth state and reopen popup
+        sendMessageTab(originTab.id, { type: "check-auth" }).catch(() => {});
+      }
+    } catch (err) {
+      console.error("[Auth] Supabase login failed:", err.message);
     }
-    chrome.tabs.create({
-      url: `${process.env.SCREENITY_APP_BASE}/login?extension=true`,
-      active: true,
-    });
   });
   registerMessage("handle-logout", async (message, sender, sendResponse) => {
     if (!CLOUD_FEATURES_ENABLED) {
@@ -1439,11 +1418,10 @@ export const setupHandlers = () => {
       "proSubscription",
     ]);
 
-    // Preserve a post-logout marker so popup can render the LoggedOut state.
-    // stayLoggedOut blocks auto-login until the user explicitly clicks "Log in".
+    // Clean logout — go straight back to guest view, no interstitial.
     await chrome.storage.local.set({
       isLoggedIn: false,
-      wasLoggedIn: true,
+      wasLoggedIn: false,
       stayLoggedOut: true,
       isSubscribed: false,
       proSubscription: null,
@@ -1665,7 +1643,7 @@ export const setupHandlers = () => {
       },
     });
 
-    console.info("[Screenity][BG] prepare-open-editor", {
+    console.info("[AISR][BG] prepare-open-editor", {
       projectId: expectedProjectId,
       targetUrl,
       instantMode: Boolean(message.instantMode),
@@ -1679,7 +1657,7 @@ export const setupHandlers = () => {
       expectedKind,
       reason: "prepare-open-editor",
     });
-    console.info("[Screenity][BG] prepare-open-editor resolved", {
+    console.info("[AISR][BG] prepare-open-editor resolved", {
       tabId: resolved.tabId || null,
       reused: Boolean(resolved.reused),
       opened: Boolean(resolved.opened),
@@ -1719,7 +1697,7 @@ export const setupHandlers = () => {
         multiMode: message.multiMode,
       }).catch((err) =>
         console.warn(
-          "[Screenity][BG] Failed to send update-project-loading",
+          "[AISR][BG] Failed to send update-project-loading",
           err,
         ),
       );
@@ -1770,7 +1748,7 @@ export const setupHandlers = () => {
       })) ||
       null;
 
-    console.info("[Screenity][BG] editor-ready received", {
+    console.info("[AISR][BG] editor-ready received", {
       newProject: Boolean(message.newProject),
       multiMode: Boolean(message.multiMode),
       projectId,
@@ -1790,7 +1768,7 @@ export const setupHandlers = () => {
       });
       messageTab = resolved.tabId;
 
-      chrome.runtime.sendMessage({ type: "turn-off-pip" });
+      chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {});
 
       // Copy to clipboard immediately after focusTab, before the auto-publish
       // network request.  The auto-publish await can take hundreds of ms, during
@@ -1814,7 +1792,7 @@ export const setupHandlers = () => {
             },
           },
         ).catch((err) =>
-          console.warn("[Screenity][BG] Failed to auto-publish project", err),
+          console.warn("[AISR][BG] Failed to auto-publish project", err),
         );
       }
     } else if (message.multiMode) {
@@ -1828,7 +1806,7 @@ export const setupHandlers = () => {
       });
       messageTab = resolved.tabId;
 
-      chrome.runtime.sendMessage({ type: "turn-off-pip" });
+      chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {});
     }
 
     // Copy for the non-newProject paths (scene additions are excluded because
@@ -1862,7 +1840,7 @@ export const setupHandlers = () => {
               trackType: "screen",
             },
       }).catch((err) =>
-        console.warn("[Screenity][BG] Failed to send update-project-ready", err),
+        console.warn("[AISR][BG] Failed to send update-project-ready", err),
       );
     } else {
       console.warn("❗ No valid messageTab found in editor-ready");
@@ -1903,7 +1881,7 @@ export const setupHandlers = () => {
     });
     await scheduleLocalPlaybackAlarm(normalizedOffer);
 
-    console.info("[Screenity][BG] Registered local screen playback offer", {
+    console.info("[AISR][BG] Registered local screen playback offer", {
       offerId: normalizedOffer.offerId,
       projectId: normalizedOffer.projectId,
       sceneId: normalizedOffer.sceneId,
@@ -2005,7 +1983,7 @@ export const setupHandlers = () => {
         sceneId: updated.sceneId,
       },
     });
-    console.info("[Screenity][BG] Local screen playback offer marked used", {
+    console.info("[AISR][BG] Local screen playback offer marked used", {
       offerId: updated.offerId,
       projectId: updated.projectId,
       sceneId: updated.sceneId,
@@ -2037,7 +2015,7 @@ export const setupHandlers = () => {
         reason: updated.fallbackReason,
       },
     });
-    console.info("[Screenity][BG] Local screen playback offer fallback", {
+    console.info("[AISR][BG] Local screen playback offer fallback", {
       offerId: updated.offerId,
       reason: updated.fallbackReason,
     });
@@ -2103,7 +2081,7 @@ export const setupHandlers = () => {
       source: "settings",
       user: { name, email },
     });
-    const url = `https://tally.so/r/310MNg?extension=true&${qs}`;
+    const url = "";
     createTab(url, true, true);
   });
   registerMessage("check-banner-support", async (message, sendResponse) => {
@@ -2113,7 +2091,7 @@ export const setupHandlers = () => {
   });
   registerMessage("hide-banner", async () => {
     await chrome.storage.local.set({ bannerSupport: false });
-    chrome.runtime.sendMessage({ type: "hide-banner" });
+    chrome.runtime.sendMessage({ type: "hide-banner" }).catch(() => {});
   });
   registerMessage("clear-recording-alarm", async () => {
     await chrome.alarms.clear("recording-alarm");
@@ -2138,7 +2116,7 @@ export const setupHandlers = () => {
   registerMessage("play-beep", async (message, sender, sendResponse) => {
     const ok = await ensureAudioOffscreen();
     if (ok) {
-      chrome.runtime.sendMessage({ type: "play-beep-offscreen" });
+      chrome.runtime.sendMessage({ type: "play-beep-offscreen" }).catch(() => {});
     }
     if (sendResponse) sendResponse({ ok });
     return true;
@@ -2241,7 +2219,7 @@ export const setupHandlers = () => {
       try {
         await chrome.tabs.update(tabId, { active: true });
       } catch (err) {
-        console.warn("[Screenity] activate-recorder-tab failed:", String(err));
+        console.warn("[AISR] activate-recorder-tab failed:", String(err));
       }
     }
   });

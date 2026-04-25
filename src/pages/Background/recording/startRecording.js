@@ -4,6 +4,9 @@ import { initDiagSession, diagEvent } from "../../utils/diagnosticLog";
 import { makeRecordingAttemptId } from "../../utils/errorCodes";
 
 export const startRecording = async () => {
+  // Clear any existing AI data for the new recording
+  chrome.storage.local.remove(["aiCache"]);
+
   // Correlation ID for this recording attempt
   const recordingAttemptId = makeRecordingAttemptId();
   chrome.storage.local.set({
@@ -168,7 +171,7 @@ export const startAfterCountdown = () => {
     // let sendMessageRecord route via recorderSession/offscreen fallback.
     if (recordingTab === null && !offscreen) {
       console.warn(
-        "[Screenity] startAfterCountdown: no recordingTab/offscreen available, starting with fallback routing"
+        "[AISR] startAfterCountdown: no recordingTab/offscreen available, starting with fallback routing"
       );
     }
     startRecording();

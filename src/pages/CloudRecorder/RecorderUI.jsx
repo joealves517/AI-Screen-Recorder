@@ -17,7 +17,7 @@ const RecorderUI = ({
       <img
         className="logo"
         src={chrome.runtime.getURL("assets/logo-text.svg")}
-        alt="Screenity logo"
+        alt="AI Screen Recorder logo"
       />
       <div className="middle-area">
         <img

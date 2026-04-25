@@ -79,9 +79,11 @@ const Warning = () => {
         </div>
         <div className="warning-content">
           <ToastEl.Title className="warning-title">{title}</ToastEl.Title>
-          <ToastEl.Description className="warning-description">
-            {description}
-          </ToastEl.Description>
+          {description && (
+            <ToastEl.Description className="warning-description">
+              {description}
+            </ToastEl.Description>
+          )}
         </div>
         <ToastEl.Close
           className="warning-close"

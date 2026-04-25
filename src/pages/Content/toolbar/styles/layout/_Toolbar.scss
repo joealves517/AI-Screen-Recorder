@@ -205,9 +205,7 @@ iframe.screenity-iframe {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
   padding-right: 10px;
   height: 48px;
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
+  position: relative; /* Changed from absolute to let parent position it */
   border-radius: $container-border-radius;
 
   &::after {

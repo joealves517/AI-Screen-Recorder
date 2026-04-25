@@ -48,10 +48,10 @@ const ContentState = (props) => {
     process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
   setTimer = setTimerInternal;
   const [URL, setURL] = useState(
-    "https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/why-does-screenity-ask-for-permissions/9AAE8zJ6iiUtCAtjn4SUT1",
+    "",
   );
   const [URL2, setURL2] = useState(
-    "https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/how-to-grant-screenity-permission-to-record-your-camera-and-microphone/x6U69TnrbMjy5CQ96Er2E9",
+    "",
   );
   const startBeepRef = useRef(null);
   const stopBeepRef = useRef(null);
@@ -151,12 +151,12 @@ const ContentState = (props) => {
       setURL(
         "https://translate.google.com/translate?sl=en&tl=" +
           locale +
-          "&u=https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/why-does-screenity-ask-for-permissions/9AAE8zJ6iiUtCAtjn4SUT1",
+          "&u=",
       );
       setURL2(
         "https://translate.google.com/translate?sl=en&tl=" +
           locale +
-          "&u=https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/how-to-grant-screenity-permission-to-record-your-camera-and-microphone/x6U69TnrbMjy5CQ96Er2E9",
+          "&u=",
       );
     }
   }, []);
@@ -564,13 +564,13 @@ const ContentState = (props) => {
         let clearAction = () => {};
         const locale = chrome.i18n.getMessage("@@ui_locale");
         let helpURL =
-          "https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/what-does-%E2%80%9Cmemory-limit-reached%E2%80%9D-mean-when-recording/8WkwHbt3puuXunYqQnyPcb";
+          "";
 
         if (!locale.includes("en")) {
           helpURL =
             "https://translate.google.com/translate?sl=en&tl=" +
             locale +
-            "&u=https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/what-does-%E2%80%9Cmemory-limit-reached%E2%80%9D-mean-when-recording/8WkwHbt3puuXunYqQnyPcb";
+            "&u=";
         }
 
         const response = await chrome.runtime.sendMessage({
@@ -843,23 +843,7 @@ const ContentState = (props) => {
         cameraPermission: false,
         microphonePermission: false,
       }));
-      if (contentStateRef.current.askForPermissions) {
-        contentStateRef.current.openModal(
-          chrome.i18n.getMessage("permissionsModalTitle"),
-          chrome.i18n.getMessage("permissionsModalDescription"),
-          chrome.i18n.getMessage("permissionsModalDismiss"),
-          chrome.i18n.getMessage("permissionsModalNoShowAgain"),
-          () => {},
-          () => {
-            noMorePermissions();
-          },
-          chrome.runtime.getURL("assets/helper/permissions.webp"),
-          chrome.i18n.getMessage("learnMoreDot"),
-          URL2,
-          true,
-          false,
-        );
-      }
+      // Permissions modal removed
     }
   };
 
@@ -1315,7 +1299,7 @@ const ContentState = (props) => {
       ) {
         contentState.openWarning(
           chrome.i18n.getMessage("extensionNotSupportedTitle"),
-          chrome.i18n.getMessage("extensionNotSupportedDescription"),
+          "", // Remove long description, keep it short
           "NotSupportedIcon",
           10000,
         );
@@ -1339,38 +1323,42 @@ const ContentState = (props) => {
   }, [contentState.openModal]);
 
   const updateTimerFromStorage = useCallback(async () => {
-    const seq = ++timerReadSeqRef.current;
-    const { recording, recordingStartTime, paused, pausedAt, totalPausedMs } =
-      await chrome.storage.local.get([
-        "recording",
-        "recordingStartTime",
-        "paused",
-        "pausedAt",
-        "totalPausedMs",
-      ]);
-    if (seq !== timerReadSeqRef.current) return;
+    try {
+      const seq = ++timerReadSeqRef.current;
+      const { recording, recordingStartTime, paused, pausedAt, totalPausedMs } =
+        await chrome.storage.local.get([
+          "recording",
+          "recordingStartTime",
+          "paused",
+          "pausedAt",
+          "totalPausedMs",
+        ]);
+      if (seq !== timerReadSeqRef.current) return;
 
-    if (!recording || !recordingStartTime) {
-      setTimer(0);
-      return;
+      if (!recording || !recordingStartTime) {
+        setTimer(0);
+        return;
+      }
+
+      const now = Date.now();
+      const basePaused = totalPausedMs || 0;
+      const extraPaused = paused && pausedAt ? Math.max(0, now - pausedAt) : 0;
+      const elapsedSeconds = Math.max(
+        0,
+        Math.floor((now - recordingStartTime - basePaused - extraPaused) / 1000),
+      );
+
+      if (contentStateRef.current?.alarm) {
+        const alarmTime = contentStateRef.current?.alarmTime || 0;
+        const nextRemaining = Math.max(0, alarmTime - elapsedSeconds);
+        setTimer((prev) => (prev === nextRemaining ? prev : nextRemaining));
+        return;
+      }
+
+      setTimer((prev) => (prev === elapsedSeconds ? prev : elapsedSeconds));
+    } catch {
+      // Extension context invalidated (e.g. after reload). Safe to ignore.
     }
-
-    const now = Date.now();
-    const basePaused = totalPausedMs || 0;
-    const extraPaused = paused && pausedAt ? Math.max(0, now - pausedAt) : 0;
-    const elapsedSeconds = Math.max(
-      0,
-      Math.floor((now - recordingStartTime - basePaused - extraPaused) / 1000),
-    );
-
-    if (contentStateRef.current?.alarm) {
-      const alarmTime = contentStateRef.current?.alarmTime || 0;
-      const nextRemaining = Math.max(0, alarmTime - elapsedSeconds);
-      setTimer((prev) => (prev === nextRemaining ? prev : nextRemaining));
-      return;
-    }
-
-    setTimer((prev) => (prev === elapsedSeconds ? prev : elapsedSeconds));
   }, []);
 
   useEffect(() => {

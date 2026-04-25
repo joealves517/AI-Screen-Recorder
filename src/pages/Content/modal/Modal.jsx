@@ -84,22 +84,28 @@ const Modal = (props) => {
           <AlertDialog.Title className="AlertDialogTitle">
             {title}
           </AlertDialog.Title>
-          <AlertDialog.Description className="AlertDialogDescription">
-            {description.split("\n").map((line, idx) => (
-              <React.Fragment key={idx}>
-                {line}
-                <br />
-              </React.Fragment>
-            ))}
-            {learnmore && (
-              <>
-                {" "}
-                <a href={learnMoreLink} target="_blank">
-                  {learnmore}
-                </a>
-              </>
-            )}
-          </AlertDialog.Description>
+          {description ? (
+            <AlertDialog.Description className="AlertDialogDescription">
+              {typeof description === 'string' && description.split("\n").map((line, idx) => (
+                <React.Fragment key={idx}>
+                  {line}
+                  <br />
+                </React.Fragment>
+              ))}
+              {learnmore && (
+                <>
+                  {" "}
+                  <a href={learnMoreLink} target="_blank">
+                    {learnmore}
+                  </a>
+                </>
+              )}
+            </AlertDialog.Description>
+          ) : (
+             <AlertDialog.Description className="AlertDialogDescription" style={{ display: "none" }}>
+               Hộp thoại xác nhận
+             </AlertDialog.Description>
+          )}
           {image && (
             <img
               src={image}

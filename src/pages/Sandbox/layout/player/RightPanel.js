@@ -1,8 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import styles from "../../styles/player/_RightPanel.module.scss";
 
-import { buildDiagnosticZip } from "../../../utils/buildDiagnosticZip";
-
 import { ReactSVG } from "react-svg";
 
 const URL =
@@ -11,6 +9,7 @@ const URL =
 // Components
 import CropUI from "../editor/CropUI";
 import AudioUI from "../editor/AudioUI";
+import AIPanel from "./AIPanel";
 
 // Context
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
@@ -50,110 +49,6 @@ const RightPanel = () => {
     return base;
   };
 
-  const saveToDrive = () => {
-    setContentState((prevContentState) => ({
-      ...prevContentState,
-      saveDrive: true,
-    }));
-
-    const handleDriveResponse = (response) => {
-      if (!response || response.status === "ew" || response.error) {
-        console.error("[Drive] drive_save_failed:", response?.error || "unknown error");
-        setContentState((prevContentState) => ({
-          ...prevContentState,
-          saveDrive: false,
-        }));
-      }
-      // On success, saveDrive is reset by the "saved-to-drive" message from background
-    };
-
-    const handleDriveError = (err) => {
-      console.error("[Drive] drive_save_error:", err);
-      setContentState((prevContentState) => ({
-        ...prevContentState,
-        saveDrive: false,
-      }));
-    };
-
-    if (contentState.noffmpeg || !contentState.mp4ready || !contentState.blob) {
-      // Prefer the duration-fixed webm blob over rebuilding from raw chunks
-      const fixedWebm = contentState.webm;
-      if (fixedWebm && fixedWebm instanceof Blob && fixedWebm.size > 0) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const dataUrl = reader.result;
-          const base64 = dataUrl.split(",")[1];
-          chrome.runtime
-            .sendMessage({
-              type: "save-to-drive",
-              base64: base64,
-              title: contentState.title,
-              isWebm: true,
-            })
-            .then(handleDriveResponse)
-            .catch(handleDriveError);
-        };
-        reader.onerror = () => {
-          chrome.runtime
-            .sendMessage({
-              type: "save-to-drive-fallback",
-              title: contentState.title,
-            })
-            .then(handleDriveResponse)
-            .catch(handleDriveError);
-        };
-        reader.readAsDataURL(fixedWebm);
-      } else {
-        chrome.runtime
-          .sendMessage({
-            type: "save-to-drive-fallback",
-            title: contentState.title,
-          })
-          .then(handleDriveResponse)
-          .catch(handleDriveError);
-      }
-    } else {
-      // Blob to base64
-      const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result;
-        const base64 = dataUrl.split(",")[1];
-
-        chrome.runtime
-          .sendMessage({
-            type: "save-to-drive",
-            base64: base64,
-            title: contentState.title,
-          })
-          .then(handleDriveResponse)
-          .catch(handleDriveError);
-      };
-      reader.onerror = () => {
-        console.error("[Drive] FileReader failed to read blob for Drive upload");
-        setContentState((prevContentState) => ({
-          ...prevContentState,
-          saveDrive: false,
-        }));
-      };
-      if (
-        !contentState.noffmpeg &&
-        contentState.mp4ready &&
-        contentState.blob
-      ) {
-        reader.readAsDataURL(contentState.blob);
-      } else {
-        reader.readAsDataURL(contentState.webm);
-      }
-    }
-  };
-
-  const signOutDrive = () => {
-    chrome.runtime.sendMessage({ type: "sign-out-drive" });
-    setContentState((prevContentState) => ({
-      ...prevContentState,
-      driveEnabled: false,
-    }));
-  };
 
   const handleEdit = () => {
     if (
@@ -263,7 +158,7 @@ const RightPanel = () => {
           const s = contentStateRef.current;
           const blob = s.rawBlob || s.blob;
           if (!blob) {
-            console.error("[Screenity] raw download: no rawBlob available");
+            console.error("[AISR] raw download: no rawBlob available");
             chrome.runtime.sendMessage({
               type: "show-toast",
               message: chrome.i18n.getMessage("rawRecordingModalTitle") + ": no data",
@@ -323,7 +218,7 @@ const RightPanel = () => {
                 try {
                   await fallbackViaBackground();
                 } catch (err) {
-                  console.error("[Screenity] raw download fallback failed:", err);
+                  console.error("[AISR] raw download fallback failed:", err);
                 }
               } else if (
                 delta.state.current === "complete" ||
@@ -336,14 +231,14 @@ const RightPanel = () => {
             chrome.downloads.onChanged.addListener(interruptHandler);
           } catch (err) {
             console.warn(
-              "[Screenity] raw download direct path failed, using fallback:",
+              "[AISR] raw download direct path failed, using fallback:",
               err,
             );
             try {
               await fallbackViaBackground();
             } catch (fallbackErr) {
               console.error(
-                "[Screenity] raw download fallback failed:",
+                "[AISR] raw download fallback failed:",
                 fallbackErr,
               );
               chrome.runtime.sendMessage({
@@ -354,50 +249,6 @@ const RightPanel = () => {
           }
         },
         () => {}
-      );
-    }
-  };
-
-  const handleTroubleshooting = () => {
-    if (typeof contentStateRef.current.openModal === "function") {
-      contentStateRef.current.openModal(
-        chrome.i18n.getMessage("troubleshootModalTitle"),
-        chrome.i18n.getMessage("troubleshootModalDescription"),
-        chrome.i18n.getMessage("troubleshootModalButton"),
-        chrome.i18n.getMessage("sandboxEditorCancelButton"),
-        async () => {
-          try {
-            const cs = contentStateRef.current;
-            const { blob, filename } = await buildDiagnosticZip({
-              source: "sandbox-editor",
-              extraConfig: {
-                editorMode: cs.mode || null,
-                duration: cs.duration || null,
-                width: cs.width || null,
-                height: cs.height || null,
-                hasBlobReady: Boolean(cs.blob || cs.rawBlob),
-                mp4ready: Boolean(cs.mp4ready),
-                ffmpegLoaded: Boolean(cs.ffmpegLoaded),
-                fallback: Boolean(cs.fallback),
-                offline: Boolean(cs.offline),
-                noffmpeg: Boolean(cs.noffmpeg),
-                updateChrome: Boolean(cs.updateChrome),
-                hasBeenEdited: Boolean(cs.hasBeenEdited),
-                editLimit: cs.editLimit || null,
-              },
-            });
-            const url = window.URL.createObjectURL(blob);
-            chrome.downloads.download(
-              { url, filename },
-              () => {
-                window.URL.revokeObjectURL(url);
-              },
-            );
-          } catch (err) {
-            console.error("[Screenity] Troubleshooting export failed:", err);
-          }
-        },
-        () => {},
       );
     }
   };
@@ -661,6 +512,9 @@ const RightPanel = () => {
               </div>
             </div>
           )}
+
+          <AIPanel />
+
           <div className={styles.section}>
             <div className={styles.sectionTitle}>
               {chrome.i18n.getMessage("sandboxEditTitle")}
@@ -773,52 +627,7 @@ const RightPanel = () => {
               </div>
             </div>
           </div>
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>
-              {chrome.i18n.getMessage("sandboxSaveTitle")}
-            </div>
-            {contentState.driveEnabled && (
-              <div
-                className={styles.buttonLogout}
-                onClick={() => {
-                  signOutDrive();
-                }}
-              >
-                {chrome.i18n.getMessage("signOutDriveLabel")}
-              </div>
-            )}
-            <div className={styles.buttonWrap}>
-              <div
-                role="button"
-                className={styles.button}
-                onClick={saveToDrive}
-                disabled={contentState.saveDrive}
-              >
-                <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/drive.svg"} />
-                </div>
-                <div className={styles.buttonMiddle}>
-                  <div className={styles.buttonTitle}>
-                    {contentState.saveDrive
-                      ? chrome.i18n.getMessage("savingDriveLabel")
-                      : contentState.driveEnabled
-                      ? chrome.i18n.getMessage("saveDriveButtonTitle")
-                      : chrome.i18n.getMessage("signInDriveLabel")}
-                  </div>
-                  <div className={styles.buttonDescription}>
-                    {contentState.offline
-                      ? chrome.i18n.getMessage("noConnectionLabel")
-                      : contentState.updateChrome
-                      ? chrome.i18n.getMessage("notAvailableLabel")
-                      : chrome.i18n.getMessage("saveDriveButtonDescription")}
-                  </div>
-                </div>
-                <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
-                </div>
-              </div>
-            </div>
-          </div>
+
           <div className={styles.section}>
             <div className={styles.sectionTitle}>
               {chrome.i18n.getMessage("sandboxExportTitle")}
@@ -975,58 +784,7 @@ const RightPanel = () => {
               </div>
             </div>
           </div>
-          <div className={styles.section}>
-            {/* Create an advanced section with a button to send logs and to download raw video file as a backup */}
-            <div className={styles.sectionTitle}>
-              {chrome.i18n.getMessage("sandboxAdvancedTitle")}
-            </div>
-            <div className={styles.buttonWrap}>
-              <div
-                role="button"
-                className={styles.button}
-                onClick={() => {
-                  handleRawRecording();
-                }}
-              >
-                <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/download.svg"} />
-                </div>
-                <div className={styles.buttonMiddle}>
-                  <div className={styles.buttonTitle}>
-                    {chrome.i18n.getMessage("rawRecordingButtonTitle")}
-                  </div>
-                  <div className={styles.buttonDescription}>
-                    {chrome.i18n.getMessage("rawRecordingButtonDescription")}
-                  </div>
-                </div>
-                <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
-                </div>
-              </div>
-              <div
-                role="button"
-                className={styles.button}
-                onClick={() => {
-                  handleTroubleshooting();
-                }}
-              >
-                <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/flag.svg"} />
-                </div>
-                <div className={styles.buttonMiddle}>
-                  <div className={styles.buttonTitle}>
-                    {chrome.i18n.getMessage("troubleshootButtonTitle")}
-                  </div>
-                  <div className={styles.buttonDescription}>
-                    {chrome.i18n.getMessage("troubleshootButtonDescription")}
-                  </div>
-                </div>
-                <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
-                </div>
-              </div>
-            </div>
-          </div>
+
         </div>
       )}
     </div>

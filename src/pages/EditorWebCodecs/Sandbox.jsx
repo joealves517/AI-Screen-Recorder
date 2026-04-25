@@ -12,6 +12,54 @@ import hasAudio from "./utils/hasAudio";
 import convertMp4ToWebm from "./utils/convertMp4ToWebm";
 import blobToArrayBuffer from "./utils/blobToArrayBuffer";
 
+const API_BASE = process.env.SCREENITY_API_BASE_URL;
+
+/**
+ * Determine the correct Cloud Run endpoint (free vs premium)
+ * and build appropriate headers based on auth state.
+ */
+const getCloudRunConfig = async () => {
+  const { screenityToken, isLoggedIn, isSubscribed } = await chrome.storage.local.get([
+    "screenityToken",
+    "isLoggedIn",
+    "isSubscribed"
+  ]);
+
+  // Only route to Premium Vertex AI if they are actively subscribed
+  if (isLoggedIn && screenityToken && isSubscribed) {
+    return {
+      endpoint: `${API_BASE}/api/screenity`,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${screenityToken}`,
+      },
+    };
+  }
+
+  // Free/guest tier — no auth required
+  return {
+    endpoint: `${API_BASE}/api/screenity/free`,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+};
+
+/**
+ * Convert a Blob to base64 string (without data URL prefix).
+ */
+const blobToBase64 = (blob) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      const commaIndex = result.indexOf(",");
+      resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+    };
+    reader.onerror = () => reject(new Error("Failed to read blob"));
+    reader.readAsDataURL(blob);
+  });
+
 const Sandbox = () => {
   const iframeRef = useRef(null);
   const triggerLoad = useRef(false);
@@ -268,6 +316,167 @@ const Sandbox = () => {
 
           const base64 = await toBase64(result);
           sendMessage({ type: "download-webm", base64 });
+          break;
+        }
+
+        case "ai-transcribe": {
+          try {
+            const videoBlob = message.blob;
+            if (!videoBlob) {
+              sendMessage({ type: "ai-transcribe-error", error: "No video blob provided" });
+              break;
+            }
+
+            sendMessage({ type: "ai-transcribe-progress", progress: 5 });
+
+            // 1. Extract audio and split into 10-minute chunks
+            const { extractAndChunkAudio } = await import("./utils/extractAudioToChunks");
+            const chunks = await extractAndChunkAudio(videoBlob, 600); // 10 min
+            
+            if (chunks.length === 0) {
+              throw new Error("No audio found in recording");
+            }
+
+            const { endpoint, headers } = await getCloudRunConfig();
+            
+            let allSegments = [];
+            let allTranscript = "";
+
+            // 2. Process each chunk
+            for (let i = 0; i < chunks.length; i++) {
+              const chunk = chunks[i];
+              const progressBase = 10 + Math.floor((i / chunks.length) * 80);
+              sendMessage({ type: "ai-transcribe-progress", progress: progressBase });
+
+              const base64Data = await blobToBase64(chunk.blob);
+
+              const response = await fetch(`${endpoint}/transcribe`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                  audioBase64: base64Data,
+                  mimeType: "audio/wav",
+                  language: message.language || "",
+                }),
+              });
+
+              if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || `API ${response.status}`);
+              }
+
+              const { segments } = await response.json();
+              
+              // Adjust timestamps using chunk offset
+              if (Array.isArray(segments)) {
+                segments.forEach((seg) => {
+                  allSegments.push({
+                    start: seg.start + chunk.offset,
+                    end: seg.end + chunk.offset,
+                    text: seg.text
+                  });
+                  allTranscript += seg.text + " ";
+                });
+              }
+            }
+
+            sendMessage({ type: "ai-transcribe-progress", progress: 100 });
+
+            sendMessage({
+              type: "ai-transcribe-result",
+              segments: allSegments,
+              transcript: allTranscript.trim(),
+              language: message.language || "auto",
+            });
+          } catch (err) {
+            sendMessage({
+              type: "ai-transcribe-error",
+              error: err.message || "Transcription failed",
+            });
+          }
+          break;
+        }
+
+        case "ai-summarize": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/summarize`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ transcript: message.transcript, style: "summary" }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const { summary } = await response.json();
+            sendMessage({ type: "ai-summarize-result", summary });
+          } catch (err) {
+            sendMessage({ type: "ai-summarize-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-action-items": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/summarize`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ transcript: message.transcript, style: "keypoints" }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const { summary } = await response.json();
+            sendMessage({ type: "ai-action-items-result", summary });
+          } catch (err) {
+            sendMessage({ type: "ai-action-items-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-title": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/title`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ transcript: message.transcript }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const result = await response.json();
+            sendMessage({ type: "ai-title-result", result });
+          } catch (err) {
+            sendMessage({ type: "ai-title-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-translate": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/translate`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({
+                segments: message.segments,
+                targetLang: message.targetLang,
+              }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const { translatedSegments } = await response.json();
+            sendMessage({ type: "ai-translate-result", translatedSegments });
+          } catch (err) {
+            sendMessage({ type: "ai-translate-error", error: err.message });
+          }
           break;
         }
 

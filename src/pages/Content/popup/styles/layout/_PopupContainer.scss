@@ -79,9 +79,7 @@
 /* Recording popup parent */
 .popup-container {
   width: 356px;
-  position: fixed;
-  top: 32px;
-  right: 28px;
+  position: relative; /* Let parent flexbox center it */
   z-index: $z-index-max;
   filter: $container-shadow;
   pointer-events: all;

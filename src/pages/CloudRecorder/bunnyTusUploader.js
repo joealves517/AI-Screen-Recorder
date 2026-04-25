@@ -690,7 +690,7 @@ export default class BunnyTusUploader {
           chrome.runtime.sendMessage({ type: "check-auth-status" }, resolve);
         });
 
-        if (!authenticated) throw new Error("Not authenticated with Screenity");
+        if (!authenticated) throw new Error("Not authenticated");
 
         const { screenityToken } = await chrome.storage.local.get([
           "screenityToken",

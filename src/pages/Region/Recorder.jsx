@@ -32,7 +32,7 @@ const chunksStore = localforage.createInstance({
 //   window.SCREENITY_DEBUG_RECORDER = true;
 const DEBUG_RECORDER =
   typeof window !== "undefined" ? !!window.SCREENITY_DEBUG_RECORDER : false;
-const logPrefix = "[Screenity Region Recorder]";
+const logPrefix = "[AIScreenRecorder Region Recorder]";
 
 function debug(...args) {
   if (!DEBUG_RECORDER) return;

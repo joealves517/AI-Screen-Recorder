@@ -8,9 +8,17 @@
     "service_worker": "background.bundle.js"
   },
   "action": {
-    "default_icon": "assets/img/icon-34.png"
+    "default_icon": {
+      "16": "assets/img/icon-16.png",
+      "32": "assets/img/icon-32.png",
+      "48": "assets/img/icon-48.png",
+      "128": "assets/img/icon-128.png"
+    }
   },
   "icons": {
+    "16": "assets/img/icon-16.png",
+    "32": "assets/img/icon-32.png",
+    "48": "assets/img/icon-48.png",
     "128": "assets/img/icon-128.png"
   },
   "host_permissions": ["<all_urls>"],
@@ -28,7 +36,6 @@
         "blank.mp4",
         "editor.html",
         "assets/*",
-        "setup.html",
         "worker.js",
         "vendor/*",
         "cloudrecorder.html",
@@ -49,10 +56,7 @@
       "matches": ["<all_urls>"]
     }
   ],
-  "oauth2": {
-    "client_id": "560517327251-m7n1k3kddknu7s9s4ejvrs1bj91gutd7.apps.googleusercontent.com",
-    "scopes": ["https://www.googleapis.com/auth/drive.file"]
-  },
+
   "cross_origin_embedder_policy": {
     "value": "require-corp"
   },
@@ -114,9 +118,6 @@
   ],
   "storage": {
     "managed_schema": "schema.json"
-  },
-  "externally_connectable": {
-    "matches": ["https://app.screenity.io/*", "http://localhost:3000/*"]
   },
   "optional_permissions": [
     "offscreen",

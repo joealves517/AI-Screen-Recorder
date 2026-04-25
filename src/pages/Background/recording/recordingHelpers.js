@@ -74,11 +74,11 @@ export const handleRecordingComplete = async () => {
   }
   // Clear so subsequent recordings don't conflict
   chrome.storage.local.set({ recordingTab: null, offscreen: false });
-  console.log("[Screenity][BG] handleRecordingComplete fired, recordingTab:", recordingTab);
+  console.log("[AISR][BG] handleRecordingComplete fired, recordingTab:", recordingTab);
 };
 
 export const handleRecordingError = async (request) => {
-  console.warn("[Screenity][handleRecordingError]", request);
+  console.warn("[AISR][handleRecordingError]", request);
 
   // Propagate or derive error code
   const errorCode =

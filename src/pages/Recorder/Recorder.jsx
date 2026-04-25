@@ -41,7 +41,7 @@ const FORCE_MEDIARECORDER =
   typeof window !== "undefined"
     ? !!window.SCREENITY_FORCE_MEDIARECORDER
     : false;
-const logPrefix = "[Screenity Recorder]";
+const logPrefix = "[AIScreenRecorder Recorder]";
 
 function debug(...args) {
   if (!DEBUG_RECORDER) return;
@@ -70,7 +70,7 @@ function slLog(tag, extra = {}) {
   const entry = { t: Date.now(), tag, ...extra };
   if (DEBUG_RECORDER) {
     // eslint-disable-next-line no-console
-    console.log("[Screenity:SL]", tag, entry);
+    console.log("[AISR:SL]", tag, entry);
   }
   _slBuffer.push(entry);
   if (_slBuffer.length > SL_MAX) _slBuffer.splice(0, _slBuffer.length - SL_MAX);
@@ -369,8 +369,8 @@ const Recorder = () => {
     try {
       if (navigator.mediaSession && !keepAliveMediaSessionActive.current) {
         navigator.mediaSession.metadata = new window.MediaMetadata({
-          title: "Screenity recording",
-          artist: "Screenity",
+          title: "AI Screen Recording",
+          artist: "AI Screen Recorder",
         });
         navigator.mediaSession.playbackState = "playing";
         try {
@@ -741,7 +741,7 @@ const Recorder = () => {
         ...buildStreamDiagInfo("start-gate-timeout"),
         streamingDataReceivedAt: streamingDataReceivedAt.current,
       };
-      console.warn("[Screenity:startRec] stream never became ready", diagInfo);
+      console.warn("[AISR:startRec] stream never became ready", diagInfo);
       slLog("start-gate-timeout", diagInfo);
       chrome.storage.local.set({ lastStreamCheckFail: diagInfo });
       // Full reset so no gate state leaks into a future session.
@@ -864,7 +864,7 @@ const Recorder = () => {
     navigator.storage.persist();
     if (!helperVideoStream.current) {
       const diagInfo = buildStreamDiagInfo("stream-ref-null");
-      console.warn("[Screenity:startRec] helperVideoStream is null", diagInfo);
+      console.warn("[AISR:startRec] helperVideoStream is null", diagInfo);
       slLog("startRecording-fail-stream-null", diagInfo);
       chrome.storage.local.set({ lastStreamCheckFail: diagInfo });
       sendRecordingError(
@@ -877,7 +877,7 @@ const Recorder = () => {
     const videoTracks = helperVideoStream.current.getVideoTracks();
     if (videoTracks.length === 0) {
       const diagInfo = buildStreamDiagInfo("stream-zero-video-tracks");
-      console.warn("[Screenity:startRec] helperVideoStream has 0 video tracks", diagInfo);
+      console.warn("[AISR:startRec] helperVideoStream has 0 video tracks", diagInfo);
       slLog("startRecording-fail-zero-tracks", diagInfo);
       chrome.storage.local.set({ lastStreamCheckFail: diagInfo });
       sendRecordingError("No video tracks available");
@@ -898,7 +898,7 @@ const Recorder = () => {
       };
       slLog("startRecording-preflight-ok", diagInfo);
       if (vt.readyState === "ended") {
-        console.warn("[Screenity:startRec] video track present but ended", diagInfo);
+        console.warn("[AISR:startRec] video track present but ended", diagInfo);
         slLog("startRecording-fail-track-ended", diagInfo);
         chrome.storage.local.set({ lastStreamCheckFail: diagInfo });
         sendRecordingError(

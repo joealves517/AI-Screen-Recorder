@@ -73,7 +73,7 @@ export const getUserMediaWithFallback = async ({
     }
 
     console.warn(
-      "[Screenity] Retrying getUserMedia with label-matched device IDs"
+      "[AISR] Retrying getUserMedia with label-matched device IDs"
     );
 
     const stream = await navigator.mediaDevices.getUserMedia(nextConstraints);

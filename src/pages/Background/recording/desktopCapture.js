@@ -4,7 +4,7 @@ import { startRecorderSession } from "./openRecorderTab";
 import { localDirectoryStore } from "./chunkHandler";
 
 export const desktopCapture = async (request) => {
-  console.log("[Screenity][desktopCapture] entered", request);
+  console.log("[AISR][desktopCapture] entered", request);
   const { backup } = await chrome.storage.local.get(["backup"]);
   const { backupSetup } = await chrome.storage.local.get(["backupSetup"]);
 

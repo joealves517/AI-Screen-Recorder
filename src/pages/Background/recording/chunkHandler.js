@@ -59,7 +59,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
   ]);
 
   if (DEBUG_POSTSTOP)
-    console.debug("[Screenity][BG] handleChunks called", {
+    console.debug("[AISR][BG] handleChunks called", {
       chunksLength: chunks?.length,
       sandboxTab,
       override,
@@ -71,7 +71,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
   try {
     if (!Array.isArray(chunks) || chunks.length === 0) {
       if (DEBUG_POSTSTOP)
-        console.debug("[Screenity][BG] no chunks to send; deferring delivery");
+        console.debug("[AISR][BG] no chunks to send; deferring delivery");
       return;
     }
 
@@ -89,7 +89,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
     const targetFrame = target?.frameId ?? null;
 
     if (DEBUG_POSTSTOP)
-      console.debug("[Screenity][BG] sending chunk-count", {
+      console.debug("[AISR][BG] sending chunk-count", {
         count: chunks.length,
         targetTab,
         targetFrame,
@@ -127,7 +127,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
       });
     } catch (err) {
       if (DEBUG_POSTSTOP)
-        console.warn("[Screenity][BG] chunk-count message failed", err);
+        console.warn("[AISR][BG] chunk-count message failed", err);
     }
 
     if (bannerSupport) {
@@ -135,7 +135,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
         await sendToTarget({ type: "banner-support" });
       } catch (err) {
         if (DEBUG_POSTSTOP)
-          console.warn("[Screenity][BG] banner-support message failed", err);
+          console.warn("[AISR][BG] banner-support message failed", err);
       }
     }
 
@@ -147,7 +147,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
         attempt += 1;
         try {
           if (DEBUG_POSTSTOP)
-            console.debug("[Screenity][BG] sending new-chunk-tab batch", {
+            console.debug("[AISR][BG] sending new-chunk-tab batch", {
               batchLen: batch.length,
               attempt,
             });
@@ -155,7 +155,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
           return true;
         } catch (err) {
           if (DEBUG_POSTSTOP)
-            console.warn("[Screenity][BG] sendBatch attempt failed, retrying", {
+            console.warn("[AISR][BG] sendBatch attempt failed, retrying", {
               attempt,
               err,
             });
@@ -163,7 +163,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
         }
       }
       if (DEBUG_POSTSTOP)
-        console.warn("[Screenity][BG] sendBatch failed after retries");
+        console.warn("[AISR][BG] sendBatch failed after retries");
       return false;
     };
 
@@ -196,7 +196,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
       if (filtered.length > 0) {
         const batchIndex = Math.floor(currentIndex / batchSize);
         if (DEBUG_POSTSTOP)
-          console.debug("[Screenity][BG] sending filtered batch", {
+          console.debug("[AISR][BG] sending filtered batch", {
             filteredLen: filtered.length,
             currentIndex,
           });
@@ -211,7 +211,7 @@ export const handleChunks = async (chunks, override = false, target = null) => {
         }
         if (!ok) {
           if (DEBUG_POSTSTOP)
-            console.warn("[Screenity][BG] failed to send batch, aborting");
+            console.warn("[AISR][BG] failed to send batch, aborting");
           return;
         }
       }
@@ -221,14 +221,14 @@ export const handleChunks = async (chunks, override = false, target = null) => {
 
     if (DEBUG_POSTSTOP)
       console.debug(
-        "[Screenity][BG] all batches sent, instructing sandbox to make video tab",
+        "[AISR][BG] all batches sent, instructing sandbox to make video tab",
         { sandboxTab: targetTab },
       );
     try {
       await sendToTarget({ type: "make-video-tab", override });
     } catch (err) {
       if (DEBUG_POSTSTOP)
-        console.warn("[Screenity][BG] make-video-tab message failed", err);
+        console.warn("[AISR][BG] make-video-tab message failed", err);
     }
   } finally {
     await chrome.storage.local.set({ sendingChunks: false });

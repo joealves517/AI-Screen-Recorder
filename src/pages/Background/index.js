@@ -1,5 +1,6 @@
 import { initializeListeners } from "./listeners";
 import { setupHandlers } from "./messaging/handlers";
+import { setupAIHandlers } from "./messaging/aiHandlers";
 import {
   messageRouter,
   messageDispatcher,
@@ -32,15 +33,15 @@ const clearStaleLocks = async () => {
     const stale = {};
     if (sendingChunks) {
       stale.sendingChunks = false;
-      console.warn("[Screenity][BG] Stale lock found on startup: sendingChunks — clearing");
+      console.warn("[AISR][BG] Stale lock found on startup: sendingChunks — clearing");
     }
     if (postStopEditorOpening) {
       stale.postStopEditorOpening = false;
-      console.warn("[Screenity][BG] Stale lock found on startup: postStopEditorOpening — clearing");
+      console.warn("[AISR][BG] Stale lock found on startup: postStopEditorOpening — clearing");
     }
     if (postStopEditorOpened) {
       stale.postStopEditorOpened = false;
-      console.warn("[Screenity][BG] Stale lock found on startup: postStopEditorOpened — clearing");
+      console.warn("[AISR][BG] Stale lock found on startup: postStopEditorOpened — clearing");
     }
 
     if (multiMode && !recording) {
@@ -48,23 +49,23 @@ const clearStaleLocks = async () => {
       stale.multiSceneCount = 0;
       stale.multiProjectId = null;
       stale.multiLastSceneId = null;
-      console.warn("[Screenity][BG] Stale multi-mode state found on startup — clearing");
+      console.warn("[AISR][BG] Stale multi-mode state found on startup — clearing");
     }
 
     if (region && !recording) {
       stale.region = false;
-      console.warn("[Screenity][BG] Stale region state found on startup — clearing");
+      console.warn("[AISR][BG] Stale region state found on startup — clearing");
     }
 
     if (Object.keys(stale).length > 0) {
       await chrome.storage.local.set(stale);
       console.info(
-        "[Screenity][BG] Startup stale locks cleared:",
+        "[AISR][BG] Startup stale locks cleared:",
         Object.keys(stale).join(", "),
       );
     }
   } catch (err) {
-    console.error("[Screenity][BG] Failed to clear stale startup locks:", err);
+    console.error("[AISR][BG] Failed to clear stale startup locks:", err);
   }
 };
 
@@ -73,6 +74,7 @@ const clearStaleLocks = async () => {
 messageRouter();
 initializeListeners();
 setupHandlers();
+setupAIHandlers();
 
 // Fire-and-forget: clears stale locks from a previous crashed session.
 // Runs after listener registration (required synchronous) but before Chrome
@@ -108,10 +110,10 @@ const runUpgradeMigrations = async () => {
       screenityMigratedForVersion: CURRENT_MIGRATION_VERSION,
     });
     console.info(
-      "[Screenity][BG] Cleared stale 4.3.7 sticky-disable flags on upgrade",
+      "[AISR][BG] Cleared stale 4.3.7 sticky-disable flags on upgrade",
     );
   } catch (err) {
-    console.error("[Screenity][BG] Upgrade migration failed:", err);
+    console.error("[AISR][BG] Upgrade migration failed:", err);
   }
 };
 runUpgradeMigrations();

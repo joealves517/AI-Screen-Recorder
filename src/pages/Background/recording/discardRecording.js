@@ -60,11 +60,11 @@ export const discardRecording = async () => {
   chrome.storage.local.set({ recordingUiTabId: null });
   chrome.storage.local.remove(["recordingMeta"]);
 
-  chrome.runtime.sendMessage({ type: "discard-backup" });
-  chrome.runtime.sendMessage({ type: "turn-off-pip" });
+  chrome.runtime.sendMessage({ type: "discard-backup" }).catch(() => {}).catch(() => {});
+  chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
 };
 
 export const handleDismissRecordingTab = async () => {
-  chrome.runtime.sendMessage({ type: "discard-backup" });
+  chrome.runtime.sendMessage({ type: "discard-backup" }).catch(() => {}).catch(() => {});
   discardRecording();
 };

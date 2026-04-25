@@ -25,6 +25,22 @@ import { contentStateContext } from "./context/ContentState";
 
 import { startClickTracking } from "./cursor/trackClicks";
 
+const safeUrls = (() => {
+  try {
+    return {
+      permissions: chrome.runtime.getURL("permissions.html"),
+      cloudrecorder: chrome.runtime.getURL("cloudrecorder.html?injected=true"),
+      region: chrome.runtime.getURL("region.html"),
+      setup: chrome.runtime.getURL("setup.html"),
+      playground: chrome.runtime.getURL("playground.html"),
+    };
+  } catch {
+    return {
+      permissions: "", cloudrecorder: "", region: "", setup: "", playground: ""
+    };
+  }
+})();
+
 const RecordingLoader = () => {
   const label = chrome.i18n.getMessage("preparingLabel") || "Preparing...";
   return (
@@ -207,7 +223,7 @@ const Wrapper = () => {
             visibility: "hidden",
           }}
           ref={permissionsRef}
-          src={chrome.runtime.getURL("permissions.html")}
+          src={safeUrls.permissions}
           allow="camera *; microphone *"
         ></iframe>
       )}
@@ -222,8 +238,8 @@ const Wrapper = () => {
           ref={regionCaptureRef}
           src={
             contentState.isSubscribed
-              ? chrome.runtime.getURL("cloudrecorder.html?injected=true")
-              : chrome.runtime.getURL("region.html")
+              ? safeUrls.cloudrecorder
+              : safeUrls.region
           }
           allow="camera *; microphone *; display-capture *"
         ></iframe>
@@ -249,12 +265,8 @@ const Wrapper = () => {
                       : "all",
                   position: "fixed",
                   background:
-                    window.location.href.indexOf(
-                      chrome.runtime.getURL("setup.html")
-                    ) === -1 &&
-                    window.location.href.indexOf(
-                      chrome.runtime.getURL("playground.html")
-                    ) === -1 &&
+                    window.location.href.indexOf(safeUrls.setup) === -1 &&
+                    window.location.href.indexOf(safeUrls.playground) === -1 &&
                     !contentState.pendingRecording &&
                     !contentState.preparingRecording
                       ? "rgba(0,0,0,0.15)"
@@ -270,12 +282,8 @@ const Wrapper = () => {
                   if (onboardingActive) return;
 
                   if (
-                    window.location.href.indexOf(
-                      chrome.runtime.getURL("setup.html")
-                    ) === -1 &&
-                    window.location.href.indexOf(
-                      chrome.runtime.getURL("playground.html")
-                    ) === -1 &&
+                    window.location.href.indexOf(safeUrls.setup) === -1 &&
+                    window.location.href.indexOf(safeUrls.playground) === -1 &&
                     !contentState.pendingRecording &&
                     !contentState.customRegion
                   ) {

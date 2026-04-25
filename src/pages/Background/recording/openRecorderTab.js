@@ -30,6 +30,8 @@ const openRecorderTab = async (
     );
   }
 
+  const originalSwitchTab = switchTab;
+
   // Cloud recordings need the tab active briefly so keepalive can start
   if (isCloudRecorder && !switchTab) {
     switchTab = true;
@@ -68,6 +70,13 @@ const openRecorderTab = async (
     active: switchTab,
   });
 
+  // If we forced the tab to be active just for cloud keepalive, immediately switch back to the user's tab
+  if (switchTab && !originalSwitchTab && activeTab) {
+    setTimeout(() => {
+      chrome.tabs.update(activeTab.id, { active: true });
+    }, 100);
+  }
+
   // Apply autoDiscardable before the load listener so the tab can't be discarded pre-mount.
   let autoDiscardableApplied = false;
   for (let attempt = 0; attempt < 2; attempt += 1) {
@@ -78,7 +87,7 @@ const openRecorderTab = async (
     } catch (err) {
       if (attempt === 1) {
         console.warn(
-          "[Screenity] autoDiscardable failed for recorder tab",
+          "[AISR] autoDiscardable failed for recorder tab",
           tab.id,
           String(err),
         );
@@ -132,7 +141,7 @@ const openRecorderTab = async (
 };
 
 export const startRecorderSession = async (request, tabId = null) => {
-  console.log("[Screenity][startRecorderSession] entered", { request, tabId });
+  console.log("[AISR][startRecorderSession] entered", { request, tabId });
   const { backup } = await chrome.storage.local.get(["backup"]);
   let activeTab = await getCurrentTab();
 

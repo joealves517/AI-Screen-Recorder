@@ -20,10 +20,10 @@ const RecordingType = (props) => {
   const [cropActive, setCropActive] = useState(false);
   const [time, setTime] = useState(0);
   const [URL, setURL] = useState(
-    "https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screenity/6kdB6qru6naVD8ZLFvX3m9"
+    ""
   );
   const [URL2, setURL2] = useState(
-    "https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/how-to-grant-screenity-permission-to-record-your-camera-and-microphone/x6U69TnrbMjy5CQ96Er2E9"
+    ""
   );
 
   const buttonRef = useRef(null);
@@ -32,12 +32,8 @@ const RecordingType = (props) => {
   useEffect(() => {
     const locale = chrome.i18n.getMessage("@@ui_locale");
     if (!locale.includes("en")) {
-      setURL(
-        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screenity/6kdB6qru6naVD8ZLFvX3m9`
-      );
-      setURL2(
-        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/how-to-grant-screenity-permission-to-record-your-camera-and-microphone/x6U69TnrbMjy5CQ96Er2E9`
-      );
+      setURL("");
+      setURL2("");
     }
   }, []);
 
@@ -169,7 +165,7 @@ const RecordingType = (props) => {
                   });
                 },
                 () => {},
-                chrome.runtime.getURL("assets/helper/permissions.webp"),
+                null,
                 chrome.i18n.getMessage("learnMoreDot"),
                 URL2,
                 true,
@@ -227,7 +223,7 @@ const RecordingType = (props) => {
                   });
                 },
                 () => {},
-                chrome.runtime.getURL("assets/helper/permissions.webp"),
+                null,
                 chrome.i18n.getMessage("learnMoreDot"),
                 URL2,
                 true,

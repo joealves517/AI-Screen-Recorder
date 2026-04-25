@@ -15,28 +15,16 @@ export const onInstalledListener = () => {
       // Clear storage on fresh install
       chrome.storage.local.clear();
 
-      // Set uninstall URL based on locale
-      const installQs = await supportContextQuery({ source: "uninstall" });
-      const installUrl = `https://tally.so/r/w8Zro5?${installQs}`;
-      chrome.runtime.setUninstallURL(
-        locale.includes("en")
-          ? installUrl
-          : `http://translate.google.com/translate?js=n&sl=auto&tl=${locale}&u=${encodeURIComponent(installUrl)}`
-      );
+      // No uninstall survey page
 
       chrome.storage.local.set({
         firstTime: true,
-        onboarding: cloudFeaturesEnabled,
+        onboarding: false,
         bannerSupport: true,
-        firstTimePro: cloudFeaturesEnabled,
+        firstTimePro: false,
       });
 
-      chrome.storage.managed.get("skipSetup", (managedConfig) => {
-        const skipSetup = managedConfig.skipSetup ?? false;
-        if (!skipSetup) {
-          chrome.tabs.create({ url: "setup.html" });
-        }
-      });
+      // No auto-open setup page on install
     } else if (details.reason === "update") {
       if (details.previousVersion === "2.8.6") {
         // Do not clear local storage on update; preserve onboarding/versioned keys.
@@ -54,13 +42,7 @@ export const onInstalledListener = () => {
         }
       }
 
-      const updateQs = await supportContextQuery({ source: "uninstall" });
-      const updateUrl = `https://tally.so/r/3Ex6kX?${updateQs}`;
-      chrome.runtime.setUninstallURL(
-        locale.includes("en")
-          ? updateUrl
-          : `http://translate.google.com/translate?js=n&sl=auto&tl=${locale}&u=${encodeURIComponent(updateUrl)}`
-      );
+      // No uninstall survey page
     }
 
     // Disable backups for older Chrome versions

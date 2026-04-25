@@ -10,8 +10,6 @@ import * as Tabs from "@radix-ui/react-tabs";
 import {
   RecordTabActive,
   RecordTabInactive,
-  VideoTabActive,
-  VideoTabInactive,
   TempLogo,
   ProfilePic,
 } from "../images/popup/images";
@@ -26,12 +24,12 @@ import {
 
 /* Component import */
 import RecordingTab from "./layout/RecordingTab";
-import VideosTab from "./layout/VideosTab";
+import AccountTab from "./layout/AccountTab";
 
 // Layouts
 import SettingsMenu from "./layout/SettingsMenu";
 import InactiveSubscription from "./layout/InactiveSubscription";
-import LoggedOut from "./layout/LoggedOut";
+
 import Welcome from "./layout/Welcome";
 import {
   runProPopupOnboardingIfNeeded,
@@ -47,7 +45,6 @@ const PopupContainer = (props) => {
   const contentStateRef = useRef(contentState);
   const [tab, setTab] = useState("record");
   const [badge, setBadge] = useState(TempLogo);
-  const DragRef = useRef(null);
   const PopupRef = useRef(null);
   const [elastic, setElastic] = React.useState("");
   const [shake, setShake] = React.useState("");
@@ -58,7 +55,7 @@ const PopupContainer = (props) => {
   const recordTabRef = useRef(null);
   const videoTabRef = useRef(null);
   const pillRef = useRef(null);
-  const [URL, setURL] = useState("https://help.screenity.io/");
+  const [URL, setURL] = useState("");
   const isCloudBuild = process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
   const wasCameraActiveRef = useRef(null);
 
@@ -95,7 +92,7 @@ const PopupContainer = (props) => {
       const locale = chrome.i18n.getMessage("@@ui_locale");
 
       // Default URL
-      let baseURL = "https://help.screenity.io/";
+      let baseURL = "";
 
       // If logged in, switch to Tally with prefilled params
       if (contentState?.isLoggedIn && contentState?.screenityUser) {
@@ -105,7 +102,7 @@ const PopupContainer = (props) => {
           source: "popup",
           user: { name, email },
         });
-        baseURL = `https://tally.so/r/310MNg?extension=true&${qs}`;
+        baseURL = "";
       }
 
       // If non-English locale, wrap with Google Translate
@@ -125,15 +122,11 @@ const PopupContainer = (props) => {
   const onValueChange = (tab) => {
     setTab(tab);
 
-    if (contentState.isLoggedIn && contentState.isSubscribed === false) {
-      setBadge(
-        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text x='0' y='24' font-size='28'>⚠️</text></svg>"
-      );
-    } else if (tab === "record" && !contentState.isLoggedIn) {
-      setBadge(TempLogo);
-    } else {
-      const avatar = contentState?.screenityUser?.avatar;
+    if (contentState.isLoggedIn) {
+      const avatar = contentState?.screenityUser?.avatar || contentState?.screenityUser?.picture;
       setBadge(avatar || ProfilePic);
+    } else {
+      setBadge(TempLogo);
     }
 
     setContentState((prevContentState) => ({
@@ -146,20 +139,16 @@ const PopupContainer = (props) => {
   }, []);
 
   useEffect(() => {
-    if (contentState.isLoggedIn && contentState.isSubscribed === false) {
-      setBadge(
-        "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text x='0' y='24' font-size='28'>⚠️</text></svg>"
-      );
-    } else if (tab === "record" && !contentState.isLoggedIn) {
-      setBadge(TempLogo);
-    } else {
-      const avatar = contentState?.screenityUser?.avatar;
+    if (contentState.isLoggedIn) {
+      const avatar = contentState?.screenityUser?.avatar || contentState?.screenityUser?.picture;
       setBadge(avatar || ProfilePic);
+    } else {
+      setBadge(TempLogo);
     }
   }, [
     contentState.isLoggedIn,
     contentState.isSubscribed,
-    contentState.wasLoggedIn,
+    contentState.screenityUser,
     tab,
   ]);
 
@@ -190,167 +179,7 @@ const PopupContainer = (props) => {
     contentStateRef.current = contentState;
   }, [contentState]);
 
-  useLayoutEffect(() => {
-    function setPopupPosition(e) {
-      let xpos = DragRef.current.getDraggablePosition().x;
-      let ypos = DragRef.current.getDraggablePosition().y;
-
-      // Width and height of popup
-      const width = PopupRef.current.getBoundingClientRect().width;
-      const height = PopupRef.current.getBoundingClientRect().height;
-
-      // Keep popup positioned relative to the bottom and right of the screen, proportionally
-      if (xpos > window.innerWidth + 10) {
-        xpos = window.innerWidth + 10;
-      }
-      if (ypos + height + 40 > window.innerHeight) {
-        ypos = window.innerHeight - height - 40;
-      }
-
-      // Check if attached to right or bottom, if so, keep it there
-      if (contentStateRef.current.popupPosition.fixed) {
-        if (xpos < window.innerWidth) {
-          xpos = window.innerWidth + 10;
-        }
-      }
-
-      DragRef.current.updatePosition({ x: xpos, y: ypos });
-    }
-    window.addEventListener("resize", setPopupPosition);
-    setPopupPosition();
-    return () => window.removeEventListener("resize", setPopupPosition);
-  }, []);
-
-  const handleDragStart = (e, d) => {
-    setDragging("ToolbarDragging");
-  };
-
-  const handleDrag = (e, d) => {
-    // Width and height
-    const width = PopupRef.current.getBoundingClientRect().width;
-    const height = PopupRef.current.getBoundingClientRect().height;
-
-    if (
-      d.x - 40 < width ||
-      d.x > window.innerWidth + 10 ||
-      d.y < 0 ||
-      d.y + height + 40 > window.innerHeight
-    ) {
-      setShake("ToolbarShake");
-    } else {
-      setShake("");
-    }
-  };
-
-  const handleDrop = (e, d) => {
-    let anim = "ToolbarElastic";
-    if (e === null) {
-      anim = "";
-    }
-    setShake("");
-    setDragging("");
-    let xpos = d.x;
-    let ypos = d.y;
-
-    // Width and height
-    const width = PopupRef.current.getBoundingClientRect().width;
-    const height = PopupRef.current.getBoundingClientRect().height;
-
-    // Check if popup is off screen
-    if (d.x - 40 < width) {
-      setElastic(anim);
-      xpos = width + 40;
-    } else if (d.x + 10 > window.innerWidth) {
-      setElastic(anim);
-      xpos = window.innerWidth + 10;
-    }
-
-    if (d.y < 0) {
-      setElastic(anim);
-      ypos = 0;
-    } else if (d.y + height + 40 > window.innerHeight) {
-      setElastic(anim);
-      ypos = window.innerHeight - height - 40;
-    }
-    DragRef.current.updatePosition({ x: xpos, y: ypos });
-
-    setTimeout(() => {
-      setElastic("");
-    }, 250);
-
-    setContentState((prevContentState) => ({
-      ...prevContentState,
-      popupPosition: {
-        ...prevContentState.popupPosition,
-        offsetX: xpos,
-        offsetY: ypos,
-        left: xpos < window.innerWidth / 2 ? true : false,
-        right: xpos < window.innerWidth / 2 ? false : true,
-        top: ypos < window.innerHeight / 2 ? true : false,
-        bottom: ypos < window.innerHeight / 2 ? false : true,
-      },
-    }));
-
-    // Is it on the left or right, also top or bottom
-    let left = xpos < window.innerWidth / 2 ? true : false;
-    let right = xpos < window.innerWidth / 2 ? false : true;
-    let top = ypos < window.innerHeight / 2 ? true : false;
-    let bottom = ypos < window.innerHeight / 2 ? false : true;
-    let offsetX = xpos;
-    let offsetY = ypos;
-    let fixed = d.x + 9 > window.innerWidth ? true : false;
-
-    if (right) {
-      offsetX = window.innerWidth - xpos;
-    }
-    if (bottom) {
-      offsetY = window.innerHeight - ypos;
-    }
-
-    setContentState((prevContentState) => ({
-      ...prevContentState,
-      popupPosition: {
-        ...prevContentState.popupPosition,
-        offsetX: offsetX,
-        offsetY: offsetY,
-        left: left,
-        right: right,
-        top: top,
-        bottom: bottom,
-        fixed: fixed,
-      },
-    }));
-
-    chrome.storage.local.set({
-      popupPosition: {
-        offsetX: offsetX,
-        offsetY: offsetY,
-        left: left,
-        right: right,
-        top: top,
-        bottom: bottom,
-        fixed: fixed,
-      },
-    });
-  };
-
-  useEffect(() => {
-    let x = contentState.popupPosition.offsetX;
-    let y = contentState.popupPosition.offsetY;
-
-    if (contentState.popupPosition.bottom) {
-      y = window.innerHeight - contentState.popupPosition.offsetY;
-    }
-
-    if (contentState.popupPosition.right) {
-      x = window.innerWidth - contentState.popupPosition.offsetX;
-    }
-
-    DragRef.current.updatePosition({ x: x, y: y });
-
-    handleDrop(null, { x: x, y: y });
-  }, []);
-
+  // Removed drag logic and effects
   useEffect(() => {
     requestAnimationFrame(() => {
       const tabRef =
@@ -453,28 +282,28 @@ const PopupContainer = (props) => {
       }}
     >
       <div className={"ToolbarBounds" + " " + shake}></div>
-      <Rnd
-        default={{
-          x: contentState.popupPosition.offsetX,
-          y: contentState.popupPosition.offsetY,
-        }}
+      <div
         className={
-          "react-draggable" + " " + elastic + " " + shake + " " + dragging
+          "react-draggable centered-popup " + elastic + " " + shake + " " + dragging
         }
-        enableResizing={false}
-        dragHandleClassName="drag-area"
-        onDragStart={handleDragStart}
-        onDrag={handleDrag}
-        onDragStop={handleDrop}
-        ref={DragRef}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none" // Allow clicks to pass through to the background if needed
+        }}
       >
         <div
           className="popup-container"
           id="pro-onboarding-popup-container"
           ref={PopupRef}
+          style={{ pointerEvents: "auto" }} // But keep the popup itself clickable
         >
           <div
             className={open ? "popup-drag-head" : "popup-drag-head drag-area"}
+            style={{ cursor: "default" }} // Remove grab cursor since it's not draggable
           ></div>
           <div
             className={
@@ -486,20 +315,13 @@ const PopupContainer = (props) => {
               open={open}
               setOpen={setOpen}
             />
-            <div
-              style={{ marginBottom: "-4px", cursor: "pointer" }}
-              onClick={() => {
-                window.open(URL, "_blank");
-              }}
-            >
-              <HelpIconPopup />
-            </div>
+
             <div
               className="popup-control popup-close"
               onClick={() => {
                 setContentState((prevContentState) => ({
                   ...prevContentState,
-                  showExtension: false,
+                  showPopup: false,
                 }));
               }}
             >
@@ -507,38 +329,23 @@ const PopupContainer = (props) => {
             </div>
           </div>
           <div className="popup-cutout drag-area">
-            {contentState.isLoggedIn && contentState.isSubscribed === false ? (
-              <div
-                style={{
-                  fontSize: "34px",
-                }}
-              >
-                ⚠️
-              </div>
-            ) : (
-              <img
-                src={badge}
-                crossOrigin="anonymous"
-                style={{
-                  width:
-                    tab === "record" && !contentState.isLoggedIn
-                      ? "90%"
-                      : "100%",
-                  height:
-                    tab === "record" && !contentState.isLoggedIn
-                      ? "90%"
-                      : "100%",
-                  filter:
-                    tab === "record" && !contentState.isLoggedIn
-                      ? "drop-shadow(rgba(86, 123, 218, 0.35) 0px 4px 11px) drop-shadow(rgba(53, 87, 98, 0.2) 0px 4px 10px)"
-                      : "none",
-                  userSelect: "none",
-                  pointerEvents: "none",
-                }}
-                draggable={false}
-                referrerPolicy="no-referrer"
-              />
-            )}
+            <img
+              src={badge}
+              crossOrigin="anonymous"
+              style={{
+                width: contentState.isLoggedIn ? "100%" : "90%",
+                height: contentState.isLoggedIn ? "100%" : "90%",
+                borderRadius: contentState.isLoggedIn ? "50%" : "0",
+                filter: !contentState.isLoggedIn
+                  ? "drop-shadow(rgba(86, 123, 218, 0.35) 0px 4px 11px) drop-shadow(rgba(53, 87, 98, 0.2) 0px 4px 10px)"
+                  : "none",
+                userSelect: "none",
+                pointerEvents: "none",
+                objectFit: "cover",
+              }}
+              draggable={false}
+              referrerPolicy="no-referrer"
+            />
           </div>
           <div className="popup-nav"></div>
           <div className="popup-content">
@@ -599,38 +406,6 @@ const PopupContainer = (props) => {
                   );
                 }}
               />
-            ) : isCloudBuild &&
-              !contentState.isLoggedIn &&
-              contentState.wasLoggedIn ? (
-              <LoggedOut
-                onManageClick={() => {
-                  // Log back in
-                  chrome.runtime.sendMessage({ type: "handle-login" });
-                }}
-                onDowngradeClick={() => {
-                  chrome.storage.local.set({
-                    wasLoggedIn: false,
-                    stayLoggedOut: true,
-                  });
-                  setContentState((prev) => ({
-                    ...prev,
-                    isLoggedIn: false,
-                    wasLoggedIn: false,
-                    bigTab: "record", // Ensure UI state sync
-                  }));
-                  setTab("record"); // Switch immediately
-
-                  requestAnimationFrame(() => {
-                    if (recordTabRef.current && pillRef.current) {
-                      const tabRef = recordTabRef.current;
-                      pillRef.current.style.left = `${tabRef.offsetLeft}px`;
-                      pillRef.current.style.width = `${
-                        tabRef.getBoundingClientRect().width
-                      }px`;
-                    }
-                  });
-                }}
-              />
             ) : (
               <Tabs.Root
                 className="TabsRoot tl"
@@ -666,13 +441,10 @@ const PopupContainer = (props) => {
                     tabIndex={0}
                   >
                     <div className="TabsTriggerIcon">
-                      <img
-                        src={
-                          tab === "dashboard"
-                            ? VideoTabActive
-                            : VideoTabInactive
-                        }
-                      />
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={tab === "dashboard" ? "#3080F8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
                     </div>
                     {chrome.i18n.getMessage("videosTab")}
                   </Tabs.Trigger>
@@ -681,26 +453,14 @@ const PopupContainer = (props) => {
                   <RecordingTab shadowRef={props.shadowRef} />
                 </Tabs.Content>
                 <Tabs.Content className="TabsContent tl" value="dashboard">
-                  <VideosTab shadowRef={props.shadowRef} />
+                  <AccountTab />
                 </Tabs.Content>
               </Tabs.Root>
             )}
           </div>
-          {contentState.settingsOpen && (
-            <div
-              className="HelpSection"
-              onClick={() => {
-                window.open(URL, "_blank");
-              }}
-            >
-              <span className="HelpIcon">
-                <HelpIconPopup />
-              </span>
-              {chrome.i18n.getMessage("helpPopup")}
-            </div>
-          )}
+
         </div>
-      </Rnd>
+      </div>
     </div>
   );
 };

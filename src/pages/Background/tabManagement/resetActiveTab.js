@@ -13,7 +13,7 @@ export const restartActiveTab = async (message = {}) => {
     const currentTab = await getCurrentTab();
     const targetTabId = preferredTabId || currentTab?.id || null;
     if (targetTabId) {
-      sendMessageTab(targetTabId, { type: "ready-to-record" });
+      sendMessageTab(targetTabId, { type: "ready-to-record" }).catch(() => {});
 
       const { countdown } = await chrome.storage.local.get(["countdown"]);
 

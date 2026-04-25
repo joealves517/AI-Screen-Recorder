@@ -100,7 +100,8 @@ const Waveform = () => {
           audioSource.connect(analyser);
         })
         .catch((error) => {
-          console.error("Error capturing audio:", error);
+          // Silently ignore microphone access errors here as this is just a visualizer
+          // console.error("Error capturing audio:", error);
         });
     }
 

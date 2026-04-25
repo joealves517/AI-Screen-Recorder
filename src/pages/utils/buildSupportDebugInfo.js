@@ -100,7 +100,7 @@ export const buildSupportDebugInfo = async (opts = {}) => {
 
   // Build the text block
   const lines = [
-    `Screenity Debug Info`,
+    `AI Screen Recorder Debug Info`,
     `====================`,
     `Code:      ${supportCode}`,
   ];

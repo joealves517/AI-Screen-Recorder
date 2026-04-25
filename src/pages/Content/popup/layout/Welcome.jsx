@@ -127,7 +127,7 @@ const Welcome = (props) => {
                   "Sign in to unlock paid features"
                 : !learntAboutPro
                 ? chrome.i18n.getMessage("welcomeBackProCTA") ||
-                  "Learn more about Screenity Pro"
+                  "Learn more about AI Screen Recorder Pro"
                 : chrome.i18n.getMessage("welcomeBackProCTAAfterLearn") ||
                   "Sign in to unlock paid features"}
             </span>
@@ -158,7 +158,7 @@ const Welcome = (props) => {
                 ? chrome.i18n.getMessage("welcomeProButton") ||
                   "Sign in to unlock paid features"
                 : chrome.i18n.getMessage("welcomeBackProCTA") ||
-                  "Learn more about Screenity Pro"}
+                  "Learn more about AI Screen Recorder Pro"}
             </span>
           </div>
           <a

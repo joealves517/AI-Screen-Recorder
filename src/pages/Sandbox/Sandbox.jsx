@@ -7,7 +7,7 @@ import Editor from "./layout/editor/Editor";
 import Player from "./layout/player/Player";
 import Modal from "./components/global/Modal";
 
-import HelpButton from "./components/player/HelpButton";
+
 
 // Context
 import { ContentStateContext } from "./context/ContentState"; // Import the ContentState context
@@ -99,17 +99,7 @@ const Sandbox = () => {
     }
   }, [contentState.chunkIndex, contentState.chunkCount]);
 
-  useEffect(() => {
-    // Check if we need to show support banner
-    chrome.runtime.sendMessage({ type: "check-banner-support" }, (response) => {
-      if (response && response.bannerSupport) {
-        setContentState((prev) => ({
-          ...prev,
-          bannerSupport: true,
-        }));
-      }
-    });
-  }, []);
+
 
   // If editor was opened manually and we don't yet have a blob/ready state,
   // proactively ask the background to send chunks to this sandbox tab.
@@ -122,7 +112,7 @@ const Sandbox = () => {
       try {
         if (!contentState.blob && !contentState.ready) {
           console.debug(
-            "[Screenity][Sandbox] requesting chunks from background (send-chunks-to-sandbox)",
+            "[AISR][Sandbox] requesting chunks from background (send-chunks-to-sandbox)",
           );
           // Ask background to send chunks to this tab (background will
           // determine the target tab or use this sender)
@@ -218,7 +208,7 @@ const Sandbox = () => {
               </div>
             )}
           </div>
-          <HelpButton />
+
           <div className="setupBackgroundSVG"></div>
         </div>
       )}

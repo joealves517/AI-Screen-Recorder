@@ -24,7 +24,7 @@ export const sendMessageTab = async (
       tab?.pendingUrl && tab.pendingUrl.startsWith(extOrigin);
 
     if (isExtUrl || isPendingExtUrl) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         chrome.runtime.sendMessage(
           { ...message, _targetTabId: tab.id },
           (response) => {
@@ -34,7 +34,7 @@ export const sendMessageTab = async (
                 responseCallback ? responseCallback(undefined) : resolve();
                 return;
               }
-              reject(msg);
+              resolve({ error: msg });
               return;
             }
             responseCallback ? responseCallback(response) : resolve(response);
@@ -52,13 +52,13 @@ export const sendMessageTab = async (
       tab.url === "" ||
       tab.url === "about:blank"
     ) {
-      return Promise.reject("Invalid tab URL");
+      return Promise.resolve({ error: "Invalid tab URL" });
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       chrome.tabs.sendMessage(tab.id, message, (response) => {
         if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError.message);
+          resolve({ error: chrome.runtime.lastError.message });
         } else {
           responseCallback ? responseCallback(response) : resolve(response);
         }
