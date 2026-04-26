@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "AI Screen Recorder",
+    "message": "AI Screen Recorder - Free MP4",
     "description": "Extension name"
   },
   "extDesc": {
@@ -1577,4 +1577,4 @@
     "message": "取消",
     "description": "Generic cancel button label"
   }
-}
+}\n

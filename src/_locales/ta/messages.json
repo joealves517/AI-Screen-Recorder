@@ -1,6 +1,6 @@
 {
   "extName": {
-    "message": "AI Screen Recorder",
+    "message": "AI Screen Recorder - Free MP4",
     "description": "நீட்சிதம் பெயர்"
   },
   "extDesc": {
@@ -1581,4 +1581,4 @@
     "message": "ரத்துசெய்",
     "description": "Generic cancel button label"
   }
-}
+}\n
