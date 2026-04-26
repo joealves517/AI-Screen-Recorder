@@ -158,7 +158,6 @@ const config = {
       {
         test: new RegExp(`.(${fileExtensions.join("|")})$`),
         type: "asset/resource",
-        exclude: /node_modules/,
       },
       {
         test: /\.html$/,

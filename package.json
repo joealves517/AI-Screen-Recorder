@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.27.1",
+    "@fontsource/inter": "^5.2.8",
     "@mediapipe/tasks-vision": "0.10.32",
     "@radix-ui/react-alert-dialog": "^1.0.4",
     "@radix-ui/react-collapsible": "^1.0.2",
