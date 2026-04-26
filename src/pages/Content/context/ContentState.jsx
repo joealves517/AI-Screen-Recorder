@@ -332,7 +332,7 @@ const ContentState = (props) => {
   const dismissRecording = useCallback(() => {
     setStartFlowOutcome("cancelled");
     suppressStopBeepRef.current = true;
-    chrome.storage.local.set({ restarting: false });
+    chrome.storage.local.set({ restarting: false, customRegion: false });
     chrome.runtime.sendMessage({ type: "dismiss-recording-tab" });
     setContentState((prevContentState) => ({
       ...prevContentState,
@@ -349,6 +349,7 @@ const ContentState = (props) => {
       pipEnded: false,
       blurMode: false,
       drawingMode: false,
+      customRegion: false,
     }));
     // Remove blur from all elements
     const elements = document.querySelectorAll(".aisr-blur");
@@ -943,6 +944,7 @@ const ContentState = (props) => {
         pendingRecording: false,
         recording: false,
         restarting: false,
+        customRegion: false,
       });
       chrome.runtime.sendMessage({ type: "diag-countdown-cancelled" }).catch(() => {});
       setContentState((prev) => ({
@@ -953,6 +955,7 @@ const ContentState = (props) => {
         recording: false,
         showPopup: true,
         showExtension: true,
+        customRegion: false,
       }));
       // Call dismissRecording to ensure everything is properly cleaned up
       contentStateRef.current.dismissRecording();

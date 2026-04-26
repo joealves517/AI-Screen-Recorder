@@ -94,6 +94,7 @@ export const stopRecording = async () => {
     recordingDuration: duration,
     tabRecordedID: null,
     offscreen: false,
+    customRegion: false,
   });
   chrome.storage.local.set({ recordingUiTabId: null });
   chrome.storage.local.set({ pipForceClose: Date.now() });
@@ -285,6 +286,7 @@ export const handleStopRecordingTab = async (request) => {
       restarting: false,
       tabRecordedID: null,
       memoryError: true,
+      customRegion: false,
     });
   }
 
@@ -518,6 +520,7 @@ export const handleStopRecordingTabBackup = async (request) => {
     restarting: false,
     tabRecordedID: null,
     memoryError: true,
+    customRegion: false,
   });
   sendMessageRecord({ type: "stop-recording-tab" });
 
