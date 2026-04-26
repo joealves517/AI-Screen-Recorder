@@ -262,7 +262,7 @@ const SettingsMenu = (props) => {
         )}
       >
         <DropdownMenu.Content className="DropdownMenuContent" sideOffset={5}>
-          {!contentState.isSubscribed && !contentState.isLoggedIn && (
+          {true && (
             <DropdownMenu.Sub
               open={openResize}
               onOpenChange={(open) => {
@@ -301,7 +301,7 @@ const SettingsMenu = (props) => {
                           height: 2160,
                         });
                       }}
-                      disabled={width < 3840 || height < 2160}
+                      
                     >
                       3840 x 2160 (4k)
                     </DropdownMenu.Item>
@@ -322,7 +322,7 @@ const SettingsMenu = (props) => {
                           height: 1080,
                         });
                       }}
-                      disabled={width < 1920 || height < 1080}
+                      
                     >
                       1920 x 1080 (1080p)
                     </DropdownMenu.Item>
@@ -343,7 +343,7 @@ const SettingsMenu = (props) => {
                           height: 720,
                         });
                       }}
-                      disabled={width < 1280 || height < 720}
+                      
                     >
                       1280 x 720 (720p)
                     </DropdownMenu.Item>
@@ -364,7 +364,7 @@ const SettingsMenu = (props) => {
                           height: 480,
                         });
                       }}
-                      disabled={width < 640 || height < 480}
+                      
                     >
                       640 x 480 (480p)
                     </DropdownMenu.Item>
@@ -385,7 +385,7 @@ const SettingsMenu = (props) => {
                           height: 360,
                         });
                       }}
-                      disabled={width < 480 || height < 360}
+                      
                     >
                       480 x 360 (360p)
                     </DropdownMenu.Item>
@@ -406,7 +406,7 @@ const SettingsMenu = (props) => {
                           height: 240,
                         });
                       }}
-                      disabled={width < 320 || height < 240}
+                      
                     >
                       320 x 240 (240p)
                     </DropdownMenu.Item>
@@ -415,7 +415,7 @@ const SettingsMenu = (props) => {
               </DropdownMenu.Portal>
             </DropdownMenu.Sub>
           )}
-          {!contentState.isSubscribed && !contentState.isLoggedIn && (
+          {true && (
             <DropdownMenu.Sub
               open={openQuality}
               onOpenChange={(open) => {
@@ -463,7 +463,7 @@ const SettingsMenu = (props) => {
                       <DropdownMenu.RadioItem
                         className="AisrDropdownMenuItem"
                         value="4k"
-                        disabled={RAM < 8 || width < 3840 || height < 2160}
+                        
                       >
                         4k
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
@@ -481,7 +481,7 @@ const SettingsMenu = (props) => {
                       <DropdownMenu.RadioItem
                         className="AisrDropdownMenuItem"
                         value="1080p"
-                        disabled={RAM < 4 || width < 1920 || height < 1080}
+                        
                       >
                         1080p
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
@@ -499,7 +499,7 @@ const SettingsMenu = (props) => {
                       <DropdownMenu.RadioItem
                         className="AisrDropdownMenuItem"
                         value="720p"
-                        disabled={RAM < 2 || width < 1280 || height < 720}
+                        
                       >
                         720p
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
@@ -539,7 +539,7 @@ const SettingsMenu = (props) => {
               </DropdownMenu.Portal>
             </DropdownMenu.Sub>
           )}
-          {!contentState.isSubscribed && !contentState.isLoggedIn && (
+          {true && (
             <DropdownMenu.Sub
               open={openFPS}
               onOpenChange={(open) => {
@@ -657,9 +657,7 @@ const SettingsMenu = (props) => {
               <img src={CheckWhiteIcon} />
             </DropdownMenu.ItemIndicator>
           </DropdownMenu.CheckboxItem>
-          {!contentState.isSubscribed &&
-            !contentState.isLoggedIn &&
-            fastRecorderInfo?.probe?.ok === true &&
+          {fastRecorderInfo?.probe?.ok === true &&
             fastRecorderInfo?.probe?.details?.selectedVideoConfig && (
               <DropdownMenu.CheckboxItem
                 className="DropdownMenuItem"
@@ -689,9 +687,7 @@ const SettingsMenu = (props) => {
                 </DropdownMenu.ItemIndicator>
               </DropdownMenu.CheckboxItem>
             )}
-          {!oldChrome &&
-            !contentState.isSubscribed &&
-            !contentState.isLoggedIn && (
+          {!oldChrome && (
               <DropdownMenu.CheckboxItem
                 className="DropdownMenuItem"
                 onSelect={(e) => {
@@ -719,7 +715,7 @@ const SettingsMenu = (props) => {
                 </DropdownMenu.ItemIndicator>
               </DropdownMenu.CheckboxItem>
             )}
-          {!contentState.isSubscribed && !contentState.isLoggedIn && (
+          {true && (
             <DropdownMenu.Item
               className="DropdownMenuItem"
               onSelect={(e) => {
