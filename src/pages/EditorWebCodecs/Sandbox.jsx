@@ -28,7 +28,7 @@ const getCloudRunConfig = async () => {
   // Only route to Premium Vertex AI if they are actively subscribed
   if (isLoggedIn && aisrToken && isSubscribed) {
     return {
-      endpoint: `${API_BASE}/api/aisr`,
+      endpoint: `${API_BASE}/api/screenity`,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${aisrToken}`,
@@ -38,7 +38,7 @@ const getCloudRunConfig = async () => {
 
   // Free/guest tier — no auth required
   return {
-    endpoint: `${API_BASE}/api/aisr/free`,
+    endpoint: `${API_BASE}/api/screenity/free`,
     headers: {
       "Content-Type": "application/json",
     },
