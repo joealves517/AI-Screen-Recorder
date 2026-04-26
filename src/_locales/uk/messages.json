@@ -1572,5 +1572,13 @@
   "cancelButton": {
     "message": "Скасувати",
     "description": "Generic cancel button label"
+  },
+  "hostBannerTitle": {
+    "message": "Enjoying AI Screen Recorder locally? Help support future development!",
+    "description": "Self-host banner title in the editor"
+  },
+  "hostBannerDescription": {
+    "message": "AI Screen Recorder is built by a solo indie dev. Self-hosting is free, but if you find it useful, consider supporting with Pro ❤️",
+    "description": "Self-host banner description in the editor"
   }
-}\n
+}

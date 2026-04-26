@@ -1576,5 +1576,9 @@
   "cancelButton": {
     "message": "取消",
     "description": "Generic cancel button label"
+  },
+  "stopRecording": {
+    "message": "Stop recording",
+    "description": "Stop recording button in recording scren"
   }
-}\n
+}

@@ -1560,5 +1560,25 @@
   "cancelButton": {
     "message": "Annulla",
     "description": "Generic cancel button label"
+  },
+  "overLimitModalTitle": {
+    "message": "The video is too long to process in your device",
+    "description": "Over 5 minutes limit modal title"
+  },
+  "overLimitModalDescription": {
+    "message": "Since AI Screen Recorder is completely private and runs locally, it's limited by your device's hardware. Processing a video of this length would take too long, and be very resource intensive. Don't worry, you can still download the WEBM file or the raw recording, but editing and MP4 export are not available. That said, you can still try to process the video anyway, if you understand the risks.",
+    "description": "Over 5 minutes limit modal description"
+  },
+  "overLimitModalDescriptionFastPath": {
+    "message": "Since AI Screen Recorder is completely private and runs locally, it's limited by your device's hardware. Processing a video of this length would take too long, and be very resource intensive. Your MP4 is ready to download as-is, but in-browser editing isn't available for clips this long. You can still try to process the video anyway, if you understand the risks.",
+    "description": "Over 5 minutes limit modal description when the recording is a native MP4 (fast recorder / WebCodecs)"
+  },
+  "overLimitModalButton": {
+    "message": "I understand the risk, try anyway",
+    "description": "Over 5 minutes limit modal button"
+  },
+  "overLimitModalLearnMore": {
+    "message": "Learn more about processing long videos.",
+    "description": "Over 5 minutes limit modal learn more link with a dot"
   }
-}\n
+}
