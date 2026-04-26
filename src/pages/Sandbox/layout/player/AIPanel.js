@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
+import { marked } from "marked";
 import styles from "../../styles/player/_RightPanel.module.scss";
 import { ContentStateContext } from "../../context/ContentState";
 import { LANGUAGE_GROUPS, getSupportedLanguages } from "./aiUtils";
@@ -529,7 +530,7 @@ const AIPanel = () => {
   };
 
   const handleSummarize = () => {
-    if (locked || isProcessing) return;
+    if (locked || isProcessing || summary) return;
     setError(null);
     setIsProcessing(true);
     setActiveTask("summarize");
@@ -537,7 +538,7 @@ const AIPanel = () => {
   };
 
   const handleActionItems = () => {
-    if (locked || isProcessing) return;
+    if (locked || isProcessing || actionItems) return;
     setError(null);
     setIsProcessing(true);
     setActiveTask("action-items");
@@ -545,7 +546,7 @@ const AIPanel = () => {
   };
 
   const handleGenerateTitle = () => {
-    if (locked || isProcessing) return;
+    if (locked || isProcessing || titleData) return;
     setError(null);
     setIsProcessing(true);
     setActiveTask("title");
@@ -746,20 +747,24 @@ const AIPanel = () => {
         {/* 3. Summarize — result appears inline below */}
         {renderButton({
           Icon: FileText,
-          title: "Summarize Video",
-          description:
-            activeTask === "summarize"
-              ? "Reading transcript..."
-              : "Get a quick summary of the video.",
+          title: summary ? "Summary Generated" : "Summarize Video",
+          description: summary
+            ? "Summary is ready."
+            : activeTask === "summarize"
+            ? "Reading transcript..."
+            : "Get a quick summary of the video.",
           onClick: handleSummarize,
           taskKey: "summarize",
-          disabled: locked,
+          disabled: locked || !!summary,
         })}
         {renderResultCard(
           summary && (
             <>
               <strong>Summary:</strong>
-              <p style={{ marginTop: "4px", lineHeight: "1.5" }}>{summary}</p>
+              <div 
+                style={{ marginTop: "4px", lineHeight: "1.5" }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(summary) }}
+              />
             </>
           ),
           "#f0fdfa",
@@ -770,22 +775,24 @@ const AIPanel = () => {
         {/* 4. Key Takeaways — result appears inline below */}
         {renderButton({
           Icon: ListChecks,
-          title: "Key Takeaways",
-          description:
-            activeTask === "action-items"
-              ? "Analyzing transcript..."
-              : "Extract bullet points & to-dos.",
+          title: actionItems ? "Key Takeaways Generated" : "Key Takeaways",
+          description: actionItems
+            ? "Takeaways are ready."
+            : activeTask === "action-items"
+            ? "Analyzing transcript..."
+            : "Extract bullet points & to-dos.",
           onClick: handleActionItems,
           taskKey: "action-items",
-          disabled: locked,
+          disabled: locked || !!actionItems,
         })}
         {renderResultCard(
           actionItems && (
             <>
               <strong>Key Takeaways:</strong>
-              <div style={{ marginTop: "4px", lineHeight: "1.5", whiteSpace: "pre-wrap" }}>
-                {actionItems}
-              </div>
+              <div 
+                style={{ marginTop: "4px", lineHeight: "1.5" }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(actionItems) }}
+              />
             </>
           ),
           "#fffbeb",
@@ -796,14 +803,15 @@ const AIPanel = () => {
         {/* 5. Smart Title — result appears inline below */}
         {renderButton({
           Icon: TextSelect,
-          title: "Smart Title & Details",
-          description:
-            activeTask === "title"
-              ? "Crafting metadata..."
-              : "Generate YouTube-ready title.",
+          title: titleData ? "Title Generated" : "Smart Title & Details",
+          description: titleData
+            ? "Title is ready."
+            : activeTask === "title"
+            ? "Crafting metadata..."
+            : "Generate YouTube-ready title.",
           onClick: handleGenerateTitle,
           taskKey: "title",
-          disabled: locked,
+          disabled: locked || !!titleData,
         })}
         {renderResultCard(
           titleData && (

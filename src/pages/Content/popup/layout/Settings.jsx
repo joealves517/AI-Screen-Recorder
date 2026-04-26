@@ -59,8 +59,7 @@ const Settings = () => {
         name="askMicrophone"
         value="askMicrophone"
       />
-      {contentState.recordingType != "camera" &&
-        !contentState.isSubscribed && (
+      {contentState.recordingType != "camera" && (
           <Switch
             label={
               chrome.i18n.getMessage("zoomToPointPopup") +
