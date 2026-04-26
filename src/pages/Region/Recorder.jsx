@@ -316,7 +316,11 @@ const Recorder = () => {
     const items = [];
     await chunksStore.ready();
     await chunksStore.iterate((value) => (items.push(value), undefined));
-    items.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+    items.sort((a, b) => {
+      const dt = (a.timestamp ?? 0) - (b.timestamp ?? 0);
+      if (dt !== 0) return dt;
+      return (a.index ?? 0) - (b.index ?? 0);
+    });
     const parts = items.map((c) =>
       c.chunk instanceof Blob ? c.chunk : new Blob([c.chunk]),
     );
