@@ -194,6 +194,9 @@ const config = {
   plugins: [
     new webpack.ProgressPlugin(),
     new webpack.DefinePlugin({
+      "process.env.AISR_APP_BASE": JSON.stringify(""),
+      "process.env.AISR_WEBSITE_BASE": JSON.stringify(""),
+      "process.env.AISR_ENABLE_CLOUD_FEATURES": JSON.stringify("false"),
       "process.env.AISR_API_BASE_URL": JSON.stringify(
         process.env.AISR_API_BASE_URL
       ),
