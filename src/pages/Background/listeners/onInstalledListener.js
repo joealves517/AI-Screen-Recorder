@@ -1,21 +1,11 @@
 import { removeTab } from "../tabManagement";
 import { executeScripts } from "../utils/executeScripts";
-import { supportContextQuery } from "../../utils/buildSupportContext";
-import { tryResumePendingUploads } from "../recording/resumePendingUploads";
-
-const cloudFeaturesEnabled =
-  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 export const onInstalledListener = () => {
   chrome.runtime.onInstalled.addListener(async (details) => {
-    const version = chrome.runtime.getManifest().version;
-    const locale = chrome.i18n.getMessage("@@ui_locale");
-
     if (details.reason === "install") {
       // Clear storage on fresh install
       chrome.storage.local.clear();
-
-      // No uninstall survey page
 
       chrome.storage.local.set({
         firstTime: true,
@@ -23,26 +13,12 @@ export const onInstalledListener = () => {
         bannerSupport: true,
         firstTimePro: false,
       });
-
-      // No auto-open setup page on install
     } else if (details.reason === "update") {
       if (details.previousVersion === "2.8.6") {
-        // Do not clear local storage on update; preserve onboarding/versioned keys.
         chrome.storage.local.set({ updatingFromOld: true });
       } else {
         chrome.storage.local.set({ updatingFromOld: false });
-
-        // Onboarding for new cloud version
-        if (details.previousVersion === "3.1.16" && cloudFeaturesEnabled) {
-          chrome.storage.local.set({
-            showProSplash: cloudFeaturesEnabled,
-            bannerSupport: true,
-            onboarding: cloudFeaturesEnabled,
-          });
-        }
       }
-
-      // No uninstall survey page
     }
 
     // Disable backups for older Chrome versions
@@ -66,11 +42,5 @@ export const onInstalledListener = () => {
     }
 
     executeScripts();
-
-    setTimeout(() => {
-      tryResumePendingUploads({ trigger: `onInstalled:${details.reason}` }).catch(
-        () => {},
-      );
-    }, 5000);
   });
 };

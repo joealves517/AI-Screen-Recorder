@@ -38,7 +38,6 @@
         "assets/*",
         "worker.js",
         "vendor/*",
-        "cloudrecorder.html",
         "recorder.html",
         "offscreenrecorder.html",
         "sandbox.html",

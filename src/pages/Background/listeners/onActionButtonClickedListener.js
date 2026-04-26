@@ -5,11 +5,8 @@ import {
   clearEditorTabReference,
 } from "../tabManagement";
 import { sendMessageRecord } from "../recording/sendMessageRecord.js";
-import { loginWithWebsite } from "../auth/loginWithWebsite.js";
-import { tryResumePendingUploads } from "../recording/resumePendingUploads";
 
-const CLOUD_FEATURES_ENABLED =
-  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
+const CLOUD_FEATURES_ENABLED = false; // Cloud features removed
 
 // Utility to handle tab messaging logic
 const handleTabMessaging = async (tab) => {
@@ -58,58 +55,15 @@ const handleTabMessaging = async (tab) => {
 
 // Utility to open Playground or inject popup
 const openPlaygroundOrPopup = async (tab) => {
-  const editorUrlPattern =
-    // Editor URL pattern — no longer matches legacy domain
-    /(?:^$)/;
-
-  if (tab.url && editorUrlPattern.test(tab.url)) {
-    const match = tab.url.match(editorUrlPattern);
-    const projectIdFromUrl = match?.[2] || null;
-    await setEditorTabReference({
-      tabId: tab.id,
-      tabUrl: tab.url,
-      source: "action-click-editor",
-      expectedProjectId: projectIdFromUrl,
-    });
-
-    if (CLOUD_FEATURES_ENABLED) {
-      const result = await loginWithWebsite();
-
-      if (result?.authenticated) {
-        await chrome.storage.local.set({
-          projectId: projectIdFromUrl,
-          recordingToScene: true,
-          instantMode: false,
-        });
-
-        sendMessageTab(tab.id, {
-          type: "get-project-info",
-        });
-      } else {
-        await chrome.storage.local.set({
-          projectId: null,
-          recordingToScene: false,
-          activeSceneId: null,
-        });
-      }
-    } else {
-      await chrome.storage.local.set({
-        projectId: null,
-        recordingToScene: false,
-        activeSceneId: null,
-      });
-    }
-  } else {
-    await clearEditorTabReference("action-click-non-editor-tab", {
-      tabId: tab.id,
-      tabUrl: tab.url,
-    });
-    await chrome.storage.local.set({
-      projectId: null,
-      recordingToScene: false,
-      activeSceneId: null, // reset scene too if needed
-    });
-  }
+  await clearEditorTabReference("action-click-non-editor-tab", {
+    tabId: tab.id,
+    tabUrl: tab.url,
+  });
+  await chrome.storage.local.set({
+    projectId: null,
+    recordingToScene: false,
+    activeSceneId: null,
+  });
 
   const forbiddenURLs = [
     "chrome://",
@@ -171,7 +125,7 @@ const isOffscreenAlive = async () => {
 // Main action button listener
 export const onActionButtonClickedListener = () => {
   chrome.action.onClicked.addListener(async (tab) => {
-    tryResumePendingUploads({ trigger: "actionClick" }).catch(() => {});
+    // Cloud upload resume removed
     try {
       const snap = await chrome.storage.local.get([
         "recording", "pendingRecording", "restarting", "recorderSession",

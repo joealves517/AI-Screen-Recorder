@@ -126,7 +126,7 @@ export const onTabRemovedListener = () => {
         chrome.action.setIcon({ path: "assets/icon-34.png" });
       }
 
-      // If the CloudRecorder tab itself was closed, that's a critical failure
+      // If the recorder tab itself was closed
       if (
         !restarting &&
         isActivelyRecording &&

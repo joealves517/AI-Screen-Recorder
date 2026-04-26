@@ -23,13 +23,6 @@ const entryPoints = {
   background: path.join(__dirname, "src", "pages", "Background", "index.js"),
   contentScript: path.join(__dirname, "src", "pages", "Content", "index.jsx"),
   recorder: path.join(__dirname, "src", "pages", "Recorder", "index.jsx"),
-  cloudrecorder: path.join(
-    __dirname,
-    "src",
-    "pages",
-    "CloudRecorder",
-    "index.jsx"
-  ),
   offscreenrecorder: path.join(
     __dirname,
     "src",
@@ -78,7 +71,6 @@ const htmlPlugins = Object.keys(entryPoints)
 
     // Map entry names to folder names (for multi-word entries)
     const folderNameMap = {
-      cloudrecorder: "CloudRecorder",
       offscreenrecorder: "OffscreenRecorder",
       audiooffscreen: "AudioOffscreen",
       editorwebcodecs: "EditorWebCodecs",
@@ -202,17 +194,8 @@ const config = {
   plugins: [
     new webpack.ProgressPlugin(),
     new webpack.DefinePlugin({
-      "process.env.AISR_APP_BASE": JSON.stringify(
-        process.env.AISR_APP_BASE
-      ),
-      "process.env.AISR_WEBSITE_BASE": JSON.stringify(
-        process.env.AISR_WEBSITE_BASE
-      ),
       "process.env.AISR_API_BASE_URL": JSON.stringify(
         process.env.AISR_API_BASE_URL
-      ),
-      "process.env.AISR_ENABLE_CLOUD_FEATURES": JSON.stringify(
-        process.env.AISR_ENABLE_CLOUD_FEATURES
       ),
       "process.env.MAX_RECORDING_DURATION": JSON.stringify(
         process.env.MAX_RECORDING_DURATION || 3600 // Default to 1 hour

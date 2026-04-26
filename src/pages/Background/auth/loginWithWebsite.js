@@ -1,13 +1,8 @@
 import { getCurrentTab, sendMessageTab } from "../tabManagement";
 
 const API_BASE = process.env.AISR_API_BASE_URL;
-const CLOUD_FEATURES_ENABLED =
-  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 export const loginWithWebsite = async () => {
-  if (!CLOUD_FEATURES_ENABLED) {
-    return { authenticated: false, instantMode: false };
-  }
 
   // User explicitly chose to stay logged out — respect that until they
   // initiate a login themselves (handle-login clears this flag).

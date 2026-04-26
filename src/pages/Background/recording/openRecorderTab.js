@@ -104,7 +104,7 @@ const openRecorderTab = async (
     if (tabId === tab.id && changeInfo.status === "complete") {
       chrome.tabs.onUpdated.removeListener(_);
       traceStep("recorderTabCreated");
-      // Include tabPreferred in the message so CloudRecorder can use it
+      // Include tabPreferred in the offscreen message
       // synchronously without racing against its own storage read.
       const isPlayground = activeTab.url.includes(
         chrome.runtime.getURL("playground.html")

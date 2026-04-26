@@ -117,7 +117,7 @@ const Download = () => {
 
         // Remove stale TUS journal + scene keys so the next recording cannot
         // accidentally resume the crashed upload or reuse the old scene.
-        // Mirrors clearStaleUploadJournals() in CloudRecorder.jsx.
+        // Clear stale upload journals
         const journalKeysToRemove = ["sceneId", "sceneIdStatus"];
         const tracks = recorderSession?.tracks || {};
         for (const trackData of Object.values(tracks)) {

@@ -42,10 +42,6 @@ import {
 import { requestDownload, downloadIndexedDB } from "../utils/downloadHelpers";
 import { restoreRecording, checkRestore } from "../recording/restoreRecording";
 import {
-  checkCloudRestore,
-  restoreCloudRecording,
-} from "../recording/restoreCloudRecording";
-import {
   CLOUD_LOCAL_PLAYBACK_KEY,
   CLOUD_LOCAL_PLAYBACK_EVENT_KEY,
   CLOUD_LOCAL_PLAYBACK_ALARM,
@@ -76,8 +72,7 @@ import { supportContextQuery } from "../../utils/buildSupportContext";
 
 const API_BASE = process.env.AISR_API_BASE_URL;
 const APP_BASE = process.env.AISR_APP_BASE;
-const CLOUD_FEATURES_ENABLED =
-  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
+const CLOUD_FEATURES_ENABLED = false; // Cloud features removed
 // Debug toggle for post-stop/chunk flow
 const DEBUG_POSTSTOP = false;
 const STOP_RECORDING_TAB_DEBOUNCE_MS = 1200;
@@ -1276,12 +1271,11 @@ export const setupHandlers = () => {
   registerMessage(
     "check-cloud-restore",
     async (_message, _sender, sendResponse) => {
-      const response = await checkCloudRestore();
-      sendResponse(response);
+      sendResponse({ restored: false }); // Cloud features removed
       return true;
     },
   );
-  registerMessage("restore-cloud-recording", () => restoreCloudRecording());
+  registerMessage("restore-cloud-recording", () => {}); // Cloud features removed
   registerMessage(
     "check-capture-permissions",
     async (message, sender, sendResponse) => {
@@ -1298,7 +1292,7 @@ export const setupHandlers = () => {
   );
   registerMessage("is-pinned", async () => await isPinned());
 
-  // Prevent Chrome from discarding the CloudRecorder tab during recording
+  // Prevent Chrome from discarding the recorder tab during recording
   registerMessage("set-tab-auto-discardable", (message, sender) =>
     setTabAutoDiscardableSafe(message, sender),
   );
