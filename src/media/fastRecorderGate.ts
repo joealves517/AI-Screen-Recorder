@@ -43,7 +43,7 @@ const getFastRecDebug = () => {
       if (params.get("fastRecDebug") === "1") return true;
     }
   } catch {}
-  return (globalThis as any)?.SCREENITY_FAST_REC_DEBUG === true;
+  return (globalThis as any)?.AISR_FAST_REC_DEBUG === true;
 };
 
 const debugLog = (...args: any[]) => {

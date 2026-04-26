@@ -19,7 +19,7 @@ import localforage from "localforage";
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "aisr",
   version: 1,
 });
 
@@ -29,9 +29,9 @@ const chunksStore = localforage.createInstance({
 });
 
 // Debug flag for logging
-//   window.SCREENITY_DEBUG_RECORDER = true;
+//   window.AISR_DEBUG_RECORDER = true;
 const DEBUG_RECORDER =
-  typeof window !== "undefined" ? !!window.SCREENITY_DEBUG_RECORDER : false;
+  typeof window !== "undefined" ? !!window.AISR_DEBUG_RECORDER : false;
 const logPrefix = "[AIScreenRecorder Region Recorder]";
 
 function debug(...args) {
@@ -411,7 +411,7 @@ const Recorder = () => {
   useEffect(() => {
     window.parent.postMessage(
       {
-        type: "screenity-region-capture-loaded",
+        type: "aisr-region-capture-loaded",
       },
       "*",
     );
@@ -1915,7 +1915,7 @@ const Recorder = () => {
 
   return (
     <div>
-      {process.env.SCREENITY_DEV_MODE === "true" && (
+      {process.env.AISR_DEV_MODE === "true" && (
         <div
           style={{
             position: "fixed",

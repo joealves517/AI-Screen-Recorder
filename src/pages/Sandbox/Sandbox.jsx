@@ -59,7 +59,7 @@ const Sandbox = () => {
 
     const elements = parentDiv.querySelectorAll("*");
     elements.forEach((element) => {
-      element.classList.add("screenity-scrollbar");
+      element.classList.add("aisr-scrollbar");
     });
 
     const observer = new MutationObserver((mutationsList) => {
@@ -70,13 +70,13 @@ const Sandbox = () => {
 
           addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.add("screenity-scrollbar");
+              node.classList.add("aisr-scrollbar");
             }
           });
 
           removedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.remove("screenity-scrollbar");
+              node.classList.remove("aisr-scrollbar");
             }
           });
         }
@@ -298,24 +298,24 @@ const Sandbox = () => {
 					}
 
 
-.screenity-scrollbar *::-webkit-scrollbar, .screenity-scrollbar::-webkit-scrollbar {
+.aisr-scrollbar *::-webkit-scrollbar, .aisr-scrollbar::-webkit-scrollbar {
   background-color: rgba(0,0,0,0);
   width: 16px;
   height: 16px;
   z-index: 999999;
 }
-.screenity-scrollbar *::-webkit-scrollbar-track, .screenity-scrollbar::-webkit-scrollbar-track {
+.aisr-scrollbar *::-webkit-scrollbar-track, .aisr-scrollbar::-webkit-scrollbar-track {
   background-color: rgba(0,0,0,0);
 }
-.screenity-scrollbar *::-webkit-scrollbar-thumb, .screenity-scrollbar::-webkit-scrollbar-thumb {
+.aisr-scrollbar *::-webkit-scrollbar-thumb, .aisr-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,0);
   border-radius:16px;
   border:0px solid #fff;
 }
-.screenity-scrollbar *::-webkit-scrollbar-button, .screenity-scrollbar::-webkit-scrollbar-button {
+.aisr-scrollbar *::-webkit-scrollbar-button, .aisr-scrollbar::-webkit-scrollbar-button {
   display:none;
 }
-.screenity-scrollbar *:hover::-webkit-scrollbar-thumb, .screenity-scrollbar:hover::-webkit-scrollbar-thumb {
+.aisr-scrollbar *:hover::-webkit-scrollbar-thumb, .aisr-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: #a0a0a5;
   border:4px solid #fff;
 }

@@ -34,7 +34,7 @@ import {
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity", // global DB group
+  name: "aisr", // global DB group
   version: 1,
 });
 
@@ -46,7 +46,7 @@ const chunksStore = localforage.createInstance({
 export const ContentStateContext = createContext();
 
 const DEBUG_RECORDER =
-  typeof window !== "undefined" ? !!window.SCREENITY_DEBUG_RECORDER : false;
+  typeof window !== "undefined" ? !!window.AISR_DEBUG_RECORDER : false;
 // Enable post-stop debug logs for sandbox
 const DEBUG_POSTSTOP = DEBUG_RECORDER;
 
@@ -128,7 +128,7 @@ const ContentState = (props) => {
 
   useEffect(() => {
     if (!DEBUG_RECORDER && !isRecordingDebugEnabled()) return;
-    window.__screenityExportRecordingDebug = async () => {
+    window.__aisrExportRecordingDebug = async () => {
       const { recordingDebugSessionId } = await chrome.storage.local.get([
         "recordingDebugSessionId",
       ]);
@@ -142,7 +142,7 @@ const ContentState = (props) => {
         sessionId: recordingDebugSessionId,
       });
     };
-    window.__screenityPingRecdbg = () =>
+    window.__aisrPingRecdbg = () =>
       chrome.runtime.sendMessage({ type: "recdbg-ping" });
   }, []);
 
@@ -2351,7 +2351,7 @@ const ContentState = (props) => {
   return (
     <ContentStateContext.Provider value={[contentState, setContentState]}>
       {props.children}
-      {process.env.SCREENITY_DEV_MODE === "true" && (
+      {process.env.AISR_DEV_MODE === "true" && (
         <DevHUD
           setContentState={setContentState}
           contentStateRef={contentStateRef}

@@ -1,4 +1,4 @@
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
+const API_BASE = process.env.AISR_API_BASE_URL;
 
 export async function getThumbnailFromBlob(blob, seekTo = 0.1) {
   return new Promise((resolve, reject) => {
@@ -692,11 +692,11 @@ export default class BunnyTusUploader {
 
         if (!authenticated) throw new Error("Not authenticated");
 
-        const { screenityToken } = await chrome.storage.local.get([
-          "screenityToken",
+        const { aisrToken } = await chrome.storage.local.get([
+          "aisrToken",
         ]);
 
-        this.userToken = screenityToken;
+        this.userToken = aisrToken;
 
         if (!this.userToken) {
           throw new Error("Missing user token for saving upload metadata");
@@ -706,7 +706,7 @@ export default class BunnyTusUploader {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${screenityToken}`,
+            Authorization: `Bearer ${aisrToken}`,
           },
           body: JSON.stringify({
             title,
@@ -785,8 +785,8 @@ export default class BunnyTusUploader {
   }
 
   async refreshTusAuth() {
-    // Prefer stored screenityToken for auth
-    const token = this.userToken || (await chrome.storage.local.get(["screenityToken"]).then(r => r.screenityToken));
+    // Prefer stored aisrToken for auth
+    const token = this.userToken || (await chrome.storage.local.get(["aisrToken"]).then(r => r.aisrToken));
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     const url = `${API_BASE}/bunny/videos/tus-auth?videoId=${this.videoId}`;
 

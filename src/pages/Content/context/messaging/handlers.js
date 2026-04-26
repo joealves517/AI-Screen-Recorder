@@ -11,13 +11,13 @@ import { traceStep, setStartFlowOutcome } from "../../../utils/startFlowTrace";
 import JSZip from "jszip";
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 const getState = () => contentStateRef.current;
 
 export const setupHandlers = () => {
-  if (window.__screenitySetupHandlersRan) return;
-  window.__screenitySetupHandlersRan = true;
+  if (window.__aisrSetupHandlersRan) return;
+  window.__aisrSetupHandlersRan = true;
   let lastToggleDrawingAt = 0;
   const TOGGLE_DRAWING_COOLDOWN_MS = 400;
   let projectReadySeq = 0;
@@ -30,7 +30,7 @@ export const setupHandlers = () => {
   let activeLocalPlaybackSource = null;
   const TRUSTED_APP_ORIGIN = (() => {
     try {
-      const appBase = process.env.SCREENITY_APP_BASE;
+      const appBase = process.env.AISR_APP_BASE;
       return appBase ? new URL(appBase).origin : null;
     } catch {
       return null;
@@ -260,7 +260,7 @@ export const setupHandlers = () => {
     if (event.source !== window) return;
     if (event.origin !== TRUSTED_APP_ORIGIN) return;
     const data = event?.data || {};
-    if (data?.type !== "screenity-local-playback-request") return;
+    if (data?.type !== "aisr-local-playback-request") return;
 
     const requestedProjectId = data?.projectId || null;
     const requestedSceneId = data?.sceneId || null;
@@ -277,7 +277,7 @@ export const setupHandlers = () => {
         requestedSceneId !== latestLocalPlaybackSceneId)
     ) {
       postProjectHandoff({
-        source: "screenity-local-playback-response",
+        source: "aisr-local-playback-response",
         requestId,
         projectId: requestedProjectId,
         sceneId: requestedSceneId,
@@ -303,7 +303,7 @@ export const setupHandlers = () => {
           bytes: readySource?.size || 0,
         });
         postProjectHandoff({
-          source: "screenity-local-playback-response",
+          source: "aisr-local-playback-response",
           requestId,
           projectId: requestedProjectId,
           sceneId: requestedSceneId || latestLocalPlaybackSceneId || null,
@@ -341,7 +341,7 @@ export const setupHandlers = () => {
           reason,
         });
         postProjectHandoff({
-          source: "screenity-local-playback-response",
+          source: "aisr-local-playback-response",
           requestId,
           projectId: requestedProjectId,
           sceneId: requestedSceneId || latestLocalPlaybackSceneId || null,
@@ -363,9 +363,9 @@ export const setupHandlers = () => {
   });
 
   // Initialize message router
-  if (!window.__screenityHandlersInitialized) {
+  if (!window.__aisrHandlersInitialized) {
     messageRouter();
-    window.__screenityHandlersInitialized = true;
+    window.__aisrHandlersInitialized = true;
   }
 
   // Register content message handlers
@@ -803,7 +803,7 @@ export const setupHandlers = () => {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = "screenity-troubleshooting.zip";
+      a.download = "aisr-troubleshooting.zip";
       a.click();
       window.URL.revokeObjectURL(url);
 
@@ -969,7 +969,7 @@ export const setupHandlers = () => {
       setContentState((prev) => ({
         ...prev,
         isLoggedIn: false,
-        screenityUser: null,
+        aisrUser: null,
         isSubscribed: false,
         proSubscription: null,
         showExtension: true,
@@ -986,7 +986,7 @@ export const setupHandlers = () => {
     setContentState((prev) => ({
       ...prev,
       isLoggedIn: result.authenticated,
-      screenityUser: result.user,
+      aisrUser: result.user,
       isSubscribed: result.subscribed,
       proSubscription: result.proSubscription,
       ...(result.authenticated ? { wasLoggedIn: false } : {}),
@@ -1084,7 +1084,7 @@ export const setupHandlers = () => {
     });
 
     if (posted) {
-      window.__screenityLastProjectReady = {
+      window.__aisrLastProjectReady = {
         projectId,
         sceneId: message.sceneId || null,
         handoffAt,

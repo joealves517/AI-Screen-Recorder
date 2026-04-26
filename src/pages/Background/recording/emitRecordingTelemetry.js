@@ -1,6 +1,6 @@
 // SW analog of emitUploadTelemetry; fire-and-forget to /log/upload-event.
 
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
+const API_BASE = process.env.AISR_API_BASE_URL;
 const ENDPOINT = `${API_BASE}/log/upload-event`;
 
 let disabled = false;
@@ -38,7 +38,7 @@ export const emitRecordingTelemetry = async (eventType, extra = {}) => {
     const snap = await chrome.storage.local.get([
       "recordingSessionId",
       "recorderSession",
-      "screenityToken",
+      "aisrToken",
     ]);
     const session = snap.recorderSession || null;
     const recordingSessionId =
@@ -86,11 +86,11 @@ export const emitRecordingTelemetry = async (eventType, extra = {}) => {
 
     const headers = {
       "Content-Type": "application/json",
-      "x-screenity-source": "extension",
+      "x-aisr-source": "extension",
     };
-    if (extVersion) headers["x-screenity-ext-version"] = String(extVersion);
-    if (snap.screenityToken) {
-      headers.Authorization = `Bearer ${snap.screenityToken}`;
+    if (extVersion) headers["x-aisr-ext-version"] = String(extVersion);
+    if (snap.aisrToken) {
+      headers.Authorization = `Bearer ${snap.aisrToken}`;
     }
 
     const res = await fetch(ENDPOINT, {

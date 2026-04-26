@@ -17,7 +17,7 @@ import {
 } from "../../images/popup/images";
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 const VideosTab = (props) => {
   const [videos, setVideos] = useState([]);
@@ -209,7 +209,7 @@ const VideosTab = (props) => {
       // show only local placeholder videos
       return;
     }
-    const url = process.env.SCREENITY_APP_BASE + `/editor/${videoId}/edit`;
+    const url = process.env.AISR_APP_BASE + `/editor/${videoId}/edit`;
     window.open(url, "_blank");
   };
 
@@ -218,7 +218,7 @@ const VideosTab = (props) => {
       // show only local placeholder videos
       return;
     }
-    const link = process.env.SCREENITY_APP_BASE + `/view/${videoId}`;
+    const link = process.env.AISR_APP_BASE + `/view/${videoId}`;
     navigator.clipboard
       .writeText(link)
       .then(() => {
@@ -423,7 +423,7 @@ const VideosTab = (props) => {
 
           <div className="bottom-section">
             <a
-              href={process.env.SCREENITY_APP_BASE}
+              href={process.env.AISR_APP_BASE}
               target="_blank"
               rel="noopener noreferrer"
               role="button"

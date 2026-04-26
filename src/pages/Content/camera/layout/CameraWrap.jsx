@@ -134,8 +134,6 @@ const CameraWrap = (props) => {
             : (!contentState.pipEnded &&
                 contentState.surface === "monitor" &&
                 (contentState.pendingRecording || contentState.recording)) ||
-              (contentState.isSubscribed &&
-                (!contentState.instantMode || contentState.multiMode)) ||
               contentState.onboarding
             ? "hidden"
             : "visible",
@@ -145,8 +143,6 @@ const CameraWrap = (props) => {
             : (!contentState.pipEnded &&
                 contentState.surface === "monitor" &&
                 (contentState.pendingRecording || contentState.recording)) ||
-              (contentState.isSubscribed &&
-                (!contentState.instantMode || contentState.multiMode)) ||
               contentState.onboarding
             ? "none"
             : "auto",
@@ -200,7 +196,7 @@ const CameraWrap = (props) => {
             border: "none",
             pointerEvents: "none",
           }}
-          className={`screenity-iframe${
+          className={`aisr-iframe${
             contentState.cameraFlipped ? " camera-flipped" : ""
           }`}
           src={chrome.runtime.getURL("camera.html")}

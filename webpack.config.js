@@ -10,7 +10,7 @@ const isDev = env.NODE_ENV === "development";
 
 const ASSET_PATH = process.env.ASSET_PATH || "/";
 
-if (process.env.SCREENITY_SKIP_ENV) {
+if (process.env.AISR_SKIP_ENV) {
   // open-source release build, no dotenv
 } else if (isDev) {
   require("dotenv").config({ path: ".env.local" });
@@ -202,17 +202,17 @@ const config = {
   plugins: [
     new webpack.ProgressPlugin(),
     new webpack.DefinePlugin({
-      "process.env.SCREENITY_APP_BASE": JSON.stringify(
-        process.env.SCREENITY_APP_BASE
+      "process.env.AISR_APP_BASE": JSON.stringify(
+        process.env.AISR_APP_BASE
       ),
-      "process.env.SCREENITY_WEBSITE_BASE": JSON.stringify(
-        process.env.SCREENITY_WEBSITE_BASE
+      "process.env.AISR_WEBSITE_BASE": JSON.stringify(
+        process.env.AISR_WEBSITE_BASE
       ),
-      "process.env.SCREENITY_API_BASE_URL": JSON.stringify(
-        process.env.SCREENITY_API_BASE_URL
+      "process.env.AISR_API_BASE_URL": JSON.stringify(
+        process.env.AISR_API_BASE_URL
       ),
-      "process.env.SCREENITY_ENABLE_CLOUD_FEATURES": JSON.stringify(
-        process.env.SCREENITY_ENABLE_CLOUD_FEATURES
+      "process.env.AISR_ENABLE_CLOUD_FEATURES": JSON.stringify(
+        process.env.AISR_ENABLE_CLOUD_FEATURES
       ),
       "process.env.MAX_RECORDING_DURATION": JSON.stringify(
         process.env.MAX_RECORDING_DURATION || 3600 // Default to 1 hour
@@ -220,8 +220,8 @@ const config = {
       "process.env.RECORDING_WARNING_THRESHOLD": JSON.stringify(
         process.env.RECORDING_WARNING_THRESHOLD || 60 // Default to 1 minute
       ),
-      "process.env.SCREENITY_DEV_MODE": JSON.stringify(
-        process.env.SCREENITY_DEV_MODE || ""
+      "process.env.AISR_DEV_MODE": JSON.stringify(
+        process.env.AISR_DEV_MODE || ""
       ),
     }),
 

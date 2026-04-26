@@ -29,14 +29,13 @@ const safeUrls = (() => {
   try {
     return {
       permissions: chrome.runtime.getURL("permissions.html"),
-      cloudrecorder: chrome.runtime.getURL("cloudrecorder.html?injected=true"),
       region: chrome.runtime.getURL("region.html"),
       setup: chrome.runtime.getURL("setup.html"),
       playground: chrome.runtime.getURL("playground.html"),
     };
   } catch {
     return {
-      permissions: "", cloudrecorder: "", region: "", setup: "", playground: ""
+      permissions: "", region: "", setup: "", playground: ""
     };
   }
 })();
@@ -170,7 +169,7 @@ const Wrapper = () => {
 
     permissionsRef.current.contentWindow.postMessage(
       {
-        type: "screenity-get-permissions",
+        type: "aisr-get-permissions",
       },
       "*"
     );
@@ -216,7 +215,7 @@ const Wrapper = () => {
     <div ref={parentRef}>
       {contentState.showExtension && (
         <iframe
-          className="screenity-iframe"
+          className="aisr-iframe"
           style={{
             // all: "unset",
             display: "none",
@@ -229,18 +228,14 @@ const Wrapper = () => {
       )}
       {contentState.hasOpenedBefore && (
         <iframe
-          className="screenity-iframe"
+          className="aisr-iframe"
           style={{
             // all: "unset",
             display: "none",
             visibility: "hidden",
           }}
           ref={regionCaptureRef}
-          src={
-            contentState.isSubscribed
-              ? safeUrls.cloudrecorder
-              : safeUrls.region
-          }
+          src={safeUrls.region}
           allow="camera *; microphone *; display-capture *"
         ></iframe>
       )}
@@ -277,7 +272,7 @@ const Wrapper = () => {
                 onClick={() => {
                   const onboardingActive =
                     document.documentElement.classList.contains(
-                      "screenity-driver-active"
+                      "aisr-driver-active"
                     ) || Boolean(document.querySelector(".driver-overlay"));
                   if (onboardingActive) return;
 
@@ -300,7 +295,7 @@ const Wrapper = () => {
           <CursorModes />
           <root.div
             className="root-container"
-            id="screenity-root-container"
+            id="aisr-root-container"
             style={{
               display: "block",
               width: "100%",
@@ -339,24 +334,14 @@ const Wrapper = () => {
               )}
               <Countdown />
               {contentState.recordingType != "camera" &&
-                !contentState.onboarding &&
-                !(
-                  contentState.isSubscribed === false &&
-                  contentState.isLoggedIn === true
-                ) &&
-                !(!contentState.isLoggedIn && contentState.wasLoggedIn) && (
+                !contentState.onboarding && (
                   <Camera shadowRef={shadowRef} />
                 )}
               {contentState.recordingType === "camera" && (
                 <CameraOnly shadowRef={shadowRef} />
               )}
               {!(contentState.hideToolbar && contentState.hideUI) &&
-                !contentState.onboarding &&
-                !(
-                  contentState.isSubscribed === false &&
-                  contentState.isLoggedIn === true
-                ) &&
-                !(!contentState.isLoggedIn && contentState.wasLoggedIn) && (
+                !contentState.onboarding && (
                   <Toolbar />
                 )}
               {contentState.showPopup && (

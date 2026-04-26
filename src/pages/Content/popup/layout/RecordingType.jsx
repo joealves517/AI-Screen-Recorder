@@ -13,7 +13,7 @@ import BackgroundEffects from "../components/BackgroundEffects";
 import { AlertIcon, TimeIcon, NoInternet } from "../../toolbar/components/SVG";
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 const RecordingType = (props) => {
   const [contentState, setContentState] = useContext(contentStateContext);
@@ -246,7 +246,7 @@ const RecordingType = (props) => {
         (contentState.microphonePermission && contentState.pushToTalk)) && (
         <div>
           <iframe
-            className="screenity-iframe"
+            className="aisr-iframe"
             style={{
               width: "100%",
               height: "30px",

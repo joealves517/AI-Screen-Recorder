@@ -2,7 +2,7 @@ import { getCurrentTab } from "../tabManagement";
 import { removeTab } from "../tabManagement/removeTab";
 import { sendMessageRecord } from "./sendMessageRecord.js";
 import { closeOffscreenDocument } from "../offscreen/closeOffscreenDocument.js";
-import { loginWithWebsite } from "../auth/loginWithWebsite.js";
+
 import { traceStep } from "../../utils/startFlowTrace.js";
 
 const openRecorderTab = async (
@@ -14,12 +14,8 @@ const openRecorderTab = async (
 ) => {
   let switchTab = true;
 
-  // Check subscription status
-  const { authenticated, subscribed, cached, transient, error: authError } = await loginWithWebsite();
-  const isCloudRecorder = authenticated && subscribed;
-  const recorderUrl = isCloudRecorder
-      ? chrome.runtime.getURL("cloudrecorder.html")
-      : chrome.runtime.getURL("recorder.html");
+  // Always use local recorder — no cloud upload
+  const recorderUrl = chrome.runtime.getURL("recorder.html");
   if (!isRegion) {
     if (camera) {
       switchTab = false;
@@ -30,12 +26,7 @@ const openRecorderTab = async (
     );
   }
 
-  const originalSwitchTab = switchTab;
 
-  // Cloud recordings need the tab active briefly so keepalive can start
-  if (isCloudRecorder && !switchTab) {
-    switchTab = true;
-  }
 
   // Close any leftover recorder tab from a previous recording so we don't
   // end up with two pinned tabs. Only close actual extension recorder pages -
@@ -49,8 +40,7 @@ const openRecorderTab = async (
       const prevTab = await chrome.tabs.get(prevRecTab);
       const prevUrl = prevTab?.url || "";
       if (
-        prevUrl.includes("recorder.html") ||
-        prevUrl.includes("cloudrecorder.html")
+        prevUrl.includes("recorder.html")
       ) {
         await removeTab(prevRecTab);
       }
@@ -70,12 +60,7 @@ const openRecorderTab = async (
     active: switchTab,
   });
 
-  // If we forced the tab to be active just for cloud keepalive, immediately switch back to the user's tab
-  if (switchTab && !originalSwitchTab && activeTab) {
-    setTimeout(() => {
-      chrome.tabs.update(activeTab.id, { active: true });
-    }, 100);
-  }
+
 
   // Apply autoDiscardable before the load listener so the tab can't be discarded pre-mount.
   let autoDiscardableApplied = false;

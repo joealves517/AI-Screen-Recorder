@@ -3,7 +3,7 @@ import React, { useContext, useState } from "react";
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 const ProBanner = () => {
   const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context

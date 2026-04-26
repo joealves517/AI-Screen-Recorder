@@ -5,7 +5,7 @@ import { diagEvent } from "../../utils/diagnosticLog";
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "aisr",
   version: 1,
 });
 

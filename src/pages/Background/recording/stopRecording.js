@@ -56,10 +56,9 @@ const handleEditorOpenFailed = async (editorUrl, lastError) => {
 export const stopRecording = async () => {
   chrome.action.setIcon({ path: "assets/icon-34.png" });
   chrome.storage.local.set({ restarting: false });
-  const { recordingStartTime, isSubscribed, paused, pausedAt, totalPausedMs, recordingDuration: storedDuration } =
+  const { recordingStartTime, paused, pausedAt, totalPausedMs, recordingDuration: storedDuration } =
     await chrome.storage.local.get([
       "recordingStartTime",
-      "isSubscribed",
       "paused",
       "pausedAt",
       "totalPausedMs",
@@ -88,7 +87,7 @@ export const stopRecording = async () => {
   }
   const maxDuration = 7 * 60 * 1000;
 
-  diagEvent("stop", { duration, isSubscribed: Boolean(isSubscribed) });
+  diagEvent("stop", { duration });
 
   chrome.storage.local.set({
     recording: false,
@@ -135,11 +134,7 @@ export const stopRecording = async () => {
     "recordingTab",
   ]);
 
-  if (isSubscribed) {
-    chrome.alarms.clear("recording-alarm");
-    discardOffscreenDocuments();
-    chrome.storage.local.remove(["recordingMeta"]);
-  } else if (postStopEditorOpening || postStopEditorOpened) {
+  if (postStopEditorOpening || postStopEditorOpened) {
     // Editor already opened by stop-recording-tab flow; avoid opening a second tab.
     // That flow will trigger processing when the tab finishes loading.
   } else if (hasWebCodecs) {
@@ -294,14 +289,12 @@ export const handleStopRecordingTab = async (request) => {
   }
 
   const {
-    isSubscribed,
     recordingStartTime,
     paused,
     pausedAt,
     totalPausedMs,
     fastRecorderInUse,
   } = await chrome.storage.local.get([
-    "isSubscribed",
     "recordingStartTime",
     "paused",
     "pausedAt",
@@ -326,7 +319,8 @@ export const handleStopRecordingTab = async (request) => {
     chrome.storage.local.set({ recordingDuration: stopTabDuration });
   }
 
-  if (!isSubscribed) {
+  // Always open local editor regardless of subscription status
+  {
     const { fastRecorderActiveRecordingId } = await chrome.storage.local.get([
       "fastRecorderActiveRecordingId",
     ]);

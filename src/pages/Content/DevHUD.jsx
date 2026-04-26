@@ -23,7 +23,7 @@ const DevHUD = ({ contentStateRef, setContentState }) => {
 
   useEffect(() => {
     const el = document.createElement("div");
-    el.id = "screenity-dev-hud-portal";
+    el.id = "aisr-dev-hud-portal";
     // Make the container itself invisible/non-interfering but ensure its
     // children (position:fixed) are not clipped by host-page CSS.
     el.style.cssText = [

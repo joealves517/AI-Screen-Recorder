@@ -4,8 +4,8 @@ import { hasSeenOnboarding, markOnboardingSeen } from "./storage";
 
 const CORE_KEY = "proPopupCore";
 const CAMERA_KEY = "proCameraInfo";
-const POPOVER_CLASS = "ScreenityOnboardingPopover onboarding-popover";
-const DRIVER_STYLE_ID = "screenity-driver-onboarding-style";
+const POPOVER_CLASS = "AisrOnboardingPopover onboarding-popover";
+const DRIVER_STYLE_ID = "aisr-driver-onboarding-style";
 const TOOLBAR_HELP_URL =
   "";
 const IDLE_START_DELAY_MS = 420;
@@ -48,7 +48,7 @@ const CONFLICT_SELECTORS = [
 const START_CANCEL_EVENTS = ["mousedown", "click", "keydown"];
 
 const DEBUG =
-  typeof window !== "undefined" && Boolean(window.SCREENITY_DEBUG_ONBOARDING);
+  typeof window !== "undefined" && Boolean(window.AISR_DEBUG_ONBOARDING);
 
 let activeDriver = null;
 let activeRun = null;
@@ -154,8 +154,8 @@ const clearScheduledStart = () => {
 };
 
 const clearDriverUiState = (root) => {
-  document.documentElement.classList.remove("screenity-driver-modal-step");
-  document.documentElement.classList.remove("screenity-driver-active");
+  document.documentElement.classList.remove("aisr-driver-modal-step");
+  document.documentElement.classList.remove("aisr-driver-active");
   setToolbarCloseVisible(root, false);
   if (typeof restoreRootStyle === "function") restoreRootStyle();
   restoreRootStyle = null;
@@ -291,8 +291,8 @@ const ensureDriverStyles = () => {
   style.textContent = `
     .driver-overlay { z-index: 2147483645 !important; }
     .driver-stage { z-index: 2147483646 !important; }
-    .driver-popover.ScreenityOnboardingPopover,
-    .ScreenityOnboardingPopover {
+    .driver-popover.AisrOnboardingPopover,
+    .AisrOnboardingPopover {
       z-index: 2147483647 !important;
       border-radius: 30px !important;
       max-width: 340px !important;
@@ -303,16 +303,16 @@ const ensureDriverStyles = () => {
       padding: 20px !important;
       font-size: 14px !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-title,
-    .ScreenityOnboardingPopover .driver-popover-title {
+    .driver-popover.AisrOnboardingPopover .driver-popover-title,
+    .AisrOnboardingPopover .driver-popover-title {
       font-size: 1rem !important;
       font-family: "Satoshi-Medium", sans-serif !important;
       font-weight: 500 !important;
       margin-bottom: 12px !important;
       color: var(--color-text-primary, #1f2430) !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-description,
-    .ScreenityOnboardingPopover .driver-popover-description {
+    .driver-popover.AisrOnboardingPopover .driver-popover-description,
+    .AisrOnboardingPopover .driver-popover-description {
       font-size: 14px !important;
       font-family: "Satoshi-Medium", sans-serif !important;
       font-weight: 500 !important;
@@ -320,73 +320,73 @@ const ensureDriverStyles = () => {
       line-height: 1.5 !important;
       margin-bottom: 18px !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-close-btn,
-    .ScreenityOnboardingPopover .driver-popover-close-btn {
+    .driver-popover.AisrOnboardingPopover .driver-popover-close-btn,
+    .AisrOnboardingPopover .driver-popover-close-btn {
       display: none !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-description a,
-    .ScreenityOnboardingPopover .driver-popover-description a {
+    .driver-popover.AisrOnboardingPopover .driver-popover-description a,
+    .AisrOnboardingPopover .driver-popover-description a {
       color: #3b82f6 !important;
       text-decoration: none !important;
       cursor: pointer !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-progress-text,
-    .ScreenityOnboardingPopover .driver-popover-progress-text {
+    .driver-popover.AisrOnboardingPopover .driver-popover-progress-text,
+    .AisrOnboardingPopover .driver-popover-progress-text {
       font-size: 12px !important;
       font-family: "Satoshi-Medium", sans-serif !important;
       color: var(--color-text-secondary, #667085) !important;
       opacity: 0.7 !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns,
-    .ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns {
+    .driver-popover.AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns,
+    .AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns {
       gap: 6px !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn,
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn,
-    .ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn,
-    .ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn {
+    .driver-popover.AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn,
+    .driver-popover.AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn,
+    .AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn,
+    .AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn {
       border-radius: 30px !important;
       padding: 10px 14px !important;
       font-size: 14px !important;
       text-shadow: none !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn,
-    .ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn {
+    .driver-popover.AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn,
+    .AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-next-btn {
       background-color: var(--color-primary, #3b82f6) !important;
       color: white !important;
       border: none !important;
     }
-    .driver-popover.ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn,
-    .ScreenityOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn {
+    .driver-popover.AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn,
+    .AisrOnboardingPopover .driver-popover-footer .driver-popover-navigation-btns .driver-popover-prev-btn {
       background-color: transparent !important;
       color: var(--color-text-primary, #1f2430) !important;
       border: 1px solid var(--color-border, #d0d5dd) !important;
     }
 			/* Modal step: hide stage cutout + center popover */
-.screenity-driver-modal-step .driver-stage,
-.screenity-driver-modal-step .driver-stage-wrapper {
+.aisr-driver-modal-step .driver-stage,
+.aisr-driver-modal-step .driver-stage-wrapper {
   display: none !important;
 }
 
-.screenity-driver-modal-step .driver-popover-arrow {
+.aisr-driver-modal-step .driver-popover-arrow {
   display: none !important;
 }
 
-.screenity-driver-modal-step .driver-popover.ScreenityOnboardingPopover,
-.screenity-driver-modal-step .ScreenityOnboardingPopover {
+.aisr-driver-modal-step .driver-popover.AisrOnboardingPopover,
+.aisr-driver-modal-step .AisrOnboardingPopover {
   position: fixed !important;
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
   margin: 0 !important;
 }
-	.screenity-driver-modal-step .driver-popover.ScreenityOnboardingPopover,
-.screenity-driver-modal-step .ScreenityOnboardingPopover {
+	.aisr-driver-modal-step .driver-popover.AisrOnboardingPopover,
+.aisr-driver-modal-step .AisrOnboardingPopover {
   max-width: 420px !important;
   padding: 26px !important;
 }
 	/* Welcome icon */
-.screenity-driver-modal-step .screenity-welcome-emoji {
+.aisr-driver-modal-step .aisr-welcome-emoji {
   font-size: 24px;
   line-height: 1;
   margin-bottom: 10px;
@@ -397,9 +397,9 @@ const ensureDriverStyles = () => {
 
 const lowerRootContainerZIndex = (root) => {
   const container =
-    find(root, "#screenity-root-container") ||
+    find(root, "#aisr-root-container") ||
     root?.host ||
-    document.getElementById("screenity-root-container");
+    document.getElementById("aisr-root-container");
   if (!container) return () => {};
   const prevValue = container.style.zIndex;
   const prevPriority = container.style.getPropertyPriority("z-index");
@@ -487,7 +487,7 @@ const destroyActive = (abortReason = "external") => {
 
 const setModalStep = (enabled) => {
   document.documentElement.classList.toggle(
-    "screenity-driver-modal-step",
+    "aisr-driver-modal-step",
     enabled,
   );
 };
@@ -553,7 +553,7 @@ const startDriver = ({ steps, root, getState, onFinish, copy }) => {
   if (!steps.length) return;
   ensureDriverStyles();
   restoreRootStyle = lowerRootContainerZIndex(root);
-  document.documentElement.classList.add("screenity-driver-active");
+  document.documentElement.classList.add("aisr-driver-active");
 
   activeRun = {
     root,
@@ -597,11 +597,11 @@ const startDriver = ({ steps, root, getState, onFinish, copy }) => {
         // Only insert once
         if (
           !popover.title.parentElement?.querySelector(
-            ".screenity-welcome-emoji",
+            ".aisr-welcome-emoji",
           )
         ) {
           const emoji = document.createElement("div");
-          emoji.className = "screenity-welcome-emoji";
+          emoji.className = "aisr-welcome-emoji";
           emoji.textContent = "👋";
           popover.title.parentElement.insertBefore(emoji, popover.title);
         }

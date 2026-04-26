@@ -7,7 +7,9 @@ import React, {
 } from "react";
 import * as Toolbar from "@radix-ui/react-toolbar";
 
-import { Rnd } from "react-rnd";
+import useDraggable from "../../hooks/useDraggable";
+
+
 
 // Layout
 import DrawingToolbar from "./DrawingToolbar";
@@ -61,6 +63,14 @@ const ToolbarWrap = () => {
   const [forceTransparent, setForceTransparent] = React.useState("");
   const [visuallyHidden, setVisuallyHidden] = useState(false);
   const timeRef = React.useRef("");
+
+  const {
+    offset: toolbarOffset,
+    isDragging: isToolbarDragging,
+    dragHandleProps: toolbarDragHandleProps,
+    containerStyle: toolbarContainerStyle,
+    setRef: setToolbarDragRef,
+  } = useDraggable();
 
   useEffect(() => {
     modeRef.current = mode;
@@ -244,14 +254,22 @@ const ToolbarWrap = () => {
       ></div>
       <div
         style={{
-          position: "fixed",
-          bottom: "30px",
-          left: "0",
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          pointerEvents: "none",
-          zIndex: 999999
+          ...(toolbarOffset
+            ? {
+                position: "fixed",
+                pointerEvents: "none",
+                zIndex: 999999,
+              }
+            : {
+                position: "fixed",
+                bottom: "30px",
+                left: "0",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                pointerEvents: "none",
+                zIndex: 999999,
+              }),
         }}
         id="pro-onboarding-recording-toolbar"
       >
@@ -267,15 +285,38 @@ const ToolbarWrap = () => {
             forceTransparent +
             (visuallyHidden ? " visually-hidden-toolbar" : "")
           }
-          ref={ToolbarRef}
+          ref={(node) => {
+            ToolbarRef.current = node;
+            setToolbarDragRef(node);
+          }}
           onMouseOver={() => {
             setHovering(true);
           }}
           onMouseLeave={() => {
             setHovering(false);
           }}
-          style={{ pointerEvents: "auto" }}
+          style={{
+            pointerEvents: "auto",
+            ...toolbarContainerStyle,
+          }}
         >
+          {/* Drag handle */}
+          <div
+            className="toolbar-drag-handle"
+            {...toolbarDragHandleProps}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: isToolbarDragging ? "grabbing" : "grab",
+              padding: "0 2px",
+              marginRight: "2px",
+              borderRadius: "8px",
+              flexShrink: 0,
+            }}
+          >
+            <GrabIcon />
+          </div>
           {!contentState.recording && (
             <div
               className={`popup-controls toolbar-controls ${
@@ -466,7 +507,6 @@ const ToolbarWrap = () => {
             <MicToggle />
             {(!contentState.cameraActive ||
               contentState.defaultVideoInput === "none") &&
-              (!contentState.isSubscribed || !contentState.recording) &&
               contentState.recordingType != "camera-only" && (
                 <ToolTrigger
                   type="button"

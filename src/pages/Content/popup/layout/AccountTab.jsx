@@ -56,11 +56,22 @@ const LanguagesIcon = ({ size = 20, color = "#3080F8" }) => (
   </svg>
 );
 
-const SparkleIcon = ({ size = 28, color = "#fff" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z"/>
-  </svg>
-);
+const GeminiIcon = ({ size = 40 }) => {
+  const url =
+    "chrome-extension://" +
+    chrome.i18n.getMessage("@@extension_id") +
+    "/assets/gemini-color.svg";
+  return (
+    <img
+      src={url}
+      alt="AI"
+      width={size}
+      height={size}
+      style={{ display: "block", pointerEvents: "none" }}
+      draggable={false}
+    />
+  );
+};
 
 const CrownIcon = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -126,7 +137,7 @@ const GuestView = () => (
     {/* Hero */}
     <div style={{
       textAlign: "center",
-      padding: "24px 16px 20px",
+      padding: "10px 16px 20px",
     }}>
       <div style={{
         margin: "0 auto 14px",
@@ -134,7 +145,7 @@ const GuestView = () => (
         alignItems: "center",
         justifyContent: "center",
       }}>
-        <SparkleIcon size={40} color="#3080F8" />
+        <GeminiIcon size={40} />
       </div>
       <h3 style={{
         fontSize: "17px",
@@ -392,7 +403,7 @@ const AccountTab = () => {
 
   const isLoggedIn = contentState.isLoggedIn;
   const isPro = isLoggedIn && contentState.isSubscribed;
-  const user = contentState.screenityUser;
+  const user = contentState.aisrUser;
 
   const handleLogout = () => {
     chrome.runtime.sendMessage({ type: "handle-logout" });
@@ -400,7 +411,7 @@ const AccountTab = () => {
       ...prev,
       isLoggedIn: false,
       isSubscribed: false,
-      screenityUser: null,
+      aisrUser: null,
       proSubscription: null,
       wasLoggedIn: false,
     }));

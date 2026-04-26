@@ -4,7 +4,7 @@ import { supportContextQuery } from "../../utils/buildSupportContext";
 import { tryResumePendingUploads } from "../recording/resumePendingUploads";
 
 const cloudFeaturesEnabled =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 export const onInstalledListener = () => {
   chrome.runtime.onInstalled.addListener(async (details) => {

@@ -14,13 +14,13 @@ import { IS_OFFSCREEN_HOST } from "../utils/recordingHost";
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "aisr",
   version: 1,
 });
 
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
+const API_BASE = process.env.AISR_API_BASE_URL;
 const DEBUG_START_FLOW =
-  typeof window !== "undefined" ? !!window.SCREENITY_DEBUG_RECORDER : false;
+  typeof window !== "undefined" ? !!window.AISR_DEBUG_RECORDER : false;
 const SCREEN_CHUNK_MEMORY_WINDOW = 8;
 const CAMERA_CHUNK_MEMORY_WINDOW = 8;
 const AUDIO_CHUNK_MEMORY_WINDOW = 8;
@@ -432,12 +432,12 @@ const CloudRecorder = () => {
       return uploadTelemetryTokenRef.current;
     }
     try {
-      const { screenityToken } = await chrome.storage.local.get([
-        "screenityToken",
+      const { aisrToken } = await chrome.storage.local.get([
+        "aisrToken",
       ]);
-      if (screenityToken) {
-        uploadTelemetryTokenRef.current = screenityToken;
-        return screenityToken;
+      if (aisrToken) {
+        uploadTelemetryTokenRef.current = aisrToken;
+        return aisrToken;
       }
     } catch {
       // ignore
@@ -533,10 +533,10 @@ const CloudRecorder = () => {
       const token = await resolveUploadTelemetryToken();
       const headers = {
         "Content-Type": "application/json",
-        "x-screenity-source": "extension",
+        "x-aisr-source": "extension",
       };
       if (eventPayload.extensionVersion) {
-        headers["x-screenity-ext-version"] = String(
+        headers["x-aisr-ext-version"] = String(
           eventPayload.extensionVersion,
         );
       }
@@ -948,7 +948,7 @@ const CloudRecorder = () => {
         keepAliveLockAbort.current = ac;
         navigator.locks
           .request(
-            "screenity-recorder-keepalive",
+            "aisr-recorder-keepalive",
             { mode: "exclusive", signal: ac.signal },
             () => new Promise(() => {}),
           )
@@ -1022,7 +1022,7 @@ const CloudRecorder = () => {
         .sendMessage({ type: "cancel-first-chunk-watchdog" })
         .catch(() => {});
 
-      if (globalThis.SCREENITY_VERBOSE_LOGS) {
+      if (globalThis.AISR_VERBOSE_LOGS) {
         if (DEBUG_START_FLOW) {
           console.log("[CloudRecorder] Tab keep-alive stopped");
         }
@@ -1717,7 +1717,7 @@ const CloudRecorder = () => {
     try {
       const params = new URLSearchParams(window.location.search);
       if (params.get("simulateFinalizeFailure") === "1") return true;
-      return window.SCREENITY_SIMULATE_FINALIZE_FAILURE === true;
+      return window.AISR_SIMULATE_FINALIZE_FAILURE === true;
     } catch {
       return false;
     }
@@ -2511,7 +2511,7 @@ const CloudRecorder = () => {
     }
     // iframe context
     try {
-      window.parent.postMessage({ type: "screenity-exit", mode }, "*");
+      window.parent.postMessage({ type: "aisr-exit", mode }, "*");
     } catch {}
     // fallback
     window.location.reload();
@@ -3784,7 +3784,7 @@ const CloudRecorder = () => {
     chrome.runtime.sendMessage({
       type: "editor-ready",
       publicUrl: !recordingToScene
-        ? `${process.env.SCREENITY_APP_BASE}/view/${projectId}/`
+        ? `${process.env.AISR_APP_BASE}/view/${projectId}/`
         : undefined,
       newProject: !recordingToScene && !multiMode,
       multiMode: Boolean(multiMode),
@@ -3794,8 +3794,8 @@ const CloudRecorder = () => {
       editorUrl:
         !recordingToScene && !multiMode
           ? instantMode.current
-            ? `${process.env.SCREENITY_APP_BASE}/view/${projectId}?load=true`
-            : `${process.env.SCREENITY_APP_BASE}/editor/${projectId}/edit?load=true`
+            ? `${process.env.AISR_APP_BASE}/view/${projectId}?load=true`
+            : `${process.env.AISR_APP_BASE}/editor/${projectId}/edit?load=true`
           : undefined,
       localPlayback: localPlaybackAvailable
         ? {
@@ -4123,9 +4123,9 @@ const CloudRecorder = () => {
           type: "prepare-open-editor",
           projectId,
           url: instantMode.current
-            ? `${process.env.SCREENITY_APP_BASE}/view/${projectId}?load=true`
-            : `${process.env.SCREENITY_APP_BASE}/editor/${projectId}/edit?load=true`,
-          publicUrl: `${process.env.SCREENITY_APP_BASE}/view/${projectId}/`,
+            ? `${process.env.AISR_APP_BASE}/view/${projectId}?load=true`
+            : `${process.env.AISR_APP_BASE}/editor/${projectId}/edit?load=true`,
+          publicUrl: `${process.env.AISR_APP_BASE}/view/${projectId}/`,
           instantMode: instantMode.current,
         });
       }
@@ -4843,7 +4843,7 @@ const CloudRecorder = () => {
             );
             screenStream.current = prewarmedStream;
             if (typeof window !== "undefined") {
-              window.__screenityPrewarmedTabStream = null;
+              window.__aisrPrewarmedTabStream = null;
             }
           } else if (useDisplayMedia) {
             // Aliases to avoid TDZ with the later `const {width, height}` destructuring.
@@ -5186,7 +5186,7 @@ const CloudRecorder = () => {
     startTabKeepAlive();
 
     if (document.visibilityState === "hidden") {
-      if (globalThis.SCREENITY_VERBOSE_LOGS) {
+      if (globalThis.AISR_VERBOSE_LOGS) {
         console.warn("[CloudRecorder] Tab is hidden at recording start, requesting activation");
       }
       try {
@@ -5288,7 +5288,7 @@ const CloudRecorder = () => {
     // Notify parent that the region capture iframe has loaded
     const sendReady = () => {
       window.parent.postMessage(
-        { type: "screenity-region-capture-loaded" },
+        { type: "aisr-region-capture-loaded" },
         "*",
       );
     };

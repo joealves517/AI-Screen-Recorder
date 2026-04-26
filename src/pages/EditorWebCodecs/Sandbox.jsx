@@ -12,33 +12,33 @@ import hasAudio from "./utils/hasAudio";
 import convertMp4ToWebm from "./utils/convertMp4ToWebm";
 import blobToArrayBuffer from "./utils/blobToArrayBuffer";
 
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
+const API_BASE = process.env.AISR_API_BASE_URL;
 
 /**
  * Determine the correct Cloud Run endpoint (free vs premium)
  * and build appropriate headers based on auth state.
  */
 const getCloudRunConfig = async () => {
-  const { screenityToken, isLoggedIn, isSubscribed } = await chrome.storage.local.get([
-    "screenityToken",
+  const { aisrToken, isLoggedIn, isSubscribed } = await chrome.storage.local.get([
+    "aisrToken",
     "isLoggedIn",
     "isSubscribed"
   ]);
 
   // Only route to Premium Vertex AI if they are actively subscribed
-  if (isLoggedIn && screenityToken && isSubscribed) {
+  if (isLoggedIn && aisrToken && isSubscribed) {
     return {
-      endpoint: `${API_BASE}/api/screenity`,
+      endpoint: `${API_BASE}/api/aisr`,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${screenityToken}`,
+        Authorization: `Bearer ${aisrToken}`,
       },
     };
   }
 
   // Free/guest tier — no auth required
   return {
-    endpoint: `${API_BASE}/api/screenity/free`,
+    endpoint: `${API_BASE}/api/aisr/free`,
     headers: {
       "Content-Type": "application/json",
     },

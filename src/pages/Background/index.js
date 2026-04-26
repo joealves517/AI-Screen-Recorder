@@ -90,10 +90,10 @@ clearStaleLocks();
 const CURRENT_MIGRATION_VERSION = "4.3.8";
 const runUpgradeMigrations = async () => {
   try {
-    const { screenityMigratedForVersion } = await chrome.storage.local.get([
-      "screenityMigratedForVersion",
+    const { aisrMigratedForVersion } = await chrome.storage.local.get([
+      "aisrMigratedForVersion",
     ]);
-    if (screenityMigratedForVersion === CURRENT_MIGRATION_VERSION) return;
+    if (aisrMigratedForVersion === CURRENT_MIGRATION_VERSION) return;
 
     await chrome.storage.local.remove([
       "fastRecorderDisabledForDevice",
@@ -107,7 +107,7 @@ const runUpgradeMigrations = async () => {
       "lastFailedValidation",
     ]);
     await chrome.storage.local.set({
-      screenityMigratedForVersion: CURRENT_MIGRATION_VERSION,
+      aisrMigratedForVersion: CURRENT_MIGRATION_VERSION,
     });
     console.info(
       "[AISR][BG] Cleared stale 4.3.7 sticky-disable flags on upgrade",

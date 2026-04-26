@@ -45,7 +45,7 @@ const deriveCursorMode = (effects, fallbackMode) => {
 const ContentState = (props) => {
   const [timer, setTimerInternal] = React.useState(0);
   const CLOUD_FEATURES_ENABLED =
-    process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+    process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
   setTimer = setTimerInternal;
   const [URL, setURL] = useState(
     "",
@@ -95,7 +95,7 @@ const ContentState = (props) => {
     setContentState((prev) => ({
       ...prev,
       isLoggedIn: result.authenticated,
-      screenityUser: result.user,
+      aisrUser: result.user,
       isSubscribed: result.subscribed,
       hasSubscribedBefore: result.hasSubscribedBefore,
       proSubscription: result.proSubscription,
@@ -280,9 +280,9 @@ const ContentState = (props) => {
       cursorEffects: [],
     }));
     // Remove blur from all elements
-    const elements = document.querySelectorAll(".screenity-blur");
+    const elements = document.querySelectorAll(".aisr-blur");
     elements.forEach((element) => {
-      element.classList.remove("screenity-blur");
+      element.classList.remove("aisr-blur");
     });
     setTimer(0);
     chrome.runtime.sendMessage(
@@ -351,9 +351,9 @@ const ContentState = (props) => {
       drawingMode: false,
     }));
     // Remove blur from all elements
-    const elements = document.querySelectorAll(".screenity-blur");
+    const elements = document.querySelectorAll(".aisr-blur");
     elements.forEach((element) => {
-      element.classList.remove("screenity-blur");
+      element.classList.remove("aisr-blur");
     });
     setTimer(0);
   });
@@ -778,9 +778,9 @@ const ContentState = (props) => {
 
   useEffect(() => {
     const handleMessage = (event) => {
-      if (event.data.type === "screenity-permissions") {
+      if (event.data.type === "aisr-permissions") {
         handleDevicePermissions(event.data);
-      } else if (event.data.type === "screenity-permissions-loaded") {
+      } else if (event.data.type === "aisr-permissions-loaded") {
         setContentState((prevContentState) => ({
           ...prevContentState,
           permissionsLoaded: true,
@@ -1314,8 +1314,8 @@ const ContentState = (props) => {
           changes.recordingBeepTabId.newValue ?? null;
       }
       if (
-        changes.screenityToken ||
-        changes.screenityUser ||
+        changes.aisrToken ||
+        changes.aisrUser ||
         changes.isSubscribed ||
         changes.proSubscription ||
         changes.lastAuthCheck ||
@@ -1428,8 +1428,8 @@ const ContentState = (props) => {
   }, [contentState.hideToolbar, contentState.hideUI]);
 
   useEffect(() => {
-    if (window.__screenitySetupHandlersInitialized) return;
-    window.__screenitySetupHandlersInitialized = true;
+    if (window.__aisrSetupHandlersInitialized) return;
+    window.__aisrSetupHandlersInitialized = true;
     setupHandlers();
   }, []);
 
@@ -1496,7 +1496,7 @@ const ContentState = (props) => {
 
     const elements = parentDiv.querySelectorAll("*");
     elements.forEach((element) => {
-      element.classList.add("screenity-scrollbar");
+      element.classList.add("aisr-scrollbar");
     });
 
     const observer = new MutationObserver((mutationsList) => {
@@ -1507,13 +1507,13 @@ const ContentState = (props) => {
 
           addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.add("screenity-scrollbar");
+              node.classList.add("aisr-scrollbar");
             }
           });
 
           removedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.remove("screenity-scrollbar");
+              node.classList.remove("aisr-scrollbar");
             }
           });
         }
@@ -1539,7 +1539,7 @@ const ContentState = (props) => {
 
     const elements = shadowRoot.querySelectorAll("*");
     elements.forEach((element) => {
-      element.classList.add("screenity-scrollbar");
+      element.classList.add("aisr-scrollbar");
     });
 
     const observer = new MutationObserver((mutationsList) => {
@@ -1550,13 +1550,13 @@ const ContentState = (props) => {
 
           addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.add("screenity-scrollbar");
+              node.classList.add("aisr-scrollbar");
             }
           });
 
           removedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.remove("screenity-scrollbar");
+              node.classList.remove("aisr-scrollbar");
             }
           });
         }
@@ -1599,7 +1599,7 @@ const ContentState = (props) => {
     >
       {props.children}
       <Shortcuts shortcuts={contentState.shortcuts} />
-      {process.env.SCREENITY_DEV_MODE === "true" && (
+      {process.env.AISR_DEV_MODE === "true" && (
         <DevHUD contentStateRef={contentStateRef} setContentState={setContentState} />
       )}
     </contentStateContext.Provider>

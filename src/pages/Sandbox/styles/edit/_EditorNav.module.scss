@@ -8,13 +8,11 @@
   top: 0px;
   position: fixed;
   z-index: 999999999999;
-  background-color: #fff;
-  border-bottom: 1px solid $color-border;
 }
 .navWrap {
   margin: auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   height: 100%;
   width: 95%;

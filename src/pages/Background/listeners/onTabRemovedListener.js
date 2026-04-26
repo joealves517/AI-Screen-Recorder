@@ -54,8 +54,7 @@ export const onTabRemovedListener = () => {
             const recTab = await chrome.tabs.get(recordingTab);
             const recUrl = recTab?.url || "";
             if (
-              recUrl.includes("recorder.html") ||
-              recUrl.includes("cloudrecorder.html")
+              recUrl.includes("recorder.html")
             ) {
               removeTab(recordingTab);
             }
@@ -134,9 +133,9 @@ export const onTabRemovedListener = () => {
         tabId === recordingTab &&
         recordingTab !== recordedTabId
       ) {
-        diagEvent("crash", { reason: "cloud-recorder-tab-closed", tabId });
+        diagEvent("crash", { reason: "recorder-tab-closed", tabId });
         endDiagSession("crashed");
-        console.error("CloudRecorder tab was closed during recording!");
+        console.error("Recorder tab was closed during recording!");
         chrome.storage.local.set({
           recording: false,
           recorderSession: recorderSession

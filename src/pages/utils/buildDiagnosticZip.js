@@ -123,7 +123,7 @@ export const buildDiagnosticZip = async ({
   }
 
   const blob = await zip.generateAsync({ type: "blob" });
-  const filename = `screenity-diagnostics-${ts}.zip`;
+  const filename = `aisr-diagnostics-${ts}.zip`;
 
   return { blob, filename };
 };

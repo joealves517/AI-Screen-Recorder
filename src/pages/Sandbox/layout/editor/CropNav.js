@@ -58,20 +58,6 @@ const CropNav = () => {
   return (
     <div className={styles.editorNav}>
       <div className={styles.navWrap}>
-        <div
-          className={styles.editorNavLeft}
-          onClick={() => {
-            chrome.runtime.sendMessage({ type: "open-home" });
-          }}
-        >
-          <img src={URL + "editor/logo.svg"} alt="Logo" />
-        </div>
-        <div className={styles.editorNavCenter}>
-          <div className={styles.editorNavTitle}>
-            {chrome.i18n.getMessage("sandboxEditorMainTitle") + " "}{" "}
-            <span className={styles.beta}>BETA</span>
-          </div>
-        </div>
         <div className={styles.editorNavRight}>
           <button
             className="button simpleButton blackButton"

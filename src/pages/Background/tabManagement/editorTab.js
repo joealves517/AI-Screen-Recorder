@@ -1,7 +1,7 @@
 import { createTab } from "./createTab";
 import { focusTab } from "./focusTab";
 
-const APP_BASE_URL = process.env.SCREENITY_APP_BASE;
+const APP_BASE_URL = process.env.AISR_APP_BASE;
 const EDITOR_TAB_META_KEY = "editorTabMeta";
 
 const toUrl = (value) => {

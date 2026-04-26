@@ -21,7 +21,7 @@ const CameraWrap = (props) => {
           bottom: 0,
           margin: "auto",
         }}
-        className={`screenity-iframe${
+        className={`aisr-iframe${
           contentState.cameraFlipped ? " camera-flipped" : ""
         }`}
         src={chrome.runtime.getURL("camera.html")}

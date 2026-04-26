@@ -161,19 +161,7 @@ const Welcome = (props) => {
                   "Learn more about AI Screen Recorder Pro"}
             </span>
           </div>
-          <a
-            className="welcome-support"
-            href="https://alyssax.substack.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              cursor: "pointer",
-            }}
-          >
-            {chrome.i18n.getMessage("welcomeProSupport") ||
-              "Support development by a solo indie maker "}
-            <img src={chrome.runtime.getURL(SoloDev)} alt="Alyssa X" />
-          </a>
+          {/* Support link removed — original author attribution */}
         </div>
       </div>
     </div>

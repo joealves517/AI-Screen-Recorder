@@ -5,6 +5,7 @@ import React, {
   useLayoutEffect,
   useRef,
 } from "react";
+import useDraggable from "../hooks/useDraggable";
 import * as Tabs from "@radix-ui/react-tabs";
 
 import {
@@ -56,8 +57,16 @@ const PopupContainer = (props) => {
   const videoTabRef = useRef(null);
   const pillRef = useRef(null);
   const [URL, setURL] = useState("");
-  const isCloudBuild = process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  const isCloudBuild = process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
   const wasCameraActiveRef = useRef(null);
+
+  const {
+    offset: popupOffset,
+    isDragging: isPopupDragging,
+    dragHandleProps: popupDragHandleProps,
+    containerStyle: popupContainerStyle,
+    setRef: setPopupDragRef,
+  } = useDraggable();
 
   useEffect(() => {
     chrome.storage.local.get(["onboarding", "showProSplash"], (result) => {
@@ -95,8 +104,8 @@ const PopupContainer = (props) => {
       let baseURL = "";
 
       // If logged in, switch to Tally with prefilled params
-      if (contentState?.isLoggedIn && contentState?.screenityUser) {
-        const { name, email } = contentState.screenityUser;
+      if (contentState?.isLoggedIn && contentState?.aisrUser) {
+        const { name, email } = contentState.aisrUser;
         const qs = await supportContextQuery({
           includeRecordingState: true,
           source: "popup",
@@ -123,7 +132,7 @@ const PopupContainer = (props) => {
     setTab(tab);
 
     if (contentState.isLoggedIn) {
-      const avatar = contentState?.screenityUser?.avatar || contentState?.screenityUser?.picture;
+      const avatar = contentState?.aisrUser?.avatar || contentState?.aisrUser?.picture;
       setBadge(avatar || ProfilePic);
     } else {
       setBadge(TempLogo);
@@ -140,7 +149,7 @@ const PopupContainer = (props) => {
 
   useEffect(() => {
     if (contentState.isLoggedIn) {
-      const avatar = contentState?.screenityUser?.avatar || contentState?.screenityUser?.picture;
+      const avatar = contentState?.aisrUser?.avatar || contentState?.aisrUser?.picture;
       setBadge(avatar || ProfilePic);
     } else {
       setBadge(TempLogo);
@@ -148,7 +157,7 @@ const PopupContainer = (props) => {
   }, [
     contentState.isLoggedIn,
     contentState.isSubscribed,
-    contentState.screenityUser,
+    contentState.aisrUser,
     tab,
   ]);
 
@@ -284,26 +293,43 @@ const PopupContainer = (props) => {
       <div className={"ToolbarBounds" + " " + shake}></div>
       <div
         className={
-          "react-draggable centered-popup " + elastic + " " + shake + " " + dragging
+          "react-draggable centered-popup " + elastic + " " + shake + " " + dragging +
+          (isPopupDragging ? " ToolbarDragging" : "")
         }
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none" // Allow clicks to pass through to the background if needed
+          ...(popupOffset
+            ? {
+                display: "block",
+                pointerEvents: "none",
+              }
+            : {
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+                height: "100%",
+                pointerEvents: "none",
+              }),
         }}
       >
         <div
           className="popup-container"
           id="pro-onboarding-popup-container"
-          ref={PopupRef}
-          style={{ pointerEvents: "auto" }} // But keep the popup itself clickable
+          ref={(node) => {
+            PopupRef.current = node;
+            setPopupDragRef(node);
+          }}
+          style={{
+            pointerEvents: "auto",
+            ...popupContainerStyle,
+          }}
         >
           <div
             className={open ? "popup-drag-head" : "popup-drag-head drag-area"}
-            style={{ cursor: "default" }} // Remove grab cursor since it's not draggable
+            {...(!open ? popupDragHandleProps : {})}
+            style={{
+              cursor: open ? "default" : isPopupDragging ? "grabbing" : "grab",
+            }}
           ></div>
           <div
             className={
@@ -328,7 +354,10 @@ const PopupContainer = (props) => {
               <CloseIconPopup />
             </div>
           </div>
-          <div className="popup-cutout drag-area">
+          <div
+            className="popup-cutout drag-area"
+            {...popupDragHandleProps}
+          >
             <img
               src={badge}
               crossOrigin="anonymous"
@@ -375,36 +404,6 @@ const PopupContainer = (props) => {
                   chrome.storage.local.set({ showProSplash: false });
                 }}
                 setContentState={setContentState}
-              />
-            ) : isCloudBuild &&
-            contentState.isSubscribed === false &&
-            contentState.isLoggedIn === true ? (
-              <InactiveSubscription
-                subscription={contentState.proSubscription}
-                hasSubscribedBefore={contentState.hasSubscribedBefore}
-                onManageClick={() => {
-                  const type = contentState.hasSubscribedBefore
-                    ? "handle-reactivate"
-                    : "handle-upgrade";
-                  chrome.runtime.sendMessage({ type });
-                }}
-                onDowngradeClick={async () => {
-                  chrome.runtime.sendMessage({ type: "handle-logout" });
-                  setContentState((prev) => ({
-                    ...prev,
-                    isLoggedIn: false,
-                    isSubscribed: false,
-                    screenityUser: null,
-                    proSubscription: null,
-                    wasLoggedIn: false,
-                    bigTab: "record",
-                  }));
-                  contentState.openToast(
-                    chrome.i18n.getMessage("loggedOutToastTitle"),
-                    () => {},
-                    2000
-                  );
-                }}
               />
             ) : (
               <Tabs.Root

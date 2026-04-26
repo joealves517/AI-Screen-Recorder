@@ -34,7 +34,7 @@ const Shortcuts = ({ shortcuts }) => {
   });
   */
 
-  // in-app shortcuts for screenity tools
+  // in-app shortcuts for AISR tools
   useEffect(() => {
     const getDeepActiveElement = () => {
       let active = document.activeElement;
@@ -101,9 +101,9 @@ const Shortcuts = ({ shortcuts }) => {
     };
 
     const clearBlurMasks = () => {
-      const blurredElements = document.querySelectorAll(".screenity-blur");
+      const blurredElements = document.querySelectorAll(".aisr-blur");
       blurredElements.forEach((element) => {
-        element.classList.remove("screenity-blur");
+        element.classList.remove("aisr-blur");
       });
     };
 

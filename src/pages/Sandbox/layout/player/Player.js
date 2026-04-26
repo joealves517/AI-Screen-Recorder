@@ -2,8 +2,7 @@ import React, { useContext, useState } from "react";
 
 // Components
 import PlayerNav from "./PlayerNav";
-import CropNav from "../editor/CropNav";
-import AudioNav from "../editor/AudioNav";
+
 import RightPanel from "./RightPanel";
 import Content from "./Content";
 
@@ -17,8 +16,7 @@ const Player = () => {
 
   return (
     <div className={styles.layout}>
-      {contentState.mode === "crop" && <CropNav />}
-      {contentState.mode === "audio" && <AudioNav />}
+
       <div className={styles.content}>
         <Content />
         <RightPanel />

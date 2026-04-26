@@ -8,7 +8,7 @@ const SUPABASE_URL = "https://xloruyavtuvcoqrvjolp.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsb3J1eWF2dHV2Y29xcnZqb2xwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjA5OTUsImV4cCI6MjA5MjUzNjk5NX0.ssnDrw4mldgIoDfFa4SpUIMNzcenv_hrctePwtOcSEA";
 
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
+const API_BASE = process.env.AISR_API_BASE_URL;
 
 /**
  * Initiate Supabase Google OAuth via chrome.identity.launchWebAuthFlow.
@@ -81,9 +81,9 @@ export async function supabaseGoogleLogin() {
 
           // Store auth state in chrome.storage.local
           await chrome.storage.local.set({
-            screenityToken: accessToken,
-            screenityRefreshToken: refreshToken,
-            screenityUser: user,
+            aisrToken: accessToken,
+            aisrRefreshToken: refreshToken,
+            aisrUser: user,
             isLoggedIn: true,
             wasLoggedIn: false,
             stayLoggedOut: false,
@@ -122,9 +122,9 @@ export async function supabaseGoogleLogin() {
  * Refresh the Supabase access token using the stored refresh token.
  */
 export async function refreshSupabaseToken() {
-  const { screenityRefreshToken } = await chrome.storage.local.get(["screenityRefreshToken"]);
+  const { aisrRefreshToken } = await chrome.storage.local.get(["aisrRefreshToken"]);
 
-  if (!screenityRefreshToken) {
+  if (!aisrRefreshToken) {
     return null;
   }
 
@@ -135,7 +135,7 @@ export async function refreshSupabaseToken() {
         "Content-Type": "application/json",
         apikey: SUPABASE_ANON_KEY,
       },
-      body: JSON.stringify({ refresh_token: screenityRefreshToken }),
+      body: JSON.stringify({ refresh_token: aisrRefreshToken }),
     });
 
     if (!response.ok) {
@@ -145,8 +145,8 @@ export async function refreshSupabaseToken() {
     const data = await response.json();
 
     await chrome.storage.local.set({
-      screenityToken: data.access_token,
-      screenityRefreshToken: data.refresh_token,
+      aisrToken: data.access_token,
+      aisrRefreshToken: data.refresh_token,
       lastAuthCheck: Date.now(),
     });
 
@@ -156,9 +156,9 @@ export async function refreshSupabaseToken() {
     // Clear auth state on refresh failure
     await chrome.storage.local.set({
       isLoggedIn: false,
-      screenityToken: null,
-      screenityRefreshToken: null,
-      screenityUser: null,
+      aisrToken: null,
+      aisrRefreshToken: null,
+      aisrUser: null,
     });
     return null;
   }

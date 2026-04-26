@@ -15,10 +15,10 @@ const RedoIcon = URL + "editor/icons/redo.svg";
 const TimeIcon = URL + "editor/icons/time.svg";
 
 // Context
-import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
+import { ContentStateContext } from "../../context/ContentState";
 
 const TrimUI = (props) => {
-  const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context
+  const [contentState, setContentState] = useContext(ContentStateContext);
   const [undoDisabled, setUndoDisabled] = useState(true);
   const [redoDisabled, setRedoDisabled] = useState(true);
   const [startTime, setStartTime] = useState(0);
@@ -131,42 +131,6 @@ const TrimUI = (props) => {
         </div>
       </div>
       <Trimmer />
-      {(!contentState.dragInteracted || contentState.duration > 3) && (
-        <div className={styles.trimInfo}>
-          <div className={styles.trimInfoLeft}>
-            <ReactSVG src={URL + "editor/icons/alert.svg"} />
-          </div>
-          <div className={styles.trimInfoRight}>
-            {chrome.i18n.getMessage("sandboxEditorTrimInfo")}
-            <div
-              className={styles.trimInfoLink}
-              onClick={() => {
-                chrome.runtime.sendMessage({ type: "trim-info" });
-              }}
-            >
-              {chrome.i18n.getMessage("learnMoreDot")}
-            </div>
-          </div>
-        </div>
-      )}
-      {contentState.dragInteracted && contentState.duration <= 3 && (
-        <div className={styles.trimInfo}>
-          <div className={styles.trimInfoLeft}>
-            <ReactSVG src={URL + "editor/icons/alert.svg"} />
-          </div>
-          <div className={styles.trimInfoRight}>
-            {chrome.i18n.getMessage("sandboxEditorTooSmallInfo")}
-            <div
-              className={styles.trimInfoLink}
-              onClick={() => {
-                chrome.runtime.sendMessage({ type: "trim-info" });
-              }}
-            >
-              {chrome.i18n.getMessage("learnMoreDot")}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

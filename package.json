@@ -1,11 +1,11 @@
 {
-  "name": "screenity",
+  "name": "ai-screen-recorder",
   "version": "0.1.7",
-  "description": "The free and privacy-friendly screen recorder with no sign in needed.",
+  "description": "A powerful screen recorder with AI-powered features. Capture, annotate, and edit videos effortlessly.",
   "scripts": {
     "build": "cross-env NODE_ENV=development node utils/build.js",
     "build:prod": "cross-env NODE_ENV=production node utils/build.js",
-    "build:release": "cross-env NODE_ENV=production SCREENITY_SKIP_ENV=true node utils/build.js",
+    "build:release": "cross-env NODE_ENV=production AISR_SKIP_ENV=true node utils/build.js",
     "start": "cross-env NODE_ENV=development node utils/server.js",
     "dev": "npm run hot-reload",
     "watch": "cross-env NODE_ENV=development webpack --watch",

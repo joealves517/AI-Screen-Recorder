@@ -29,7 +29,7 @@ const TooltipWrap = (props) => {
             <Tooltip.Trigger asChild>{props.children}</Tooltip.Trigger>
             <Tooltip.Portal
               container={
-                document.getElementsByClassName("screenity-shadow-dom")[0]
+                document.getElementsByClassName("aisr-shadow-dom")[0]
               }
             >
               <Tooltip.Content

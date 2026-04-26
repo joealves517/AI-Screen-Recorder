@@ -1,8 +1,8 @@
 import { getCurrentTab, sendMessageTab } from "../tabManagement";
 
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
+const API_BASE = process.env.AISR_API_BASE_URL;
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 export const loginWithWebsite = async () => {
   if (!CLOUD_FEATURES_ENABLED) {
@@ -16,14 +16,14 @@ export const loginWithWebsite = async () => {
     return { authenticated: false, instantMode: false };
   }
 
-  const { screenityToken, lastAuthCheck, instantMode } =
+  const { aisrToken, lastAuthCheck, instantMode } =
     await chrome.storage.local.get([
-      "screenityToken",
+      "aisrToken",
       "lastAuthCheck",
       "instantMode",
     ]);
 
-  if (!screenityToken) {
+  if (!aisrToken) {
     await chrome.storage.local.set({ isLoggedIn: false });
     return { authenticated: false, instantMode: false };
   }
@@ -34,18 +34,18 @@ export const loginWithWebsite = async () => {
 
   if (lastAuthCheck && now - lastAuthCheck < FRESH_FOR) {
     const {
-      screenityUser,
+      aisrUser,
       isSubscribed,
       proSubscription,
       hasSubscribedBefore,
     } = await chrome.storage.local.get([
-      "screenityUser",
+      "aisrUser",
       "isSubscribed",
       "proSubscription",
       "hasSubscribedBefore",
     ]);
 
-    if (screenityUser) {
+    if (aisrUser) {
       // Single storage write to avoid multiple onChanged events
       await chrome.storage.local.set({
         onboarding: false,
@@ -62,7 +62,7 @@ export const loginWithWebsite = async () => {
 
       return {
         authenticated: true,
-        user: screenityUser,
+        user: aisrUser,
         subscribed: isSubscribed || false,
         proSubscription: proSubscription || null,
         hasSubscribedBefore: !!hasSubscribedBefore,
@@ -78,7 +78,7 @@ export const loginWithWebsite = async () => {
   try {
     const response = await fetch(`${API_BASE}/api/user`, {
       headers: {
-        Authorization: `Bearer ${screenityToken}`,
+        Authorization: `Bearer ${aisrToken}`,
       },
     });
 
@@ -101,7 +101,7 @@ export const loginWithWebsite = async () => {
     const hasSubscribedBefore = subscribed;
 
     await chrome.storage.local.set({
-      screenityUser: user,
+      aisrUser: user,
       lastAuthCheck: now,
       isLoggedIn: true,
       wasLoggedIn: false,
@@ -158,8 +158,8 @@ export const loginWithWebsite = async () => {
 
       // Token is invalid and refresh failed: perform full logout.
       await chrome.storage.local.remove([
-        "screenityToken",
-        "screenityUser",
+        "aisrToken",
+        "aisrUser",
         "lastAuthCheck",
         "isSubscribed",
         "proSubscription",
@@ -170,18 +170,18 @@ export const loginWithWebsite = async () => {
 
     // Network/transient error: keep existing auth state instead of forcing logout.
     const {
-      screenityUser,
+      aisrUser,
       isSubscribed,
       proSubscription,
       hasSubscribedBefore,
     } = await chrome.storage.local.get([
-      "screenityUser",
+      "aisrUser",
       "isSubscribed",
       "proSubscription",
       "hasSubscribedBefore",
     ]);
 
-    if (screenityUser) {
+    if (aisrUser) {
       await chrome.storage.local.set({
         isLoggedIn: true,
         ...(!instantMode
@@ -195,7 +195,7 @@ export const loginWithWebsite = async () => {
 
       return {
         authenticated: true,
-        user: screenityUser,
+        user: aisrUser,
         subscribed: !!isSubscribed,
         proSubscription: proSubscription || null,
         hasSubscribedBefore: !!hasSubscribedBefore,

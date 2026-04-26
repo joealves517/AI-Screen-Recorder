@@ -47,7 +47,7 @@ export const buildSupportContext = async (opts = {}) => {
   ctx.platform = platformMap[ctx.os] || "Other";
 
   ctx.cloud =
-    process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true" ? "1" : "0";
+    process.env.AISR_ENABLE_CLOUD_FEATURES === "true" ? "1" : "0";
 
   if (opts.source) {
     ctx.src = opts.source;

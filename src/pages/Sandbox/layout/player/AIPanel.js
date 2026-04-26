@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
 import styles from "../../styles/player/_RightPanel.module.scss";
 import { ContentStateContext } from "../../context/ContentState";
-import { LANGUAGE_GROUPS, getSupportedLanguages } from "../../../../ai/translation";
+import { LANGUAGE_GROUPS, getSupportedLanguages } from "./aiUtils";
 import {
   Sparkles,
   AudioLines,
@@ -326,7 +326,7 @@ const AIPanel = () => {
    * Apply segments to the video player as VTT subtitles.
    */
   const applySegmentsToPlayer = async (segs) => {
-    const { formatToVTT } = await import("../../../../ai/transcription");
+    const { formatToVTT } = await import("./aiUtils");
     const vttContent = formatToVTT(segs);
     const blob = new Blob([vttContent], { type: "text/vtt" });
     setContentState((prev) => ({
@@ -410,58 +410,34 @@ const AIPanel = () => {
     return () => window.removeEventListener("message", handleMessage);
   }, [handleMessage]);
 
-  // --- Smart error handling based on user tier ---
+  // --- Error handling — always show user-friendly messages, never raw errors ---
 
   const handleAIError = (errorMsg) => {
-    if (
-      errorMsg === "QUOTA_EXCEEDED" ||
-      errorMsg === "API_KEY_INVALID" ||
-      errorMsg === "SERVER_OVERLOAD"
-    ) {
-      setError(errorMsg);
-    } else {
-      setError(errorMsg || "An unexpected error occurred");
-    }
+    // Normalize all errors to a single flag — raw messages are never displayed
+    setError("SERVER_ERROR");
   };
 
   const renderSmartError = () => {
     if (!error) return null;
 
-    const isKnownError = ["QUOTA_EXCEEDED", "API_KEY_INVALID", "SERVER_OVERLOAD"].includes(error);
-
-    if (!isKnownError) {
-      return (
-        <div style={errorBannerStyle("#fee2e2", "#b91c1c")}>
-          <AlertTriangle size={14} />
-          <span>{error}</span>
-        </div>
-      );
-    }
-
     if (userTier === "guest") {
       return (
         <div style={errorBannerStyle("#f0f9ff", "#0369a1")}>
-          <Info size={14} />
+          <Info size={14} style={{ flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Sign in for the best experience</div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>
+              Server is currently overloaded
+            </div>
             <div style={{ fontSize: 11, opacity: 0.8 }}>
-              Sign in or upgrade to Pro for unlimited AI features.
+              Sign in to enjoy a better and more stable AI experience.
             </div>
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            <button
-              onClick={() => chrome.runtime.sendMessage({ type: "handle-login" })}
-              style={ctaButtonStyle("#3b82f6")}
-            >
-              <LogIn size={12} /> Sign in
-            </button>
-            <button
-              onClick={() => chrome.runtime.sendMessage({ type: "pricing" })}
-              style={ctaButtonStyle("#f59e0b")}
-            >
-              <Crown size={12} /> Upgrade
-            </button>
-          </div>
+          <button
+            onClick={() => chrome.runtime.sendMessage({ type: "handle-login" })}
+            style={ctaButtonStyle("#3b82f6")}
+          >
+            <LogIn size={12} /> Sign in
+          </button>
         </div>
       );
     }
@@ -469,15 +445,17 @@ const AIPanel = () => {
     if (userTier === "free") {
       return (
         <div style={errorBannerStyle("#fffbeb", "#92400e")}>
-          <Crown size={14} />
+          <Crown size={14} style={{ flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Upgrade for the best experience</div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>
+              Server is currently overloaded
+            </div>
             <div style={{ fontSize: 11, opacity: 0.8 }}>
-              Pro users enjoy priority processing and higher limits.
+              Upgrade to Pro for priority processing and higher limits.
             </div>
           </div>
           <button
-            onClick={() => chrome.runtime.sendMessage({ type: "pricing" })}
+            onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" })}
             style={ctaButtonStyle("#f59e0b")}
           >
             <Crown size={12} /> Upgrade
@@ -486,14 +464,16 @@ const AIPanel = () => {
       );
     }
 
-    // Pro tier — quota exhausted or server overload
+    // Pro tier — quota exhausted
     return (
-      <div style={errorBannerStyle("#fef3c7", "#92400e")}>
-        <AlertTriangle size={14} />
+      <div style={errorBannerStyle("#f0f9ff", "#0369a1")}>
+        <Info size={14} style={{ flexShrink: 0 }} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>Server is overloaded</div>
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>
+            Your priority quota has been used up
+          </div>
           <div style={{ fontSize: 11, opacity: 0.8 }}>
-            Your priority quota has been used up. Please try again later.
+            You have been switched to the standard tier. Please try again later or contact support.
           </div>
         </div>
       </div>
@@ -537,7 +517,7 @@ const AIPanel = () => {
 
   const handleDownloadSubtitles = async (segs) => {
     if (!segs || segs.length === 0) return;
-    const { formatToSRT } = await import("../../../../ai/transcription");
+    const { formatToSRT } = await import("./aiUtils");
     const srt = formatToSRT(segs);
     const blob = new Blob([srt], { type: "text/plain" });
     const url = URL.createObjectURL(blob);

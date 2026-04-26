@@ -74,7 +74,7 @@ const Welcome = (props) => {
             />
           </div>
           <a
-            href={process.env.SCREENITY_APP_BASE}
+            href={process.env.AISR_APP_BASE}
             target="_blank"
             rel="noopener noreferrer"
             role="button"
@@ -97,15 +97,7 @@ const Welcome = (props) => {
               $8/mo
             </span>
           </a>
-          <a
-            className="welcome-support"
-            href="https://https://alyssax.substack.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {chrome.i18n.getMessage("welcomePopupSupport")}{" "}
-            <img src={chrome.runtime.getURL(SoloDev)} alt="Alyssa X" />
-          </a>
+          {/* Support link removed — original author attribution */}
         </div>
       </div>
     </div>

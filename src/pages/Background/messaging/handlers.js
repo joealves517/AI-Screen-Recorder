@@ -74,10 +74,10 @@ import {
 } from "../../utils/diagnosticLog";
 import { supportContextQuery } from "../../utils/buildSupportContext";
 
-const API_BASE = process.env.SCREENITY_API_BASE_URL;
-const APP_BASE = process.env.SCREENITY_APP_BASE;
+const API_BASE = process.env.AISR_API_BASE_URL;
+const APP_BASE = process.env.AISR_APP_BASE;
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 // Debug toggle for post-stop/chunk flow
 const DEBUG_POSTSTOP = false;
 const STOP_RECORDING_TAB_DEBOUNCE_MS = 1200;
@@ -293,8 +293,8 @@ const handleCreateVideoProject = async (message) => {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${await chrome.storage.local
-          .get("screenityToken")
-          .then((r) => r.screenityToken)}`,
+          .get("aisrToken")
+          .then((r) => r.aisrToken)}`,
       },
       body: JSON.stringify({
         title: message.title || "Untitled Recording",
@@ -329,8 +329,8 @@ const handleFetchVideos = async (message) => {
     const filter = message.filter || "all";
 
     const token = await chrome.storage.local
-      .get("screenityToken")
-      .then((r) => r.screenityToken);
+      .get("aisrToken")
+      .then((r) => r.aisrToken);
 
     const res = await fetch(
       `${API_BASE}/videos?page=${page}&pageSize=${pageSize}&sort=${sort}&filter=${filter}`,
@@ -377,12 +377,12 @@ const handleReopenPopupMulti = async () => {
 
 const handleCheckStorageQuota = async (retried = false) => {
   try {
-    const { screenityToken } = await chrome.storage.local.get("screenityToken");
+    const { aisrToken } = await chrome.storage.local.get("aisrToken");
 
     const res = await fetch(`${API_BASE}/storage/quota`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${screenityToken}`,
+        Authorization: `Bearer ${aisrToken}`,
       },
       credentials: "include",
     });
@@ -443,14 +443,14 @@ const handleFinishMultiRecording = async () => {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${await chrome.storage.local
-              .get("screenityToken")
-              .then((r) => r.screenityToken)}`,
+              .get("aisrToken")
+              .then((r) => r.aisrToken)}`,
           },
         },
       );
 
-      const url = `${process.env.SCREENITY_APP_BASE}/editor/${multiProjectId}/edit?share=true`;
-      const publicUrl = `${process.env.SCREENITY_APP_BASE}/view/${multiProjectId}/`;
+      const url = `${process.env.AISR_APP_BASE}/editor/${multiProjectId}/edit?share=true`;
+      const publicUrl = `${process.env.AISR_APP_BASE}/view/${multiProjectId}/`;
 
       if (!res.ok) {
         console.warn("Failed to auto-publish multi recording", res.status);
@@ -1097,28 +1097,6 @@ export const setupHandlers = () => {
   );
   registerMessage("check-recording", (message) => checkRecording(message));
   registerMessage("open-download-mp4", async () => {
-    // If cloud features are enabled and the user is signed in, block the
-    // local "fast MP4" recovery flow to avoid diverging from the pro/server
-    // workflow. Show a toast instead.
-    if (CLOUD_FEATURES_ENABLED) {
-      try {
-        const { authenticated } = await loginWithWebsite();
-        if (authenticated) {
-          const tab = await getCurrentTab();
-          if (tab?.id) {
-            await sendMessageTab(tab.id, {
-              type: "show-toast",
-              message:
-                "Fast MP4 download is unavailable while signed in. Use the editor or download WEBM instead.",
-            }).catch(() => {});
-          }
-          return;
-        }
-      } catch (err) {
-        console.warn("Failed to check auth for open-download-mp4", err);
-      }
-    }
-
     const tab = await createTab("download.html", true, true);
     if (!tab?.id) return;
     chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
@@ -1129,7 +1107,7 @@ export const setupHandlers = () => {
     });
   });
 
-  registerMessage("review-screenity", () => {});
+  registerMessage("review-aisr", () => {});
   registerMessage("follow-twitter", () => {});
   registerMessage("pricing", () =>
     createTab("https://graphosai.lemonsqueezy.com/checkout/buy/2a8c453e-7b12-4743-bf50-8571c9cfae30", false, true),
@@ -1234,16 +1212,16 @@ export const setupHandlers = () => {
   );
   registerMessage("submit-diagnostic-report", async (message) => {
     try {
-      const appBase = process.env.SCREENITY_APP_BASE;
+      const appBase = process.env.AISR_APP_BASE;
       if (!appBase) return;
-      const { startFlowTrace, screenityToken, projectId, recorderSession } =
+      const { startFlowTrace, aisrToken, projectId, recorderSession } =
         await chrome.storage.local.get([
           "startFlowTrace",
-          "screenityToken",
+          "aisrToken",
           "projectId",
           "recorderSession",
         ]);
-      if (!startFlowTrace || !screenityToken) return;
+      if (!startFlowTrace || !aisrToken) return;
       const trigger = message?.trigger || "manual";
       const isSuccess = trigger === "success-summary";
       const trace = startFlowTrace;
@@ -1280,7 +1258,7 @@ export const setupHandlers = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${screenityToken}`,
+          Authorization: `Bearer ${aisrToken}`,
         },
         body: JSON.stringify(payload),
         keepalive: true,
@@ -1410,8 +1388,8 @@ export const setupHandlers = () => {
       return true;
     }
     await chrome.storage.local.remove([
-      "screenityToken",
-      "screenityUser",
+      "aisrToken",
+      "aisrUser",
       "lastAuthCheck",
       "isSubscribed",
       "isLoggedIn",
@@ -1425,7 +1403,7 @@ export const setupHandlers = () => {
       stayLoggedOut: true,
       isSubscribed: false,
       proSubscription: null,
-      screenityUser: null,
+      aisrUser: null,
     });
 
     sendResponse({ success: true });
@@ -1787,8 +1765,8 @@ export const setupHandlers = () => {
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${await chrome.storage.local
-                .get("screenityToken")
-                .then((r) => r.screenityToken)}`,
+                .get("aisrToken")
+                .then((r) => r.aisrToken)}`,
             },
           },
         ).catch((err) =>
@@ -2035,7 +2013,7 @@ export const setupHandlers = () => {
     }
 
     chrome.tabs.create({
-      url: `${process.env.SCREENITY_APP_BASE}/reactivate`,
+      url: `${process.env.AISR_APP_BASE}/reactivate`,
       active: true,
     });
   });
@@ -2046,7 +2024,7 @@ export const setupHandlers = () => {
     }
 
     chrome.tabs.create({
-      url: `${process.env.SCREENITY_APP_BASE}/upgrade`,
+      url: `${process.env.AISR_APP_BASE}/upgrade`,
       active: true,
     });
   });
@@ -2061,7 +2039,7 @@ export const setupHandlers = () => {
       return;
     }
 
-    const url = `${process.env.SCREENITY_APP_BASE}/?settings=open`;
+    const url = `${process.env.AISR_APP_BASE}/?settings=open`;
     createTab(url, true, true);
   });
   registerMessage("open-support", async () => {

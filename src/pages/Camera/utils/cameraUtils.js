@@ -3,7 +3,7 @@ import { setPipMode } from "./uiState";
 import { getUserMediaWithFallback } from "../../utils/mediaDeviceFallback";
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 export const getCameraStream = async (
   constraints,

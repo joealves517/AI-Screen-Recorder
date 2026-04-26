@@ -4,7 +4,7 @@ import localforage from "localforage";
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "aisr",
   version: 1,
 });
 
@@ -169,7 +169,7 @@ const Download = () => {
             { type: "video/mp4" }
           );
           const url = URL.createObjectURL(blob);
-          const filename = `screenity-recording-${Date.now()}.mp4`;
+          const filename = `ai-recording-${Date.now()}.mp4`;
           chrome.downloads
             .download({
               url: url,

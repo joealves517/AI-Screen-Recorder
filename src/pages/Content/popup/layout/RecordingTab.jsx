@@ -44,7 +44,8 @@ const RecordingTab = (props) => {
 
   useEffect(() => {
     const currentUrl = window.location.href;
-    const isBlocked = currentUrl.includes(process.env.SCREENITY_APP_BASE);
+    const appBase = process.env.AISR_APP_BASE || "";
+    const isBlocked = appBase.length > 0 && currentUrl.includes(appBase);
 
     setTabRecordingDisabled(isBlocked);
 

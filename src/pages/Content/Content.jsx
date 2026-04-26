@@ -6,12 +6,12 @@ import ContentState from "./context/ContentState";
 
 const Content = () => {
   return (
-    <div className="screenity-shadow-dom">
+    <div className="aisr-shadow-dom">
       <ContentState>
         <Wrapper />
       </ContentState>
       <style type="text/css">{`
-			#screenity-ui, #screenity-ui div {
+			#aisr-ui, #aisr-ui div {
 				background-color: unset;
 				padding: unset;
 				width: unset;
@@ -20,7 +20,7 @@ const Content = () => {
 				margin: unset;
 				border-radius: unset;
 			}
-			.screenity-outline {
+			.aisr-outline {
 				position: absolute;
 				z-index: 99999999999;
 				border: 2px solid #3080F8;
@@ -28,13 +28,13 @@ const Content = () => {
 				pointer-events: none;
 				border-radius: 5px!important;
 			}
-		.screenity-blur {
+		.aisr-blur {
 			filter: blur(10px)!important;
 		}
-			.screenity-shadow-dom * {
+			.aisr-shadow-dom * {
 				transition: unset;
 			}
-			.screenity-shadow-dom .TooltipContent {
+			.aisr-shadow-dom .TooltipContent {
   border-radius: 30px!important;
 	background-color: #29292F!important;
   padding: 10px 15px!important;
@@ -54,65 +54,65 @@ const Content = () => {
   will-change: transform, opacity;
 }
 
-.screenity-shadow-dom .hide-tooltip {
+.aisr-shadow-dom .hide-tooltip {
 	display: none!important;
 }
 
-.screenity-shadow-dom .tooltip-tall {
+.aisr-shadow-dom .tooltip-tall {
 	margin-bottom: 20px;
 }
 
-.screenity-shadow-dom .tooltip-small {
+.aisr-shadow-dom .tooltip-small {
 	margin-bottom: 5px;
 }
 
-.screenity-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='top'] {
-	animation-name: screenity-slideDownAndFade;
+.aisr-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='top'] {
+	animation-name: aisr-slideDownAndFade;
 }
-.screenity-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='right'] {
-  animation-name: screenity-slideLeftAndFade;
+.aisr-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='right'] {
+  animation-name: aisr-slideLeftAndFade;
 }
-.screenity-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='bottom'] {
-  animation-name: screenity-slideUpAndFade;
+.aisr-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='bottom'] {
+  animation-name: aisr-slideUpAndFade;
 }
-.screenity-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='left'] {
-  animation-name: screenity-slideRightAndFade;
+.aisr-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='left'] {
+  animation-name: aisr-slideRightAndFade;
 }
 
-@keyframes screenity-slideUpAndFade {
+@keyframes aisr-slideUpAndFade {
   from { opacity: 0; transform: translateY(2px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes screenity-slideRightAndFade {
+@keyframes aisr-slideRightAndFade {
   from { opacity: 0; transform: translateX(-2px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-@keyframes screenity-slideDownAndFade {
+@keyframes aisr-slideDownAndFade {
   from { opacity: 0; transform: translateY(-2px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes screenity-slideLeftAndFade {
+@keyframes aisr-slideLeftAndFade {
   from { opacity: 0; transform: translateX(2px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-#screenity-ui [data-radix-popper-content-wrapper] { z-index: 999999999999!important; }
+#aisr-ui [data-radix-popper-content-wrapper] { z-index: 999999999999!important; }
 
-.screenity-shadow-dom .CanvasContainer {
+.aisr-shadow-dom .CanvasContainer {
 	position: fixed;
 	pointer-events: all!important;
 	top: 0px!important;
 	left: 0px!important;
 	z-index: 99999999999!important;
 }
-.screenity-shadow-dom .canvas {
+.aisr-shadow-dom .canvas {
 	position: fixed;
 	top: 0px!important;
 	left: 0px!important;
 	z-index: 99999999999!important;
 	background: transparent!important;
 }
-.screenity-shadow-dom .canvas-container {
+.aisr-shadow-dom .canvas-container {
 	top: 0px!important;
 	left: 0px!important;
 	z-index: 99999999999;
@@ -120,7 +120,7 @@ const Content = () => {
 	background: transparent!important;
 }
 
-.ScreenityDropdownMenuContent {
+.AisrDropdownMenuContent {
 	z-index: 99999999999!important;
   min-width: 200px;
   background-color: white;
@@ -137,19 +137,19 @@ const Content = () => {
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
-.ScreenityDropdownMenuContent[data-side="top"] {
-  animation-name: screenity-slideDownAndFade;
+.AisrDropdownMenuContent[data-side="top"] {
+  animation-name: aisr-slideDownAndFade;
 }
-.ScreenityDropdownMenuContent[data-side="right"] {
-  animation-name: screenity-slideLeftAndFade;
+.AisrDropdownMenuContent[data-side="right"] {
+  animation-name: aisr-slideLeftAndFade;
 }
-.ScreenityDropdownMenuContent[data-side="bottom"] {
-  animation-name: screenity-slideUpAndFade;
+.AisrDropdownMenuContent[data-side="bottom"] {
+  animation-name: aisr-slideUpAndFade;
 }
-.ScreenityDropdownMenuContent[data-side="left"] {
-  animation-name: screenity-slideRightAndFade;
+.AisrDropdownMenuContent[data-side="left"] {
+  animation-name: aisr-slideRightAndFade;
 }
-.ScreenityItemIndicator {
+.AisrItemIndicator {
   position: absolute;
   right: 12px;
   width: 18px;
@@ -160,8 +160,8 @@ const Content = () => {
   align-items: center;
   justify-content: center;
 }
-.ScreenityDropdownMenuItem,
-.ScreenityDropdownMenuRadioItem {
+.AisrDropdownMenuItem,
+.AisrDropdownMenuRadioItem {
   font-size: 14px;
   line-height: 1;
   display: flex;
@@ -174,11 +174,11 @@ const Content = () => {
   user-select: none;
   outline: none;
 }
-.ScreenityDropdownMenuItem:hover {
+.AisrDropdownMenuItem:hover {
     background-color: #F6F7FB !important;
     cursor: pointer;
 }
-.ScreenityDropdownMenuItem[data-disabled] {
+.AisrDropdownMenuItem[data-disabled] {
   color: #6E7684 !important;
   cursor: not-allowed;
   background-color: #F6F7FB !important;

@@ -9,7 +9,7 @@ import { loginWithWebsite } from "../auth/loginWithWebsite.js";
 import { tryResumePendingUploads } from "../recording/resumePendingUploads";
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 // Utility to handle tab messaging logic
 const handleTabMessaging = async (tab) => {
@@ -59,7 +59,8 @@ const handleTabMessaging = async (tab) => {
 // Utility to open Playground or inject popup
 const openPlaygroundOrPopup = async (tab) => {
   const editorUrlPattern =
-    /https:\/\/app\.screenity\.io\/editor\/([^\/]+)(\/edit)?\/?/;
+    // Editor URL pattern — no longer matches legacy domain
+    /(?:^$)/;
 
   if (tab.url && editorUrlPattern.test(tab.url)) {
     const match = tab.url.match(editorUrlPattern);

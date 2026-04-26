@@ -1,0 +1,18 @@
+NOTICE — Attribution & Modification Disclosure (GPLv3 Section 5a)
+=================================================================
+
+This software is a modified version of Screenity
+(https://github.com/alyssaxuu/screenity), originally created by Alyssa X
+(https://alyssax.com).
+
+Original work: Copyright (C) Alyssa X — Licensed under GPLv3.
+
+Modifications made in this fork include:
+- Rebranding from "Screenity" to "AI Screen Recorder"
+- Integration of AI-powered features (subtitle generation, smart editing)
+- UI/UX redesign and improvements
+- Backend integration with Google Cloud Run services
+- Custom icon and visual assets
+
+This modified version is distributed under the same GPLv3 license.
+See the LICENSE file for the full license text.

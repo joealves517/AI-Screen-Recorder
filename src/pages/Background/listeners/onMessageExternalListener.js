@@ -8,7 +8,7 @@ import {
 import { loginWithWebsite } from "../auth/loginWithWebsite";
 
 const CLOUD_FEATURES_ENABLED =
-  process.env.SCREENITY_ENABLE_CLOUD_FEATURES === "true";
+  process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 export const onMessageExternalListener = () => {
   if (!CLOUD_FEATURES_ENABLED) return;
@@ -24,8 +24,8 @@ export const onMessageExternalListener = () => {
         if (stayLoggedOut) return true;
 
         await chrome.storage.local.set({
-          screenityToken: message.token,
-          screenityUser: null,
+          aisrToken: message.token,
+          aisrUser: null,
           proSubscription: null,
           lastAuthCheck: 0,
           wasLoggedIn: true,
@@ -48,7 +48,7 @@ export const onMessageExternalListener = () => {
           isLoggedIn: true,
           wasLoggedIn: false,
           stayLoggedOut: false,
-          screenityUser: auth.user,
+          aisrUser: auth.user,
           isSubscribed: auth.subscribed,
           proSubscription: auth.proSubscription,
           hasSubscribedBefore: auth.hasSubscribedBefore,
@@ -80,8 +80,8 @@ export const onMessageExternalListener = () => {
       } else if (message.type === "SIGN_OUT") {
         // Clear all auth-related storage
         await chrome.storage.local.remove([
-          "screenityToken",
-          "screenityUser",
+          "aisrToken",
+          "aisrUser",
           "lastAuthCheck",
           "isSubscribed",
           "isLoggedIn",
@@ -131,7 +131,7 @@ export const onMessageExternalListener = () => {
             }
 
             chrome.tabs.create({
-              url: `${process.env.SCREENITY_APP_BASE}/login?extension=true`,
+              url: `${process.env.AISR_APP_BASE}/login?extension=true`,
               active: true,
             });
             return;

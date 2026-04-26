@@ -23,7 +23,7 @@ import {
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "aisr",
   version: 1,
 });
 
@@ -34,12 +34,12 @@ const chunksStore = localforage.createInstance({
 document.body.style.willChange = "contents";
 
 // Debug flag for logging
-//   window.SCREENITY_DEBUG_RECORDER = true;
+//   window.AISR_DEBUG_RECORDER = true;
 const DEBUG_RECORDER =
-  typeof window !== "undefined" ? !!window.SCREENITY_DEBUG_RECORDER : false;
+  typeof window !== "undefined" ? !!window.AISR_DEBUG_RECORDER : false;
 const FORCE_MEDIARECORDER =
   typeof window !== "undefined"
-    ? !!window.SCREENITY_FORCE_MEDIARECORDER
+    ? !!window.AISR_FORCE_MEDIARECORDER
     : false;
 const logPrefix = "[AIScreenRecorder Recorder]";
 
@@ -145,24 +145,10 @@ const clampQualityValue = (value, maxValue) => {
 };
 
 const getFreeCaptureCaps = async () => {
-  try {
-    const { isLoggedIn, isSubscribed } = await chrome.storage.local.get([
-      "isLoggedIn",
-      "isSubscribed",
-    ]);
-    const isPro = Boolean(isLoggedIn && isSubscribed);
-    return {
-      isPro,
-      maxQuality: "1080p",
-      maxFps: 60,
-    };
-  } catch {
-    return {
-      isPro: false,
-      maxQuality: "1080p",
-      maxFps: 60,
-    };
-  }
+  return {
+    maxQuality: "1080p",
+    maxFps: 60,
+  };
 };
 
 const computeTargetVideoBps = (width, height, fps) => {
@@ -356,7 +342,7 @@ const Recorder = () => {
         keepAliveLockAbort.current = ac;
         navigator.locks
           .request(
-            "screenity-recorder-keepalive",
+            "aisr-recorder-keepalive",
             { mode: "exclusive", signal: ac.signal },
             () => new Promise(() => {}),
           )
@@ -2788,7 +2774,7 @@ const Recorder = () => {
   return (
     <>
       <RecorderUI started={started} isTab={isTab.current} />
-      {process.env.SCREENITY_DEV_MODE === "true" && (
+      {process.env.AISR_DEV_MODE === "true" && (
         <div
           style={{
             position: "fixed",
