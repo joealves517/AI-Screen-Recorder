@@ -115,7 +115,9 @@ const VideoPlayer = (props) => {
         ],
       };
 
-      if (contentState.subtitleVtt) {
+      if (contentState.subtitleTracks && contentState.subtitleTracks.length > 0) {
+        newSource.tracks = contentState.subtitleTracks;
+      } else if (contentState.subtitleVtt) {
         newSource.tracks = [
           {
             kind: "captions",
@@ -135,13 +137,15 @@ const VideoPlayer = (props) => {
         if (playerRef.current && playerRef.current.plyr) {
           if (currentTime > 0) playerRef.current.plyr.currentTime = currentTime;
           if (isPlaying) playerRef.current.plyr.play();
-          if (contentState.subtitleVtt) {
+          if (contentState.subtitleTracks && contentState.subtitleTracks.length > 0) {
+             playerRef.current.plyr.toggleCaptions(true);
+          } else if (contentState.subtitleVtt) {
              playerRef.current.plyr.toggleCaptions(true);
           }
         }
       }, 200);
     }
-  }, [vidUrl, contentState.subtitleVtt]);
+  }, [vidUrl, contentState.subtitleVtt, contentState.subtitleTracks]);
 
   // Use a mutation observer to check if .plyr--video is added to the DOM
   useEffect(() => {

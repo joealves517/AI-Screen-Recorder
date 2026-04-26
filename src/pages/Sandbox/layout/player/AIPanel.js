@@ -299,9 +299,10 @@ const AIPanel = () => {
       // Restore subtitles to video player
       if (cache.translatedSegments && cache.subtitlesApplied) {
         setTranslatedSegments(cache.translatedSegments);
-        applySegmentsToPlayer(cache.translatedSegments);
+        if (cache.segments) applySegmentsToPlayer(cache.segments, true, "en");
+        applySegmentsToPlayer(cache.translatedSegments, false, cache.targetLang);
       } else if (cache.segments && cache.subtitlesApplied) {
-        applySegmentsToPlayer(cache.segments);
+        applySegmentsToPlayer(cache.segments, true, "en");
       }
     });
   }, [setContentState]);
@@ -326,14 +327,34 @@ const AIPanel = () => {
   /**
    * Apply segments to the video player as VTT subtitles.
    */
-  const applySegmentsToPlayer = async (segs) => {
+  const applySegmentsToPlayer = async (segs, isOriginal = true, langCode = "en") => {
     const { formatToVTT } = await import("./aiUtils");
     const vttContent = formatToVTT(segs);
     const blob = new Blob([vttContent], { type: "text/vtt" });
-    setContentState((prev) => ({
-      ...prev,
-      subtitleVtt: URL.createObjectURL(blob),
-    }));
+    const url = URL.createObjectURL(blob);
+    
+    setContentState((prev) => {
+      const existingTracks = prev.subtitleTracks || [];
+      const filtered = existingTracks.filter(t => t.srclang !== langCode);
+      
+      const langLabel = allLanguages[langCode] || langCode;
+      const newTrack = {
+        kind: "captions",
+        label: isOriginal ? "AI Subtitles (EN)" : `AI Subtitles (${langLabel})`,
+        srclang: langCode,
+        src: url,
+        default: !isOriginal, // Auto-switch to translation
+      };
+      
+      const updatedTracks = filtered.map(t => ({ ...t, default: false }));
+      updatedTracks.push(newTrack);
+
+      return {
+        ...prev,
+        subtitleTracks: updatedTracks,
+        subtitleVtt: url // keep for fallback if needed
+      };
+    });
     setSubtitlesApplied(true);
   };
 
@@ -358,7 +379,7 @@ const AIPanel = () => {
 
           // Auto-apply original subtitles to video
           if (newSegments.length > 0) {
-            applySegmentsToPlayer(newSegments);
+            applySegmentsToPlayer(newSegments, true, "en");
           }
           break;
         }
@@ -389,7 +410,8 @@ const AIPanel = () => {
 
           // Auto-apply translated subtitles
           if (translated.length > 0) {
-            applySegmentsToPlayer(translated);
+            if (segments) applySegmentsToPlayer(segments, true, "en");
+            applySegmentsToPlayer(translated, false, event.data.targetLang || targetLang);
           }
           break;
         }
@@ -504,7 +526,7 @@ const AIPanel = () => {
 
     if (targetLang === "original") {
       // Apply original subtitles directly
-      applySegmentsToPlayer(segments);
+      applySegmentsToPlayer(segments, true, "en");
       setTranslatedSegments(segments);
     } else {
       setIsProcessing(true);
@@ -555,7 +577,7 @@ const AIPanel = () => {
 
   // --- Render helpers ---
 
-  const renderButton = ({ Icon, title, description, onClick, taskKey, disabled, rightAction }) => (
+  const renderButton = ({ Icon, title, description, onClick, taskKey, disabled, showLockText, rightAction }) => (
     <div
       role="button"
       className={styles.button}
@@ -581,7 +603,7 @@ const AIPanel = () => {
           className={styles.buttonDescription}
           style={{ display: "flex", alignItems: "center", gap: "6px" }}
         >
-          {disabled ? (
+          {showLockText ? (
             <>
               <Lock size={12} /> Generate subtitles first
             </>
@@ -646,6 +668,7 @@ const AIPanel = () => {
           onClick: handleTranscribe,
           taskKey: "transcribe",
           disabled: isProcessing && activeTask !== "transcribe",
+          showLockText: false,
           rightAction: segments ? (
             <button
               onClick={(e) => {
@@ -756,6 +779,7 @@ const AIPanel = () => {
           onClick: handleSummarize,
           taskKey: "summarize",
           disabled: locked || !!summary,
+          showLockText: locked,
         })}
         {renderResultCard(
           summary && (
@@ -784,6 +808,7 @@ const AIPanel = () => {
           onClick: handleActionItems,
           taskKey: "action-items",
           disabled: locked || !!actionItems,
+          showLockText: locked,
         })}
         {renderResultCard(
           actionItems && (
@@ -812,6 +837,7 @@ const AIPanel = () => {
           onClick: handleGenerateTitle,
           taskKey: "title",
           disabled: locked || !!titleData,
+          showLockText: locked,
         })}
         {renderResultCard(
           titleData && (
