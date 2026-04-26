@@ -105,7 +105,6 @@
     }
   },
   "permissions": [
-    "identity",
     "activeTab",
     "storage",
     "unlimitedStorage",
