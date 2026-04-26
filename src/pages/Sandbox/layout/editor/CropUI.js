@@ -13,7 +13,51 @@ const URL =
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
 
 const CropUI = (props) => {
-  const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context
+  const [contentState, setContentState] = useContext(ContentStateContext);
+
+  const handleCancel = () => {
+    setContentState((prev) => ({
+      ...prev,
+      mode: "player",
+      start: 0,
+      end: 1,
+      width: contentState.prevWidth,
+      height: contentState.prevHeight,
+      left: 0,
+      top: 0,
+      fromCropper: false,
+    }));
+    contentState.clearBackup();
+  };
+
+  const handleRevert = () => {
+    setContentState((prev) => ({
+      ...prev,
+      blob: contentState.originalBlob,
+      start: 0,
+      end: 1,
+      width: contentState.prevWidth,
+      height: contentState.prevHeight,
+      left: 0,
+      top: 0,
+      fromCropper: false,
+    }));
+  };
+
+  const saveChanges = async () => {
+    await contentState.handleCrop(
+      contentState.left,
+      contentState.top,
+      contentState.width,
+      contentState.height
+    );
+    setContentState((prev) => ({
+      ...prev,
+      fromCropper: true,
+      hasTempChanges: false,
+    }));
+    contentState.clearBackup();
+  };
 
   const handleWidth = (e) => {
     let value = e.target.value;
@@ -82,7 +126,8 @@ const CropUI = (props) => {
   };
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, paddingTop: "24px" }}>
+      <div style={{ flex: 1 }}>
       {/*
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Dimensions</div>
@@ -93,27 +138,7 @@ const CropUI = (props) => {
       </div>
 							*/}
 
-      <div className={styles.alert}>
-        <div className={styles.buttonLeft}>
-          <ReactSVG src={URL + "editor/icons/alert.svg"} />
-        </div>
-        <div className={styles.buttonMiddle}>
-          <div className={styles.buttonTitle}>
-            {chrome.i18n.getMessage("croppingInfoTitle")}
-          </div>
-          <div className={styles.buttonDescription}>
-            {chrome.i18n.getMessage("videoProcessingLabelDescription")}
-          </div>
-        </div>
-        <div
-          className={styles.buttonRight}
-          onClick={() => {
-            chrome.runtime.sendMessage({ type: "upgrade-info" });
-          }}
-        >
-          {chrome.i18n.getMessage("learnMoreLabel")}
-        </div>
-      </div>
+
       <div className={styles.section}>
         <div className={styles.sectionTitle}>
           {chrome.i18n.getMessage("sandboxCropTitle")}
@@ -218,6 +243,44 @@ const CropUI = (props) => {
             {chrome.i18n.getMessage("sandboxCropUpdateButton") || "Update crop"}
           </button> */}
         </div>
+      </div>
+      </div>
+      <div style={{ width: "90%", margin: "auto", display: "flex", gap: "8px", marginTop: "auto", justifyContent: "flex-end", paddingBottom: "24px" }}>
+        <button
+          className="button simpleButton blackButton"
+          onClick={handleCancel}
+          disabled={contentState.isFfmpegRunning}
+        >
+          {chrome.i18n.getMessage("sandboxEditorCancelButton")}
+        </button>
+        <button
+          className="button secondaryButton"
+          onClick={handleRevert}
+          disabled={contentState.isFfmpegRunning}
+        >
+          {chrome.i18n.getMessage("sandboxEditorRevertButton")}
+        </button>
+        <button
+          className="button primaryButton"
+          onClick={saveChanges}
+          disabled={contentState.isFfmpegRunning}
+        >
+          {contentState.isFfmpegRunning ? (
+            contentState.processingProgress > 0 ? (
+              <>
+                {chrome.i18n.getMessage("sandboxEditorSaveProgressButton") ||
+                  "Saving"}{" "}
+                {Math.round(contentState.processingProgress)}%
+              </>
+            ) : (
+              chrome.i18n.getMessage("sandboxEditorSaveProgressButton") ||
+              "Saving..."
+            )
+          ) : (
+            chrome.i18n.getMessage("sandboxEditorSaveButton") ||
+            "Save changes"
+          )}
+        </button>
       </div>
     </div>
   );

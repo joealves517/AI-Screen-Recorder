@@ -15,10 +15,54 @@ import { ReactSVG } from "react-svg";
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
 
 const AudioUI = (props) => {
-  const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context
+  const [contentState, setContentState] = useContext(ContentStateContext);
   const [audio, setAudio] = useState(null);
   const prevBlob = useRef(null);
   const inputRef = useRef(null);
+
+  const handleCancel = () => {
+    setContentState((prev) => ({
+      ...prev,
+      mode: "player",
+      start: 0,
+      end: 1,
+      pendingAudio: null,
+    }));
+    contentState.restoreBackup();
+  };
+
+  const handleRevert = () => {
+    setContentState((prev) => ({
+      ...prev,
+      blob: contentState.originalBlob,
+      start: 0,
+      end: 1,
+      pendingAudio: null,
+    }));
+  };
+
+  const saveChanges = async () => {
+    const { pendingAudio, volume } = contentState;
+    const source = contentState.blob;
+
+    setContentState((prev) => ({
+      ...prev,
+      isFfmpegRunning: true,
+      processingProgress: 0,
+      fromAudio: true,
+    }));
+
+    if (pendingAudio) {
+      contentState.addAudio(source, pendingAudio, volume);
+    } else {
+      contentState.handleReencode(true);
+    }
+
+    await contentState.waitForUpdatedBlob?.();
+
+    contentState.clearBackup();
+  };
+
 
   useEffect(() => {
     if (contentState.blob !== prevBlob.current) {
@@ -68,7 +112,8 @@ const AudioUI = (props) => {
   };
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, paddingTop: "24px" }}>
+      <div style={{ flex: 1 }}>
       <div className={styles.section}>
         <div className={styles.sectionTitle}>Audio upload</div>
         <input
@@ -170,6 +215,46 @@ const AudioUI = (props) => {
         >
           {chrome.i18n.getMessage("sandboxAudioUpdateButton")}
         </button> */}
+      </div>
+      </div>
+      <div style={{ width: "90%", margin: "auto", display: "flex", gap: "8px", marginTop: "auto", justifyContent: "flex-end", paddingBottom: "24px" }}>
+        <button
+          className="button simpleButton blackButton"
+          onClick={handleCancel}
+          disabled={contentState.isFfmpegRunning}
+        >
+          {chrome.i18n.getMessage("sandboxEditorCancelButton")}
+        </button>
+
+        <button
+          className="button secondaryButton"
+          onClick={handleRevert}
+          disabled={contentState.isFfmpegRunning}
+        >
+          {chrome.i18n.getMessage("sandboxEditorRevertButton")}
+        </button>
+
+        <button
+          className="button primaryButton"
+          onClick={saveChanges}
+          disabled={contentState.isFfmpegRunning}
+        >
+          {contentState.isFfmpegRunning ? (
+            contentState.processingProgress > 0 ? (
+              <>
+                {chrome.i18n.getMessage("sandboxEditorSaveProgressButton") ||
+                  "Saving"}{" "}
+                {Math.round(contentState.processingProgress)}%
+              </>
+            ) : (
+              chrome.i18n.getMessage("sandboxEditorSaveProgressButton") ||
+              "Saving..."
+            )
+          ) : (
+            chrome.i18n.getMessage("sandboxEditorSaveButton") ||
+            "Save changes"
+          )}
+        </button>
       </div>
     </div>
   );

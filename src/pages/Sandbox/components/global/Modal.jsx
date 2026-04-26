@@ -75,7 +75,12 @@ const Modal = (props) => {
       <AlertDialog.Trigger asChild />
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="AlertDialogOverlay" />
-        <AlertDialog.Content className="AlertDialogContent">
+        <AlertDialog.Content 
+          className="AlertDialogContent"
+          aria-describedby={undefined}
+          aria-labelledby={undefined}
+          aria-label={title || "Alert"}
+        >
           <AlertDialog.Title className="AlertDialogTitle">
             {title}
           </AlertDialog.Title>

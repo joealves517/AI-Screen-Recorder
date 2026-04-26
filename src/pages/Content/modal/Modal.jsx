@@ -80,7 +80,12 @@ const Modal = (props) => {
         )}
       >
         <div className="AlertDialogOverlay"></div>
-        <AlertDialog.Content className="AlertDialogContent">
+        <AlertDialog.Content 
+          className="AlertDialogContent"
+          aria-describedby={undefined}
+          aria-labelledby={undefined}
+          aria-label={title || "Alert"}
+        >
           <AlertDialog.Title className="AlertDialogTitle">
             {title}
           </AlertDialog.Title>

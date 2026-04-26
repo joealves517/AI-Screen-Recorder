@@ -1,6 +1,8 @@
 @use "../global/variables.scss" as *;
 
 .panel {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   width: 460px;
   background-color: #fff;

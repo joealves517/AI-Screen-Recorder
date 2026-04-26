@@ -359,15 +359,7 @@ const ContentState = (props) => {
   });
 
   const checkChromeCapturePermissions = useCallback(async () => {
-    const permissions = ["desktopCapture", "alarms", "offscreen"];
-
-    // Only request clipboardWrite if the user is logged in and subscribed
-    if (
-      contentStateRef.current?.isLoggedIn &&
-      contentStateRef.current?.isSubscribed
-    ) {
-      permissions.push("clipboardWrite");
-    }
+    const permissions = ["desktopCapture", "alarms", "offscreen", "clipboardWrite"];
 
     const containsPromise = new Promise((resolve) => {
       chrome.permissions.contains({ permissions }, (result) => {
@@ -448,76 +440,7 @@ const ContentState = (props) => {
 
     let permission = false;
 
-    if (
-      contentStateRef.current?.isLoggedIn &&
-      contentStateRef.current?.isSubscribed &&
-      CLOUD_FEATURES_ENABLED
-    ) {
-      const storageResponse = await chrome.runtime.sendMessage({
-        type: "check-storage-quota",
-      });
-
-      const { success, canUpload, error } = storageResponse;
-
-      if (success && canUpload === false) {
-        contentStateRef.current.openModal(
-          chrome.i18n.getMessage("storageLimitReachedTitle"),
-          chrome.i18n.getMessage("storageLimitReachedDescription"),
-          chrome.i18n.getMessage("manageStorageButtonLabel"),
-          chrome.i18n.getMessage("closeModalLabel"),
-          () => {
-            window.open(process.env.SCREENITY_APP_BASE, "_blank");
-          },
-          () => {},
-        );
-      } else if (!success) {
-        const isSubError = error === "Subscription inactive";
-        const isAuthError = error === "Not authenticated";
-
-        // Update content state if subscription is inactive
-        if (isSubError) {
-          contentStateRef.current.setContentState((prev) => ({
-            ...prev,
-            isSubscribed: false,
-          }));
-        } else if (isAuthError) {
-          contentStateRef.current.setContentState((prev) => ({
-            ...prev,
-            isSubscribed: false,
-            isLoggedIn: false,
-            screenityUser: null,
-            proSubscription: null,
-          }));
-        }
-
-        const message = isAuthError
-          ? chrome.i18n.getMessage("storageCheckFailAuthDescription")
-          : chrome.i18n.getMessage("storageCheckFailDescription");
-
-        contentStateRef.current.openModal(
-          chrome.i18n.getMessage("storageCheckFailTitle"),
-          message,
-          chrome.i18n.getMessage("retryButtonLabel"),
-          chrome.i18n.getMessage("closeModalLabel"),
-          async () => {
-            window.location.reload(); // or retry logic
-          },
-          () => {},
-        );
-      }
-
-      if (!success || (success && canUpload === false)) {
-        setStartFlowOutcome("error", {
-          error: canUpload === false ? "storage-limit" : (error || "quota-check-failed"),
-        });
-        setContentState((prev) => ({
-          ...prev,
-          pendingRecording: false,
-          preparingRecording: false,
-        }));
-        return; // Stop recording setup
-      }
-    }
+    // Cloud upload disabled — all recordings processed locally
 
     // Check if in content script or extension page (Chrome)
     if (isExtensionPage) {
@@ -555,9 +478,7 @@ const ContentState = (props) => {
     const data = await chrome.runtime.sendMessage({ type: "available-memory" });
 
     if (
-      data.quota < 524288000 &&
-      !contentStateRef.current.isLoggedIn &&
-      !contentStateRef.current.isSubscribed
+      data.quota < 524288000
     ) {
       if (typeof contentStateRef.current.openModal === "function") {
         let clear = null;
@@ -1292,17 +1213,6 @@ const ContentState = (props) => {
           10000,
         );
         // Check if url contains "playground.html" and "chrome-extension://"
-      } else if (
-        window.location.href.includes("playground.html") &&
-        window.location.href.includes("chrome-extension://") &&
-        !contentState.recording
-      ) {
-        contentState.openWarning(
-          chrome.i18n.getMessage("extensionNotSupportedTitle"),
-          "", // Remove long description, keep it short
-          "NotSupportedIcon",
-          10000,
-        );
       }
     }
   }, [
