@@ -12,6 +12,7 @@ import Modal from "./components/global/Modal";
 // Context
 import { ContentStateContext } from "./context/ContentState"; // Import the ContentState context
 import { diagForward } from "../utils/diagForward";
+import DotPattern from "../Content/popup/components/DotPattern";
 
 const Sandbox = () => {
   const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context
@@ -146,6 +147,7 @@ const Sandbox = () => {
 
   return (
     <div ref={parentRef}>
+      <DotPattern backgroundColor="transparent" style={{ zIndex: -1 }} />
       <Modal />
       <video></video>
       {/* Render the WaveformGenerator component and pass the ffmpeg instance as a prop */}

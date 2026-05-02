@@ -2,13 +2,14 @@ import React, { useEffect, useState, useContext, useRef } from "react";
 
 import * as Select from "@radix-ui/react-select";
 import {
-  DropdownIcon,
-  CheckWhiteIcon,
-  CameraOnIcon,
-  CameraOffIcon,
-  MicOnIcon,
+  ChevronDownIcon,
+  CheckIcon,
+  UserIcon,
+  MicIcon,
   MicOffIcon,
-} from "../../images/popup/images";
+} from "lucide-animated";
+
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 
 // Context
 import { contentStateContext } from "../../context/ContentState";
@@ -269,24 +270,20 @@ const Dropdown = (props) => {
             }}
           >
             {props.type == "camera" && (
-              <img
-                src={
-                  contentState.defaultVideoInput === "none" ||
-                  !contentState.cameraActive
-                    ? CameraOffIcon
-                    : CameraOnIcon
-                }
-              />
+              <AnimatedIcon animation="none">
+                {contentState.defaultVideoInput === "none" ||
+                !contentState.cameraActive
+                  ? <AnimatedIcon animation="none"><UserIcon size={18} color="#9CA3AF" /></AnimatedIcon>
+                  : <AnimatedIcon animation="none"><UserIcon size={18} color="currentColor" /></AnimatedIcon>}
+              </AnimatedIcon>
             )}
             {props.type == "mic" && (
-              <img
-                src={
-                  contentState.defaultAudioInput === "none" ||
-                  !contentState.micActive
-                    ? MicOffIcon
-                    : MicOnIcon
-                }
-              />
+              <AnimatedIcon animation="none">
+                {contentState.defaultAudioInput === "none" ||
+                !contentState.micActive
+                  ? <AnimatedIcon animation="none"><MicOffIcon size={18} color="#9CA3AF" /></AnimatedIcon>
+                  : <AnimatedIcon animation="none"><MicIcon size={18} color="currentColor" /></AnimatedIcon>}
+              </AnimatedIcon>
             )}
           </div>
         </Select.Icon>
@@ -314,7 +311,7 @@ const Dropdown = (props) => {
             </div>
           )}
         <Select.Icon className="SelectIconDrop">
-          <img src={DropdownIcon} />
+          <AnimatedIcon animation="none"><ChevronDownIcon size={16} color="currentColor" /></AnimatedIcon>
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal
@@ -366,7 +363,7 @@ const SelectItem = React.forwardRef(
       <Select.Item className="SelectItem" {...props} ref={forwardedRef}>
         <Select.ItemText>{children}</Select.ItemText>
         <Select.ItemIndicator className="SelectItemIndicator">
-          <img src={CheckWhiteIcon} />
+          <AnimatedIcon animation="none"><CheckIcon size={14} color="#FFF" /></AnimatedIcon>
         </Select.ItemIndicator>
       </Select.Item>
     );

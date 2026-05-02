@@ -3,23 +3,24 @@ import { marked } from "marked";
 import styles from "../../styles/player/_RightPanel.module.scss";
 import { ContentStateContext } from "../../context/ContentState";
 import { LANGUAGE_GROUPS, getSupportedLanguages } from "./aiUtils";
+import { AnimatedIcon } from "../../../Content/components/AnimatedIcon";
 import {
-  Sparkles,
-  AudioLines,
-  Languages,
-  FileText,
-  ListChecks,
-  TextSelect,
-  Lock,
-  Download,
-  ChevronRight,
-  ChevronDown,
-  Search,
-  Info,
-  LogIn,
-  Crown,
-  AlertTriangle,
-} from "lucide-react";
+  SparklesIcon as Sparkles,
+  AudioLinesIcon as AudioLines,
+  LanguagesIcon as Languages,
+  FileTextIcon as FileText,
+  ListIcon as ListChecks,
+  UnderlineIcon as TextSelect,
+  LockIcon as Lock,
+  DownloadIcon as Download,
+  ChevronRightIcon as ChevronRight,
+  ChevronDownIcon as ChevronDown,
+  SearchIcon as Search,
+  CircleHelpIcon as Info,
+  UserRoundCheckIcon as LogIn,
+  ZapIcon as Crown,
+  BadgeAlertIcon as AlertTriangle
+} from "lucide-animated";
 
 // --- Inline style constants ---
 const statusStyle = {
@@ -143,7 +144,9 @@ const LanguageSelect = ({ value, onChange, disabled, options, groups }) => {
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginRight: "8px" }}>
           {displayValue}
         </span>
-        <ChevronDown size={14} color="#64748b" style={{ flexShrink: 0 }} />
+        <AnimatedIcon animation="none">
+          <ChevronDown size={14} color="#64748b" style={{ flexShrink: 0 }} />
+        </AnimatedIcon>
       </button>
 
       {isOpen && (
@@ -163,7 +166,9 @@ const LanguageSelect = ({ value, onChange, disabled, options, groups }) => {
           maxHeight: "300px"
         }}>
           <div style={{ padding: "8px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "6px" }}>
-            <Search size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+            <AnimatedIcon animation="none">
+              <Search size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+            </AnimatedIcon>
             <input
               type="text"
               autoFocus
@@ -446,7 +451,9 @@ const AIPanel = () => {
     if (userTier === "guest") {
       return (
         <div style={errorBannerStyle("#f0f9ff", "#0369a1")}>
-          <Info size={14} style={{ flexShrink: 0 }} />
+          <AnimatedIcon animation="none">
+            <Info size={14} style={{ flexShrink: 0 }} />
+          </AnimatedIcon>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600, marginBottom: 4 }}>
               Server is currently overloaded
@@ -459,7 +466,9 @@ const AIPanel = () => {
             onClick={() => chrome.runtime.sendMessage({ type: "handle-login" })}
             style={ctaButtonStyle("#3b82f6")}
           >
-            <LogIn size={12} /> Sign in
+            <AnimatedIcon animation="none">
+              <LogIn size={12} />
+            </AnimatedIcon> Sign in
           </button>
         </div>
       );
@@ -468,7 +477,9 @@ const AIPanel = () => {
     if (userTier === "free") {
       return (
         <div style={errorBannerStyle("#fffbeb", "#92400e")}>
-          <Crown size={14} style={{ flexShrink: 0 }} />
+          <AnimatedIcon animation="none">
+            <Crown size={14} style={{ flexShrink: 0 }} />
+          </AnimatedIcon>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 600, marginBottom: 4 }}>
               Server is currently overloaded
@@ -481,7 +492,9 @@ const AIPanel = () => {
             onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" })}
             style={ctaButtonStyle("#f59e0b")}
           >
-            <Crown size={12} /> Upgrade
+            <AnimatedIcon animation="none">
+              <Crown size={12} />
+            </AnimatedIcon> Upgrade
           </button>
         </div>
       );
@@ -490,7 +503,9 @@ const AIPanel = () => {
     // Pro tier — quota exhausted
     return (
       <div style={errorBannerStyle("#f0f9ff", "#0369a1")}>
-        <Info size={14} style={{ flexShrink: 0 }} />
+        <AnimatedIcon animation="none">
+          <Info size={14} style={{ flexShrink: 0 }} />
+        </AnimatedIcon>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 600, marginBottom: 4 }}>
             Your priority quota has been used up
@@ -589,7 +604,9 @@ const AIPanel = () => {
       }}
     >
       <div className={styles.buttonLeft}>
-        <Icon size={20} strokeWidth={2} color={disabled ? "#94a3b8" : "#6366f1"} />
+        <AnimatedIcon animation="none">
+          <Icon size={20} strokeWidth={2} color={disabled ? "#94a3b8" : "#6366f1"} />
+        </AnimatedIcon>
       </div>
       <div className={styles.buttonMiddle}>
         <div className={styles.buttonTitle}>
@@ -605,7 +622,9 @@ const AIPanel = () => {
         >
           {showLockText ? (
             <>
-              <Lock size={12} /> Generate subtitles first
+              <AnimatedIcon animation="none">
+                <Lock size={12} />
+              </AnimatedIcon> Generate subtitles first
             </>
           ) : (
             description
@@ -613,7 +632,11 @@ const AIPanel = () => {
         </div>
       </div>
       <div className={styles.buttonRight} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        {rightAction || <ChevronRight size={20} strokeWidth={2} color="#cbd5e1" />}
+        {rightAction || (
+          <AnimatedIcon animation="none">
+            <ChevronRight size={20} strokeWidth={2} color="#cbd5e1" />
+          </AnimatedIcon>
+        )}
       </div>
     </div>
   );
@@ -646,7 +669,9 @@ const AIPanel = () => {
         className={styles.sectionTitle}
         style={{ display: "flex", alignItems: "center", gap: "8px" }}
       >
-        <Sparkles size={18} color="#eab308" fill="#fef08a" /> AI Intelligence
+        <AnimatedIcon animation="none">
+          <Sparkles size={18} color="#eab308" fill="#fef08a" />
+        </AnimatedIcon> AI Intelligence
       </div>
 
       {/* Smart error banner */}
@@ -680,7 +705,9 @@ const AIPanel = () => {
               onMouseOver={(e) => (e.currentTarget.style.background = "#e2e8f0")}
               onMouseOut={(e) => (e.currentTarget.style.background = "#f1f5f9")}
             >
-              <Download size={16} color="#475569" />
+              <AnimatedIcon animation="none">
+                <Download size={16} color="#475569" />
+              </AnimatedIcon>
             </button>
           ) : undefined,
         })}
@@ -688,7 +715,9 @@ const AIPanel = () => {
         {/* Subtitle status */}
         {subtitlesApplied && !translatedSegments && (
           <div style={statusStyle}>
-            <Sparkles size={14} /> Subtitles applied to video!
+            <AnimatedIcon animation="none">
+              <Sparkles size={14} />
+            </AnimatedIcon> Subtitles applied to video!
           </div>
         )}
 
@@ -717,9 +746,13 @@ const AIPanel = () => {
             }}
           >
             {locked ? (
-              <Lock size={16} color="#94a3b8" />
+              <AnimatedIcon animation="none">
+                <Lock size={16} color="#94a3b8" />
+              </AnimatedIcon>
             ) : (
-              <Languages size={18} color="#3b82f6" />
+              <AnimatedIcon animation="none">
+                <Languages size={18} color="#3b82f6" />
+              </AnimatedIcon>
             )}
             Translate & Add Subtitles
           </div>
@@ -756,13 +789,17 @@ const AIPanel = () => {
                 onMouseOver={(e) => (e.currentTarget.style.background = "#e2e8f0")}
                 onMouseOut={(e) => (e.currentTarget.style.background = "#f1f5f9")}
               >
-                <Download size={18} color="#475569" />
+                <AnimatedIcon animation="none">
+                  <Download size={18} color="#475569" />
+                </AnimatedIcon>
               </button>
             )}
           </div>
           {subtitlesApplied && translatedSegments && (
             <div style={statusStyle}>
-              <Sparkles size={14} /> Translated subtitles applied!
+              <AnimatedIcon animation="none">
+                <Sparkles size={14} />
+              </AnimatedIcon> Translated subtitles applied!
             </div>
           )}
         </div>

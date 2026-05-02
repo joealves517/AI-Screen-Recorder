@@ -4,8 +4,7 @@ import React, { useContext, useState, useEffect, useRef } from "react";
 import styles from "../../styles/player/_Title.module.scss";
 const URL = "/assets/";
 
-// Icon
-import { ReactSVG } from "react-svg";
+import { PenToolIcon as Pencil, LinkIcon as Link } from "lucide-animated";
 
 import ShareModal from "./ShareModal";
 
@@ -84,10 +83,11 @@ const Title = () => {
           <>
             <h1 onClick={handleTitleClick}>
               {displayTitle}{" "}
-              <ReactSVG
-                src={URL + "editor/icons/pencil.svg"}
+              <Pencil
+                size={18}
+                color="currentColor"
                 className={styles.pencil}
-                styles={{ display: "inline-block" }}
+                style={{ display: "inline-block", marginLeft: "8px" }}
               />
             </h1>
             {/* <div
@@ -96,8 +96,9 @@ const Title = () => {
                 chrome.runtime.sendMessage({ type: "handle-login" });
               }}
             >
-              <ReactSVG
-                src={URL + "editor/icons/link.svg"}
+              <Link
+                size={16}
+                color="currentColor"
                 className={styles.shareIcon}
               />
               {chrome.i18n.getMessage("shareUnlockButton") ||

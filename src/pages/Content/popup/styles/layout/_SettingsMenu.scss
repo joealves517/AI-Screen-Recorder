@@ -2,7 +2,7 @@
 
 .DropdownMenuContent,
 .DropdownMenuSubContent {
-  min-width: 200px;
+  min-width: 220px;
   background-color: white;
   margin-top: 4px;
   margin-right: 8px;
@@ -62,7 +62,7 @@
   padding: 0 5px;
   position: relative;
   padding-left: 22px;
-  padding-right: 22px;
+  padding-right: 36px;
   user-select: none;
   outline: none;
 
@@ -123,8 +123,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 4px;
   cursor: pointer;
+  padding: 0;
+  border: none;
+  background: transparent;
 
   svg {
     color: #9797a4;

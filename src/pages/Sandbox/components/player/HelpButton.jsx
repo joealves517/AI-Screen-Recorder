@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import styles from "../../styles/player/_HelpButton.module.scss";
-import { ReactSVG } from "react-svg";
+import { CircleHelpIcon as Help } from "lucide-animated";
 import { ContentStateContext } from "../../context/ContentState";
 
 const HelpButton = () => {
@@ -27,11 +27,7 @@ const HelpButton = () => {
         chrome.runtime.sendMessage({ type: "open-help" });
       }}
     >
-      <ReactSVG
-        src="/assets/editor/icons/help.svg"
-        width="18px"
-        height="18px"
-      />
+      <Help size={18} color="currentColor" />
     </button>
   );
 };

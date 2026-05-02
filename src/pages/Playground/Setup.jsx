@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import DotPattern from "../Content/popup/components/DotPattern";
+
 const Setup = () => {
   useEffect(() => {
     // Inject content script
@@ -31,7 +33,7 @@ const Setup = () => {
   }, []);
 
   return (
-    <div className="setupBackground">
+    <DotPattern className="setupBackground" backgroundColor="#f5f7fa" baseColor="#cbd5e1" glowColor="#3080F8">
       <style>
         {`
 				body {
@@ -159,7 +161,7 @@ const Setup = () => {
 
 				`}
       </style>
-    </div>
+    </DotPattern>
   );
 };
 

@@ -13,48 +13,8 @@ const GoogleLogo = () => (
   </svg>
 );
 
-// Mic icon — for Smart Transcription
-const MicIcon = ({ size = 20, color = "#3080F8" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-    <line x1="12" x2="12" y1="19" y2="22"/>
-  </svg>
-);
-
-// FileText icon — for AI Summarization
-const FileTextIcon = ({ size = 20, color = "#3080F8" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
-    <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
-    <line x1="10" x2="8" y1="9" y2="9"/>
-    <line x1="16" x2="8" y1="13" y2="13"/>
-    <line x1="16" x2="8" y1="17" y2="17"/>
-  </svg>
-);
-
-// Wand icon — for Smart Titles
-const WandIcon = ({ size = 20, color = "#3080F8" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/>
-    <path d="m14 7 3 3"/>
-    <path d="M5 6v4"/><path d="M19 14v4"/>
-    <path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/>
-    <path d="M11 3H9"/>
-  </svg>
-);
-
-// Languages icon — for Translation
-const LanguagesIcon = ({ size = 20, color = "#3080F8" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m5 8 6 6"/>
-    <path d="m4 14 6-6 2-3"/>
-    <path d="M2 5h12"/>
-    <path d="M7 2h1"/>
-    <path d="m22 22-5-10-5 10"/>
-    <path d="M14 18h6"/>
-  </svg>
-);
+import { MicIcon, FileTextIcon, SparklesIcon, LanguagesIcon, ZapIcon, CircleCheckIcon, LogoutIcon } from "lucide-animated";
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 
 const GeminiIcon = ({ size = 40 }) => {
   const url =
@@ -73,38 +33,23 @@ const GeminiIcon = ({ size = 40 }) => {
   );
 };
 
-const CrownIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2 4l3 12h14l3-12-6 7-4-9-4 9-6-7z"/>
-    <path d="M3 20h18"/>
-  </svg>
-);
-
-const CheckCircleIcon = ({ size = 16, color = "#10B981" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-    <path d="M22 4L12 14.01l-3-3"/>
-  </svg>
-);
-
-const LogOutIcon = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-    <polyline points="16 17 21 12 16 7"/>
-    <line x1="21" y1="12" x2="9" y2="12"/>
-  </svg>
-);
-
 // ─── AI Feature Item (no background, bigger icon) ───────────────────
 const AIFeatureItem = ({ icon, title, description, available }) => (
-  <div style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "10px 8px",
-    borderRadius: "10px",
-    transition: "background 0.15s ease",
-  }}>
+  <div 
+    role="button"
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "12px",
+      padding: "12px 14px",
+      borderRadius: "20px",
+      border: "none",
+      transition: "background 0.15s ease",
+      cursor: "pointer",
+    }}
+    onMouseOver={(e) => e.currentTarget.style.background = "#F6F7FB"}
+    onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
+  >
     <div style={{
       flexShrink: 0,
       display: "flex",
@@ -116,8 +61,8 @@ const AIFeatureItem = ({ icon, title, description, available }) => (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{
         fontSize: "13px",
-        fontWeight: "600",
-        color: "#111827",
+        fontWeight: "500",
+        color: "#374151",
         lineHeight: "1.3",
       }}>{title}</div>
       <div style={{
@@ -127,7 +72,7 @@ const AIFeatureItem = ({ icon, title, description, available }) => (
         marginTop: "1px",
       }}>{description}</div>
     </div>
-    <CheckCircleIcon color={available ? "#10B981" : "#D1D5DB"} />
+    <AnimatedIcon animation="none"><CircleCheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color={available ? "#4B5563" : "#D1D5DB"} strokeWidth={1.5} /></AnimatedIcon>
   </div>
 );
 
@@ -149,17 +94,11 @@ const GuestView = () => (
       </div>
       <h3 style={{
         fontSize: "17px",
-        fontWeight: "700",
-        color: "#111827",
+        fontWeight: "600",
+        color: "#374151",
         margin: "0 0 6px",
         letterSpacing: "-0.01em",
       }}>AI-Powered Recording</h3>
-      <p style={{
-        fontSize: "13px",
-        color: "#6B7280",
-        margin: 0,
-        lineHeight: "1.5",
-      }}>Sign in to unlock smarter features for your recordings</p>
     </div>
 
     {/* AI Features — each with a distinct Lucide icon */}
@@ -170,25 +109,25 @@ const GuestView = () => (
       marginBottom: "18px",
     }}>
       <AIFeatureItem
-        icon={<MicIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Transcription"
         description="Auto-transcribe recordings with AI"
         available={true}
       />
       <AIFeatureItem
-        icon={<FileTextIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="AI Summarization"
         description="Get key points from long videos"
         available={true}
       />
       <AIFeatureItem
-        icon={<WandIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Titles"
         description="Auto-generate titles & descriptions"
         available={true}
       />
       <AIFeatureItem
-        icon={<LanguagesIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="Translation"
         description="Multi-language subtitle support"
         available={true}
@@ -294,7 +233,7 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
         color: isPro ? "#92400E" : "#1D4ED8",
         letterSpacing: "0.02em",
       }}>
-        {isPro ? <CrownIcon size={12} /> : null}
+        {isPro ? <AnimatedIcon animation="none"><ZapIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={12} strokeWidth={2} /></AnimatedIcon> : null}
         {isPro ? "PRO" : "FREE"}
       </div>
     </div>
@@ -315,27 +254,27 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
         padding: "0 4px 4px",
       }}>AI Features</div>
       <AIFeatureItem
-        icon={<MicIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Transcription"
         description={isPro ? "Vertex AI — high accuracy" : "Gemini Flash Lite"}
         available={true}
       />
       <AIFeatureItem
-        icon={<FileTextIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="AI Summarization"
         description={isPro ? "Advanced analysis" : "Basic summarization"}
         available={true}
       />
       <AIFeatureItem
-        icon={<WandIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Titles"
         description={isPro ? "Premium quality" : "Auto-generated"}
         available={true}
       />
       <AIFeatureItem
-        icon={<LanguagesIcon size={22} color="#3080F8" />}
+        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
         title="Translation"
-        description={isPro ? "50+ languages" : "Core languages"}
+        description={isPro ? "Unlimited" : "Coming soon"}
         available={true}
       />
     </div>
@@ -366,7 +305,7 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
           letterSpacing: "0.02em",
         }}
       >
-        <CrownIcon size={14} />
+        <AnimatedIcon animation="none"><ZapIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} strokeWidth={2} /></AnimatedIcon>
         UPGRADE TO PRO
       </button>
     )}
@@ -391,7 +330,7 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
         transition: "all 0.15s ease",
       }}
     >
-      <LogOutIcon size={13} />
+      <AnimatedIcon animation="none"><LogoutIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={13} strokeWidth={2} /></AnimatedIcon>
       Sign out
     </button>
   </div>

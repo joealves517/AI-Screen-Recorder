@@ -5,7 +5,9 @@ import Switch from "../components/Switch";
 import RegionDimensions from "../components/RegionDimensions";
 import Settings from "./Settings";
 import { contentStateContext } from "../../context/ContentState";
-import { CameraOffBlue, MicOffBlue } from "../../images/popup/images";
+
+import { EyeOffIcon, MicOffIcon } from "lucide-animated";
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 import TooltipWrap from "../components/TooltipWrap";
 
 import BackgroundEffects from "../components/BackgroundEffects";
@@ -174,7 +176,7 @@ const RecordingType = (props) => {
             }
           }}
         >
-          <img src={CameraOffBlue} />
+          <AnimatedIcon animation="none"><EyeOffIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#3080F8" strokeWidth={2} /></AnimatedIcon>
           <span>{chrome.i18n.getMessage("allowCameraAccessButton")}</span>
         </button>
       )}
@@ -232,7 +234,7 @@ const RecordingType = (props) => {
             }
           }}
         >
-          <img src={MicOffBlue} />
+          <AnimatedIcon animation="none"><MicOffIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#3080F8" strokeWidth={2} /></AnimatedIcon>
           <span>{chrome.i18n.getMessage("allowMicrophoneAccessButton")}</span>
         </button>
       )}

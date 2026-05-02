@@ -96,8 +96,8 @@ const htmlPlugins = Object.keys(entryPoints)
       cache: true,
     };
 
-    // Use the 48px icon as favicon for all extension pages
-    options.favicon = path.join(__dirname, "src", "assets", "img", "icon-48.png");
+    // Use the custom favicon for all extension pages to bypass browser cache
+    options.favicon = path.join(__dirname, "src", "assets", "favicon.png");
 
     return new HtmlWebpackPlugin(options);
   })

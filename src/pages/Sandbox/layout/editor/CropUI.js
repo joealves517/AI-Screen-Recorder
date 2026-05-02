@@ -4,7 +4,7 @@ import styles from "../../styles/player/_RightPanel.module.scss";
 // Components
 import Dropdown from "../../components/editor/Dropdown";
 
-import { ReactSVG } from "react-svg";
+
 
 const URL =
   "chrome-extension://" + chrome.i18n.getMessage("@@extension_id") + "/assets/";

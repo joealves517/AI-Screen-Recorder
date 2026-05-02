@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import CheckBlueIcon from "../../../../assets/check-blue.svg";
+import { CheckIcon } from "lucide-animated";
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 import SoloDev from "../../../../assets/solo-dev.png";
 
 const FeatureItem = ({ text }) => {
@@ -7,7 +8,7 @@ const FeatureItem = ({ text }) => {
   return (
     <div className="welcome-feature-item">
       <div className="welcome-feature-icon">
-        <img src={chrome.runtime.getURL(CheckBlueIcon)} alt="Checkmark" />
+        <AnimatedIcon animation="none"><CheckIcon size={20} color="#3080F8" /></AnimatedIcon>
       </div>
       <span className="welcome-feature-item-text">{text}</span>
     </div>

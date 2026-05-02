@@ -2,17 +2,16 @@ import React, { useContext, useState, useEffect } from "react";
 import Trimmer from "../../components/editor/Trimmer";
 import styles from "../../styles/edit/_TrimUI.module.scss";
 
-// Icons
-import { ReactSVG } from "react-svg";
+import {
+  FilePenLineIcon as Trim,
+  ArchiveIcon as Remove,
+  MicOffIcon as Mute,
+  UndoIcon as Undo,
+  RedoIcon as Redo,
+  ClockIcon as Time,
+} from "lucide-animated";
 
-const URL = "/assets/";
-
-const TrimIcon = URL + "editor/icons/trim.svg";
-const RemoveIcon = URL + "editor/icons/trash.svg";
-const MuteIcon = URL + "editor/icons/mute.svg";
-const UndoIcon = URL + "editor/icons/undo.svg";
-const RedoIcon = URL + "editor/icons/redo.svg";
-const TimeIcon = URL + "editor/icons/time.svg";
+import { AnimatedIcon } from "../../../Content/components/AnimatedIcon";
 
 // Context
 import { ContentStateContext } from "../../context/ContentState";
@@ -68,7 +67,9 @@ const TrimUI = (props) => {
               (contentState.start === 0 && contentState.end === 1)
             }
           >
-            <ReactSVG src={TrimIcon} />
+            <AnimatedIcon animation="none">
+              <Trim size={16} color="currentColor" style={{ marginRight: 6 }} />
+            </AnimatedIcon>
             {contentState.trimming
               ? chrome.i18n.getMessage("sandboxEditorTrimProgressButton") +
                 (contentState.processingProgress > 0
@@ -84,7 +85,9 @@ const TrimUI = (props) => {
             }
             onClick={() => contentState.handleTrim(true)}
           >
-            <ReactSVG src={RemoveIcon} />
+            <AnimatedIcon animation="none">
+              <Remove size={16} color="currentColor" style={{ marginRight: 6 }} />
+            </AnimatedIcon>
             {contentState.cutting
               ? chrome.i18n.getMessage("sandboxEditorCutProgressButton") +
                 (contentState.processingProgress > 0
@@ -97,7 +100,9 @@ const TrimUI = (props) => {
             onClick={() => contentState.handleMute()}
             disabled={contentState.isFfmpegRunning}
           >
-            <ReactSVG src={MuteIcon} />
+            <AnimatedIcon animation="none">
+              <Mute size={16} color="currentColor" style={{ marginRight: 6 }} />
+            </AnimatedIcon>
             {contentState.muting
               ? chrome.i18n.getMessage("sandboxEditorMuteProgressButton") +
                 (contentState.processingProgress > 0
@@ -107,7 +112,9 @@ const TrimUI = (props) => {
           </button>
         </div>
         <div className={styles.timeWrap}>
-          <ReactSVG src={TimeIcon} />
+          <AnimatedIcon animation="none">
+            <Time size={16} color="currentColor" style={{ marginRight: 6 }} />
+          </AnimatedIcon>
           <span>{toTimeStamp(startTime) + " - " + toTimeStamp(endTime)}</span>
         </div>
 
@@ -117,7 +124,9 @@ const TrimUI = (props) => {
             onClick={() => contentState.undo()}
             disabled={undoDisabled || contentState.isFfmpegRunning}
           >
-            <ReactSVG src={UndoIcon} />
+            <AnimatedIcon animation="none">
+              <Undo size={16} color="currentColor" style={{ marginRight: 6 }} />
+            </AnimatedIcon>
             {chrome.i18n.getMessage("undoLabel")}
           </button>
           <button
@@ -125,7 +134,9 @@ const TrimUI = (props) => {
             onClick={() => contentState.redo()}
             disabled={redoDisabled || contentState.isFfmpegRunning}
           >
-            <ReactSVG src={RedoIcon} />
+            <AnimatedIcon animation="none">
+              <Redo size={16} color="currentColor" style={{ marginRight: 6 }} />
+            </AnimatedIcon>
             {chrome.i18n.getMessage("redoLabel")}
           </button>
         </div>

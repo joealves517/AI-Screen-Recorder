@@ -1,10 +1,17 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import styles from "../../styles/player/_RightPanel.module.scss";
 
-import { ReactSVG } from "react-svg";
-
-const URL =
-  "chrome-extension://" + chrome.i18n.getMessage("@@extension_id") + "/assets/";
+import {
+  FilePenLineIcon as Trim,
+  FrameIcon as Crop,
+  AudioLinesIcon as Audio,
+  ChevronRightIcon as ArrowRight,
+  DownloadIcon as Download,
+  GalleryThumbnailsIcon as Gif,
+  BanIcon as NoInternet,
+  BadgeAlertIcon as Alert,
+} from "lucide-animated";
+import { AnimatedIcon } from "../../../Content/components/AnimatedIcon";
 
 // Components
 import CropUI from "../editor/CropUI";
@@ -262,7 +269,7 @@ const RightPanel = () => {
           {!contentState.fallback && contentState.offline && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
-                <ReactSVG src={URL + "editor/icons/no-internet.svg"} />
+                <NoInternet size={24} color="currentColor" />
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
@@ -280,7 +287,9 @@ const RightPanel = () => {
           {contentState.fallback && contentState.noffmpeg && contentState.editLimit === 0 && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
-                <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
@@ -301,7 +310,9 @@ const RightPanel = () => {
           {contentState.fallback && contentState.noffmpeg && contentState.editLimit !== 0 && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
-                <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
@@ -325,7 +336,9 @@ const RightPanel = () => {
             contentState.duration <= contentState.editLimit && (
               <div className={styles.alert}>
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                  <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -352,7 +365,9 @@ const RightPanel = () => {
             !contentState.updateChrome && (
               <div className={styles.alert}>
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                  <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -411,7 +426,9 @@ const RightPanel = () => {
             !contentState.noffmpeg && (
               <div className={styles.alert}>
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                  <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -446,7 +463,9 @@ const RightPanel = () => {
             ) && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
-                <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
@@ -469,7 +488,9 @@ const RightPanel = () => {
           {!contentState.fallback && contentState.editErrorType === "timeout" && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
-                <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
@@ -492,7 +513,9 @@ const RightPanel = () => {
           {!contentState.fallback && contentState.editErrorType === "failed" && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
-                <ReactSVG src={URL + "editor/icons/alert.svg"} />
+                <AnimatedIcon animation="none">
+      <Alert size={24} color="currentColor" />
+    </AnimatedIcon>
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
@@ -532,7 +555,9 @@ const RightPanel = () => {
                 }
               >
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/trim.svg"} />
+                  <AnimatedIcon animation="none">
+      <Trim size={20} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -552,7 +577,9 @@ const RightPanel = () => {
                   </div>
                 </div>
                 <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                  <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                 </div>
               </div>
               <div
@@ -567,7 +594,9 @@ const RightPanel = () => {
                 }
               >
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/crop.svg"} />
+                  <AnimatedIcon animation="none">
+      <Crop size={20} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -587,7 +616,9 @@ const RightPanel = () => {
                   </div>
                 </div>
                 <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                  <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                 </div>
               </div>
               <div
@@ -602,7 +633,9 @@ const RightPanel = () => {
                 }
               >
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/audio.svg"} />
+                  <AnimatedIcon animation="none">
+      <Audio size={20} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -622,7 +655,9 @@ const RightPanel = () => {
                   </div>
                 </div>
                 <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                  <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                 </div>
               </div>
             </div>
@@ -641,7 +676,9 @@ const RightPanel = () => {
                   disabled={contentState.isFfmpegRunning}
                 >
                   <div className={styles.buttonLeft}>
-                    <ReactSVG src={URL + "editor/icons/download.svg"} />
+                    <AnimatedIcon animation="none">
+      <Download size={20} color="currentColor" />
+    </AnimatedIcon>
                   </div>
                   <div className={styles.buttonMiddle}>
                     <div className={styles.buttonTitle}>
@@ -654,7 +691,9 @@ const RightPanel = () => {
                     </div>
                   </div>
                   <div className={styles.buttonRight}>
-                    <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                    <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                   </div>
                 </div>
               )}
@@ -687,7 +726,9 @@ const RightPanel = () => {
                 disabled={mp4Disabled}
               >
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/download.svg"} />
+                  <AnimatedIcon animation="none">
+      <Download size={20} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -708,7 +749,9 @@ const RightPanel = () => {
                   </div>
                 </div>
                 <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                  <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                 </div>
               </div>
                 );
@@ -721,7 +764,9 @@ const RightPanel = () => {
                   disabled={contentState.isFfmpegRunning}
                 >
                   <div className={styles.buttonLeft}>
-                    <ReactSVG src={URL + "editor/icons/download.svg"} />
+                    <AnimatedIcon animation="none">
+      <Download size={20} color="currentColor" />
+    </AnimatedIcon>
                   </div>
                   <div className={styles.buttonMiddle}>
                     <div className={styles.buttonTitle}>
@@ -738,7 +783,9 @@ const RightPanel = () => {
                     </div>
                   </div>
                   <div className={styles.buttonRight}>
-                    <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                    <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                   </div>
                 </div>
               )}
@@ -757,7 +804,9 @@ const RightPanel = () => {
                 }
               >
                 <div className={styles.buttonLeft}>
-                  <ReactSVG src={URL + "editor/icons/gif.svg"} />
+                  <AnimatedIcon animation="none">
+      <Gif size={20} color="currentColor" />
+    </AnimatedIcon>
                 </div>
                 <div className={styles.buttonMiddle}>
                   <div className={styles.buttonTitle}>
@@ -779,7 +828,9 @@ const RightPanel = () => {
                   </div>
                 </div>
                 <div className={styles.buttonRight}>
-                  <ReactSVG src={URL + "editor/icons/right-arrow.svg"} />
+                  <AnimatedIcon animation="none">
+      <ArrowRight size={16} color="currentColor" />
+    </AnimatedIcon>
                 </div>
               </div>
             </div>

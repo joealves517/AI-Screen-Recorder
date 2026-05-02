@@ -4,12 +4,10 @@ import * as Select from "@radix-ui/react-select";
 
 import styles from "../../styles/edit/_Dropdown.module.scss";
 
-// Icons
-//import DropdownIcon from "../../public/assets/icons/dropdown.svg";
-//import CheckWhiteIcon from "../../public/assets/icons/check-white.svg";
-
 // Context
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
+import { ChevronDownIcon, CheckIcon } from "lucide-animated";
+import { AnimatedIcon } from "../../../Content/components/AnimatedIcon";
 
 const Dropdown = (props) => {
   const [contentState, setContentState] = useContext(ContentStateContext); // Access the ContentState context
@@ -143,7 +141,9 @@ const Dropdown = (props) => {
           <Select.Value placeholder="Select a source">{label}</Select.Value>
         </div>
         <Select.Icon className={styles.SelectIconDrop}>
-          <img src="/assets/icons/dropdown.svg" />
+          <AnimatedIcon animation="none">
+            <ChevronDownIcon size={16} color="currentColor" />
+          </AnimatedIcon>
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal className={styles.Portal}>
@@ -183,7 +183,9 @@ const SelectItem = React.forwardRef(
       <Select.Item className={styles.SelectItem} {...props} ref={forwardedRef}>
         <Select.ItemText>{children}</Select.ItemText>
         <Select.ItemIndicator className={styles.SelectItemIndicator}>
-          <img src="/assets/icons/check-white.svg" />
+          <AnimatedIcon animation="none">
+            <CheckIcon size={14} color="#FFF" />
+          </AnimatedIcon>
         </Select.ItemIndicator>
       </Select.Item>
     );

@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 
 import styles from "../../styles/player/_ShareModal.module.scss";
 
-import { ReactSVG } from "react-svg";
+import { XIcon as Close } from "lucide-animated";
 
 // Context
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
@@ -21,11 +21,7 @@ const ShareModal = ({ showShare, setShowShare }) => {
             setShowShare(false);
           }}
         >
-          <ReactSVG
-            src={URL + "editor/icons/close-button.svg"}
-            width="16px"
-            height="16px"
-          />
+          <Close size={16} color="currentColor" />
         </div>
         <div className={styles.emoji}>👋</div>
         <div className={styles.title}>

@@ -7,7 +7,26 @@ import { MoreIconPopup } from "../../toolbar/components/SVG";
 
 import TooltipWrap from "../components/TooltipWrap";
 
-import { CheckWhiteIcon, DropdownGroup } from "../../images/popup/images";
+
+import {
+  SettingsIcon,
+  ChevronRightIcon,
+  CheckIcon,
+  MaximizeIcon,
+  MonitorCheckIcon,
+  GaugeIcon,
+  VolumeIcon,
+  ZapIcon,
+  CloudUploadIcon,
+  CloudDownloadIcon,
+  HistoryIcon,
+  UserIcon,
+  CircleHelpIcon,
+  RefreshCcwIcon,
+  LogoutIcon,
+  UserRoundCheckIcon
+} from "lucide-animated";
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 
 // Context
 import { contentStateContext } from "../../context/ContentState";
@@ -252,7 +271,7 @@ const SettingsMenu = (props) => {
     >
       <DropdownMenu.Trigger asChild>
         <button className="IconButton" aria-label="Customise options">
-          <MoreIconPopup />
+          <AnimatedIcon animation="none"><SettingsIcon style={{ display: "block" }} size={16} color="#4B5563" strokeWidth={2.5} /></AnimatedIcon>
         </button>
       </DropdownMenu.Trigger>
 
@@ -273,10 +292,11 @@ const SettingsMenu = (props) => {
                 setOpenResize(open);
               }}
             >
-              <DropdownMenu.SubTrigger className="DropdownMenuItem">
+              <DropdownMenu.SubTrigger className="DropdownMenuItem" style={{ paddingLeft: "12px" }}>
+                <AnimatedIcon animation="none"><MaximizeIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                 {chrome.i18n.getMessage("resizeWindowLabel")}
                 <div className="ItemIndicatorArrow">
-                  <img src={DropdownGroup} />
+                  <AnimatedIcon animation="none"><ChevronRightIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="#9CA3AF" /></AnimatedIcon>
                 </div>
               </DropdownMenu.SubTrigger>
               <DropdownMenu.Portal>
@@ -426,13 +446,14 @@ const SettingsMenu = (props) => {
                 setOpenQuality(open);
               }}
             >
-              <DropdownMenu.SubTrigger className="DropdownMenuItem">
+              <DropdownMenu.SubTrigger className="DropdownMenuItem" style={{ paddingLeft: "12px" }}>
+                <AnimatedIcon animation="none"><MonitorCheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                 {chrome.i18n.getMessage("maxResolutionLabel") +
                   " (" +
                   contentState.qualityValue +
                   ")"}
                 <div className="ItemIndicatorArrow">
-                  <img src={DropdownGroup} />
+                  <AnimatedIcon animation="none"><ChevronRightIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="#9CA3AF" /></AnimatedIcon>
                 </div>
               </DropdownMenu.SubTrigger>
               <DropdownMenu.Portal>
@@ -467,7 +488,7 @@ const SettingsMenu = (props) => {
                       >
                         4k
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                          <img src={CheckWhiteIcon} />
+                          <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                         </DropdownMenu.ItemIndicator>
                       </DropdownMenu.RadioItem>
                     </TooltipWrap>
@@ -485,7 +506,7 @@ const SettingsMenu = (props) => {
                       >
                         1080p
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                          <img src={CheckWhiteIcon} />
+                          <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                         </DropdownMenu.ItemIndicator>
                       </DropdownMenu.RadioItem>
                     </TooltipWrap>
@@ -503,7 +524,7 @@ const SettingsMenu = (props) => {
                       >
                         720p
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                          <img src={CheckWhiteIcon} />
+                          <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                         </DropdownMenu.ItemIndicator>
                       </DropdownMenu.RadioItem>
                     </TooltipWrap>
@@ -513,7 +534,7 @@ const SettingsMenu = (props) => {
                     >
                       480p
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -522,7 +543,7 @@ const SettingsMenu = (props) => {
                     >
                       360p
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -531,7 +552,7 @@ const SettingsMenu = (props) => {
                     >
                       240p
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                   </DropdownMenu.RadioGroup>
@@ -550,13 +571,14 @@ const SettingsMenu = (props) => {
                 setOpenFPS(open);
               }}
             >
-              <DropdownMenu.SubTrigger className="DropdownMenuItem">
+              <DropdownMenu.SubTrigger className="DropdownMenuItem" style={{ paddingLeft: "12px" }}>
+                <AnimatedIcon animation="none"><GaugeIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                 {chrome.i18n.getMessage("maxFPSLabel") +
                   " (" +
                   contentState.fpsValue +
                   " fps)"}
                 <div className="ItemIndicatorArrow">
-                  <img src={DropdownGroup} />
+                  <AnimatedIcon animation="none"><ChevronRightIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="#9CA3AF" /></AnimatedIcon>
                 </div>
               </DropdownMenu.SubTrigger>
               <DropdownMenu.Portal>
@@ -583,7 +605,7 @@ const SettingsMenu = (props) => {
                     >
                       60 fps
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -592,7 +614,7 @@ const SettingsMenu = (props) => {
                     >
                       30 fps
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -601,7 +623,7 @@ const SettingsMenu = (props) => {
                     >
                       24 fps
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -610,7 +632,7 @@ const SettingsMenu = (props) => {
                     >
                       15 fps
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -619,7 +641,7 @@ const SettingsMenu = (props) => {
                     >
                       10 fps
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                     <DropdownMenu.RadioItem
@@ -628,7 +650,7 @@ const SettingsMenu = (props) => {
                     >
                       5 fps
                       <DropdownMenu.ItemIndicator className="AisrItemIndicator">
-                        <img src={CheckWhiteIcon} />
+                        <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                       </DropdownMenu.ItemIndicator>
                     </DropdownMenu.RadioItem>
                   </DropdownMenu.RadioGroup>
@@ -651,10 +673,12 @@ const SettingsMenu = (props) => {
               });
             }}
             checked={contentState.systemAudio}
+            style={{ paddingLeft: "12px" }}
           >
+            <AnimatedIcon animation="none"><VolumeIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
             {chrome.i18n.getMessage("systemAudioLabel")}
             <DropdownMenu.ItemIndicator className="ItemIndicator">
-              <img src={CheckWhiteIcon} />
+              <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
             </DropdownMenu.ItemIndicator>
           </DropdownMenu.CheckboxItem>
           {fastRecorderInfo?.probe?.ok === true &&
@@ -680,10 +704,12 @@ const SettingsMenu = (props) => {
                   });
                 }}
                 checked={contentState.useWebCodecsRecorder !== false}
+                style={{ paddingLeft: "12px" }}
               >
+                <AnimatedIcon animation="none"><ZapIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                 {chrome.i18n.getMessage("webcodecsToggleLabel")}
                 <DropdownMenu.ItemIndicator className="ItemIndicator">
-                  <img src={CheckWhiteIcon} />
+                  <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                 </DropdownMenu.ItemIndicator>
               </DropdownMenu.CheckboxItem>
             )}
@@ -708,10 +734,12 @@ const SettingsMenu = (props) => {
                   });
                 }}
                 checked={contentState.backup}
+                style={{ paddingLeft: "12px" }}
               >
+                <AnimatedIcon animation="none"><CloudUploadIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                 {chrome.i18n.getMessage("backupsToggle")}
                 <DropdownMenu.ItemIndicator className="ItemIndicator">
-                  <img src={CheckWhiteIcon} />
+                  <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                 </DropdownMenu.ItemIndicator>
               </DropdownMenu.CheckboxItem>
             )}
@@ -723,7 +751,9 @@ const SettingsMenu = (props) => {
                 chrome.runtime.sendMessage({ type: "restore-recording" });
               }}
               disabled={!restore}
+              style={{ paddingLeft: "12px" }}
             >
+              <AnimatedIcon animation="none"><HistoryIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
               {chrome.i18n.getMessage("restoreRecording")}
             </DropdownMenu.Item>
           )}
@@ -734,7 +764,9 @@ const SettingsMenu = (props) => {
                 e.preventDefault();
                 chrome.runtime.sendMessage({ type: "open-account-settings" });
               }}
+              style={{ paddingLeft: "12px" }}
             >
+              <AnimatedIcon animation="none"><UserIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
               {chrome.i18n.getMessage("accountSettingsOption")}
             </DropdownMenu.Item>
           )}
@@ -749,7 +781,9 @@ const SettingsMenu = (props) => {
                   email: contentState.aisrUser?.email || "",
                 });
               }}
+              style={{ paddingLeft: "12px" }}
             >
+              <AnimatedIcon animation="none"><CircleHelpIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
               {chrome.i18n.getMessage("supportSettingsOption")}
             </DropdownMenu.Item>
           )}
@@ -780,7 +814,9 @@ const SettingsMenu = (props) => {
                       forceStart: true,
                     });
                   }}
+                  style={{ paddingLeft: "12px" }}
                 >
+                  <AnimatedIcon animation="none"><RefreshCcwIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                   {chrome.i18n.getMessage("resetOnboardingOption") ||
                     "Reset onboarding"}
                 </DropdownMenu.Item>
@@ -795,7 +831,9 @@ const SettingsMenu = (props) => {
                     });
                   }}
                   disabled={!cloudRestore}
+                  style={{ paddingLeft: "12px" }}
                 >
+                  <AnimatedIcon animation="none"><CloudDownloadIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
                   {chrome.i18n.getMessage("recoverLastRecordingOption")}
                 </DropdownMenu.Item>
               )}
@@ -829,11 +867,19 @@ const SettingsMenu = (props) => {
                 }
                 props.setOpen(false); // Close the menu after action
               }}
+              style={{ paddingLeft: "12px" }}
             >
-              {contentState.isLoggedIn
-                ? chrome.i18n.getMessage("logoutButtonLabel") || "Log out"
-                : chrome.i18n.getMessage("loginButtonLabel") ||
-                  "Log in or sign up"}
+              {contentState.isLoggedIn ? (
+                <>
+                  <AnimatedIcon animation="none"><LogoutIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
+                  {chrome.i18n.getMessage("logoutButtonLabel") || "Log out"}
+                </>
+              ) : (
+                <>
+                  <AnimatedIcon animation="none"><UserRoundCheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
+                  {chrome.i18n.getMessage("loginButtonLabel") || "Log in or sign up"}
+                </>
+              )}
             </DropdownMenu.Item>
           )}
         </DropdownMenu.Content>

@@ -255,7 +255,9 @@ const Wrapper = () => {
                   zIndex: 999999999,
                   pointerEvents:
                     contentState.pendingRecording ||
-                    contentState.preparingRecording
+                    contentState.preparingRecording ||
+                    window.location.href.indexOf(safeUrls.setup) !== -1 ||
+                    window.location.href.indexOf(safeUrls.playground) !== -1
                       ? "none"
                       : "all",
                   position: "fixed",

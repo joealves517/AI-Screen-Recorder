@@ -1,137 +1,98 @@
 import React from "react";
 import { ReactSVG } from "react-svg";
+import * as Lucide from "lucide-animated";
+
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 
 const URL =
   "chrome-extension://" + chrome.i18n.getMessage("@@extension_id") + "/assets/";
 
-const GrabIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/grab-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const AnimatedSvg = (props) => (
+  <AnimatedIcon animation="hover" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <ReactSVG {...props} />
+  </AnimatedIcon>
+);
+
+const GrabIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.GripVerticalIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 /*
 
 */
 
 // Convert all to ReactSVG
 
-const StopIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/stop-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const StopIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.BanIcon fill="#EF4444" color="#EF4444" style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} {...props} />
+  </AnimatedIcon>
+);
 
-const DrawIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/draw-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const DrawIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.PenToolIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const PauseIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/pause-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const PauseIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.PauseIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const ResumeIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/resume-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const ResumeIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.PlayIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CursorIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/cursor-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CursorIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CursorClickIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CommentIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/comment-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CommentIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.MessageCircleIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const MicIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/mic-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const MicIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const MoreIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/more-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const MoreIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.GripHorizontalIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const RestartIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/restart-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const RestartIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.RotateCcwIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const DiscardIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/discard-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const DiscardIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ArchiveIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const EyeDropperIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/eyedropper-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const EyeDropperIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.DropletIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
 const Stroke1Icon = (props) => {
   return (
-    <ReactSVG
+    <AnimatedSvg
       src={URL + "tool-icons/stroke-1-icon.svg"}
       width={props.width}
       height={props.height}
@@ -149,7 +110,7 @@ const Stroke1Icon = (props) => {
 
 const Stroke2Icon = (props) => {
   return (
-    <ReactSVG
+    <AnimatedSvg
       src={URL + "tool-icons/stroke-2-icon.svg"}
       width={props.width}
       height={props.height}
@@ -167,7 +128,7 @@ const Stroke2Icon = (props) => {
 
 const Stroke3Icon = (props) => {
   return (
-    <ReactSVG
+    <AnimatedSvg
       src={URL + "tool-icons/stroke-3-icon.svg"}
       width={props.width}
       height={props.height}
@@ -183,249 +144,153 @@ const Stroke3Icon = (props) => {
   );
 };
 
-const TargetCursorIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/target-cursor-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TargetCursorIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ScanFaceIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const HighlightCursorIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/highlight-cursor-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const HighlightCursorIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const HideCursorIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/hide-cursor-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const HideCursorIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CursorClickIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const TextIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/text-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TextIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.UnderlineIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const ArrowIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/arrow-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const ArrowIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ArrowUpRightIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const EraserIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/eraser-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const EraserIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.DeleteIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const PenIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/pen-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const PenIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.PenToolIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const ShapeIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/shape-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const ShapeIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.BoxesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const SelectIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/select-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const SelectIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CursorClickIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const UndoIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/undo-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const UndoIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.UndoIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const RedoIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/redo-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const RedoIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.RedoIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const ImageIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/image-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const ImageIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.GalleryThumbnailsIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const TransformIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/transform-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TransformIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CursorClickIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const HighlighterIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/highlighter-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const HighlighterIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const RectangleIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/rectangle-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const RectangleIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.SquareActivityIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CircleIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/circle-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CircleIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CircleDashedIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const TriangleIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/triangle-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TriangleIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ActivityIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const RectangleFilledIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/rectangle-filled-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const RectangleFilledIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.SquareActivityIcon fill="currentColor" style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CircleFilledIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/circle-filled-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CircleFilledIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CircleDashedIcon fill="currentColor" style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const TriangleFilledIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/triangle-filled-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TriangleFilledIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ActivityIcon fill="currentColor" style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const TrashIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/trash-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TrashIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ArchiveIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const VideoOffIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "camera-icons/video-off.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const VideoOffIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.EyeOffIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CameraCloseIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "camera-icons/close.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CameraCloseIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.XIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CameraMoreIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "camera-icons/more.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CameraMoreIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.GripHorizontalIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
 const CameraResizeIcon = (props) => {
   return (
-    <ReactSVG
+    <AnimatedSvg
       src={URL + "camera-icons/camera-resize.svg"}
       width={props.width}
       height={props.height}
@@ -433,98 +298,62 @@ const CameraResizeIcon = (props) => {
   );
 };
 
-const CameraIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/camera-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CameraIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CctvIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const BlurIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/blur-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const BlurIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.DropletIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const AlertIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/alert-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const AlertIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.BellIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const TimeIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/time-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
-const SpotlightCursorIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "tool-icons/spotlight-cursor-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const TimeIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ClockIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
+const SpotlightCursorIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.SearchIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const Pip = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "camera-icons/pip.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const Pip = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.MonitorCheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CloseIconPopup = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "close-icon-popup.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CloseIconPopup = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.XIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const GrabIconPopup = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "grab-icon-popup.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const GrabIconPopup = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.GripVerticalIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const MoreIconPopup = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "more-icon-popup.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const MoreIconPopup = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.GripHorizontalIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
 const OnboardingArrow = (props) => {
   return (
-    <ReactSVG
+    <AnimatedSvg
       src={URL + "/helper/onboarding-arrow.svg"}
       width={props.width}
       height={props.height}
@@ -532,55 +361,35 @@ const OnboardingArrow = (props) => {
   );
 };
 
-const NoInternet = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "/editor/icons/no-internet.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const NoInternet = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.ZapOffIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const CloseButtonToolbar = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "/tool-icons/close-button.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const CloseButtonToolbar = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.XIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const HelpIconPopup = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "/tool-icons/help-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const HelpIconPopup = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.CircleHelpIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const AudioIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "/tool-icons/audio-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const AudioIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.VolumeIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
-const NotSupportedIcon = (props) => {
-  return (
-    <ReactSVG
-      src={URL + "/tool-icons/not-supported-icon.svg"}
-      width={props.width}
-      height={props.height}
-    />
-  );
-};
+const NotSupportedIcon = (props) => (
+  <AnimatedIcon animation="none">
+    <Lucide.BanIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={props.width || 18} color="currentColor" {...props} />
+  </AnimatedIcon>
+);
 
 export {
   GrabIcon,

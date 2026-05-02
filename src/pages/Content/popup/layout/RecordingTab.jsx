@@ -7,13 +7,10 @@ import {
   ScreenTabOff,
   RegionTabOn,
   RegionTabOff,
-  MockupTabOn,
-  MockupTabOff,
-  CameraTabIconOn,
-  CameraTabIconOff,
-  CheckWhiteIcon,
-  CloseWhiteIcon,
 } from "../../images/popup/images";
+import { XIcon } from "lucide-animated";
+import { AnimatedIcon } from "../../components/AnimatedIcon";
+import { AirplayIcon, GalleryHorizontalEndIcon, UserIcon, CheckIcon } from "lucide-animated";
 
 import { BaseSwitch } from "../components/Switch";
 import TooltipWrap from "../components/TooltipWrap";
@@ -132,7 +129,7 @@ const RecordingTab = (props) => {
                   );
                 }}
               >
-                <img src={CloseWhiteIcon} alt="Close" />
+                <AnimatedIcon animation="none"><XIcon size={16} color="currentColor" /></AnimatedIcon>
               </div>
             </div>
           </div>
@@ -145,13 +142,7 @@ const RecordingTab = (props) => {
           <Tabs.Trigger className="TabsTrigger" value="screen" tabIndex={0}>
             <div className="TabsTriggerLabel">
               <div className="TabsTriggerIcon">
-                <img
-                  src={
-                    contentState.recordingType === "screen"
-                      ? ScreenTabOn
-                      : ScreenTabOff
-                  }
-                />
+                <AirplayIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color={contentState.recordingType === "screen" ? "#3080F8" : "#9CA3AF"} strokeWidth={2} />
               </div>
               <span>{chrome.i18n.getMessage("screenType")}</span>
             </div>
@@ -184,13 +175,7 @@ const RecordingTab = (props) => {
             >
               <div className="TabsTriggerLabel">
                 <div className="TabsTriggerIcon">
-                  <img
-                    src={
-                      contentState.recordingType === "region"
-                        ? RegionTabOn
-                        : RegionTabOff
-                    }
-                  />
+                  <GalleryHorizontalEndIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color={contentState.recordingType === "region" ? "#3080F8" : "#9CA3AF"} strokeWidth={2} />
                 </div>
                 <span>{chrome.i18n.getMessage("tabType")}</span>
               </div>
@@ -199,13 +184,7 @@ const RecordingTab = (props) => {
           <Tabs.Trigger className="TabsTrigger" value="camera" tabIndex={0}>
             <div className="TabsTriggerLabel">
               <div className="TabsTriggerIcon">
-                <img
-                  src={
-                    contentState.recordingType === "camera"
-                      ? CameraTabIconOn
-                      : CameraTabIconOff
-                  }
-                />
+                <UserIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color={contentState.recordingType === "camera" ? "#3080F8" : "#9CA3AF"} strokeWidth={2} />
               </div>
               <span>{chrome.i18n.getMessage("cameraType")}</span>
             </div>
@@ -258,11 +237,7 @@ const RecordingTab = (props) => {
                         justifyContent: "center",
                       }}
                     >
-                      <img
-                        src={CheckWhiteIcon}
-                        alt="Finish"
-                        style={{ width: "13px", height: "13px" }}
-                      />
+                      <CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={13} color="white" strokeWidth={3} />
                       <div
                         style={{
                           position: "absolute",

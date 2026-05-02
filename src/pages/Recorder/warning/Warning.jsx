@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 
-import { ReactSVG } from "react-svg";
+import { VolumeIcon as Audio, XIcon as Close } from "lucide-animated";
 
 import * as ToastEl from "@radix-ui/react-toast";
 
@@ -52,11 +52,7 @@ const Warning = () => {
         }}
       >
         <div className="warning-icon">
-          <ReactSVG
-            src={chrome.runtime.getURL("assets/tool-icons/audio-icon.svg")}
-            width={20}
-            height={20}
-          />
+          <Audio size={20} color="currentColor" />
         </div>
         <div className="warning-content">
           <ToastEl.Title className="warning-title">{title}</ToastEl.Title>
@@ -70,11 +66,7 @@ const Warning = () => {
             setOpen(false);
           }}
         >
-          <ReactSVG
-            src={chrome.runtime.getURL("assets/camera-icons/close.svg")}
-            width={20}
-            height={20}
-          />
+          <Close size={20} color="currentColor" />
         </ToastEl.Close>
       </ToastEl.Root>
       <ToastEl.Viewport className="WarningViewport" />

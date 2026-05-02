@@ -126,7 +126,7 @@ input {
   border-radius: 30px;
   background: $color-light-grey;
   padding: 6px;
-  font-family: $font-bold;
+  font-family: $font-medium;
   position: relative;
 }
 .TabsTrigger.tl {
@@ -139,6 +139,9 @@ input {
   padding-right: 17px;
   z-index: 2;
   position: relative;
+}
+.TabsTrigger.tl[data-state="active"] {
+  color: $color-text-secondary !important;
 }
 .TabsTrigger.tl[data-state="inactive"]:hover :before {
   content: "";

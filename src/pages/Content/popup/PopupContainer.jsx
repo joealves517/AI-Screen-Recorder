@@ -22,6 +22,8 @@ import {
   GrabIconPopup,
   HelpIconPopup,
 } from "../toolbar/components/SVG";
+import { XIcon, AirplayIcon, UserIcon } from "lucide-animated";
+import { AnimatedIcon } from "../components/AnimatedIcon";
 
 /* Component import */
 import RecordingTab from "./layout/RecordingTab";
@@ -351,7 +353,7 @@ const PopupContainer = (props) => {
                 }));
               }}
             >
-              <CloseIconPopup />
+              <AnimatedIcon animation="none"><XIcon style={{ display: "block" }} size={16} color="#4B5563" strokeWidth={2.5} /></AnimatedIcon>
             </div>
           </div>
           <div
@@ -362,12 +364,10 @@ const PopupContainer = (props) => {
               src={badge}
               crossOrigin="anonymous"
               style={{
-                width: contentState.isLoggedIn ? "100%" : "90%",
-                height: contentState.isLoggedIn ? "100%" : "90%",
+                width: "46px",
+                height: "46px",
                 borderRadius: contentState.isLoggedIn ? "50%" : "0",
-                filter: !contentState.isLoggedIn
-                  ? "drop-shadow(rgba(86, 123, 218, 0.35) 0px 4px 11px) drop-shadow(rgba(53, 87, 98, 0.2) 0px 4px 10px)"
-                  : "none",
+                filter: "none",
                 userSelect: "none",
                 pointerEvents: "none",
                 objectFit: "cover",
@@ -425,11 +425,7 @@ const PopupContainer = (props) => {
                     tabIndex={0}
                   >
                     <div className="TabsTriggerIcon">
-                      <img
-                        src={
-                          tab === "record" ? RecordTabActive : RecordTabInactive
-                        }
-                      />
+                      <AnimatedIcon animation="none"><AirplayIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color="currentColor" strokeWidth={2.5} /></AnimatedIcon>
                     </div>
                     {chrome.i18n.getMessage("recordTab")}
                   </Tabs.Trigger>
@@ -440,10 +436,7 @@ const PopupContainer = (props) => {
                     tabIndex={0}
                   >
                     <div className="TabsTriggerIcon">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={tab === "dashboard" ? "#3080F8" : "#9CA3AF"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </svg>
+                      <AnimatedIcon animation="none"><UserIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color="currentColor" strokeWidth={2.5} /></AnimatedIcon>
                     </div>
                     {chrome.i18n.getMessage("videosTab")}
                   </Tabs.Trigger>

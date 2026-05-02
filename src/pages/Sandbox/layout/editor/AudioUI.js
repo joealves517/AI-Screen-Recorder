@@ -6,10 +6,12 @@ import Dropdown from "../../components/editor/Dropdown";
 import * as Slider from "@radix-ui/react-slider";
 import Switch from "../../components/editor/Switch";
 
-// Icons
-const URL = "/assets/";
-
-import { ReactSVG } from "react-svg";
+import {
+  UploadIcon as Upload,
+  LinkIcon as Attachment,
+  XIcon as Cross,
+} from "lucide-animated";
+import { AnimatedIcon } from "../../../Content/components/AnimatedIcon";
 
 // Context
 import { ContentStateContext } from "../../context/ContentState"; // Import the ContentState context
@@ -128,7 +130,9 @@ const AudioUI = (props) => {
             className={styles.uploadArea}
             onClick={() => inputRef.current.click()}
           >
-            <ReactSVG src={URL + "editor/icons/upload.svg"} />
+            <AnimatedIcon animation="none">
+              <Upload size={24} color="currentColor" />
+            </AnimatedIcon>
             <div className={styles.uploadDetails}>
               <div className={styles.uploadText}>
                 {chrome.i18n.getMessage("sandboxAudioDragAndDrop")}
@@ -142,23 +146,29 @@ const AudioUI = (props) => {
         {audio && (
           <div className={styles.audioDetails}>
             <div className={styles.audioDetailsLeft}>
-              <ReactSVG src={URL + "editor/icons/attachment.svg"} />
+              <AnimatedIcon animation="none">
+                <Attachment size={16} color="currentColor" />
+              </AnimatedIcon>
             </div>
             <div className={styles.audioDetailsMiddle}>
               <span>{audio.name}</span>
             </div>
             <div className={styles.audioDetailsRight}>
-              <ReactSVG
-                src={URL + "editor/icons/cross.svg"}
-                onClick={() => {
+              <AnimatedIcon animation="none">
+                <Cross
+                  size={16}
+                  color="currentColor"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
                   setAudio(null);
                   setContentState((prevContentState) => ({
                     ...prevContentState,
                     blob: prevBlob.current,
                   }));
                   inputRef.current.value = null;
-                }}
-              />
+                  }}
+                />
+              </AnimatedIcon>
             </div>
           </div>
         )}

@@ -7,6 +7,8 @@ import { contentStateContext } from "../../context/ContentState";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { DropdownIcon, CheckWhiteIcon } from "../../images/popup/images";
+import { ChevronDownIcon, CheckIcon } from "lucide-animated";
+import { AnimatedIcon } from "../../components/AnimatedIcon";
 
 import {
   TempTwitter,
@@ -281,7 +283,7 @@ const VideosTab = (props) => {
             <DropdownMenu.Trigger asChild>
               <button className="TabsSort" aria-label="Sort videos">
                 <div className="TabsSortLabel">
-                  {sortLabelMap[sortBy] || "Sort"} <img src={DropdownIcon} />
+                  {sortLabelMap[sortBy] || "Sort"} <AnimatedIcon animation="none"><ChevronDownIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="#9CA3AF" strokeWidth={2} /></AnimatedIcon>
                 </div>
               </button>
             </DropdownMenu.Trigger>
@@ -309,7 +311,7 @@ const VideosTab = (props) => {
                   >
                     {chrome.i18n.getMessage("newestSortLabel")}
                     <DropdownMenu.ItemIndicator className="ItemIndicator">
-                      <img src={CheckWhiteIcon} />
+                      <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                     </DropdownMenu.ItemIndicator>
                   </DropdownMenu.RadioItem>
 
@@ -319,7 +321,7 @@ const VideosTab = (props) => {
                   >
                     {chrome.i18n.getMessage("oldestSortLabel")}
                     <DropdownMenu.ItemIndicator className="ItemIndicator">
-                      <img src={CheckWhiteIcon} />
+                      <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                     </DropdownMenu.ItemIndicator>
                   </DropdownMenu.RadioItem>
 
@@ -329,7 +331,7 @@ const VideosTab = (props) => {
                   >
                     A–Z
                     <DropdownMenu.ItemIndicator className="ItemIndicator">
-                      <img src={CheckWhiteIcon} />
+                      <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                     </DropdownMenu.ItemIndicator>
                   </DropdownMenu.RadioItem>
 
@@ -339,7 +341,7 @@ const VideosTab = (props) => {
                   >
                     Z–A
                     <DropdownMenu.ItemIndicator className="ItemIndicator">
-                      <img src={CheckWhiteIcon} />
+                      <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
                     </DropdownMenu.ItemIndicator>
                   </DropdownMenu.RadioItem>
                 </DropdownMenu.RadioGroup>
