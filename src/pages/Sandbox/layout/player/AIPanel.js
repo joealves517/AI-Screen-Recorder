@@ -875,21 +875,37 @@ const AIPanel = () => {
               <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px", fontSize: "12px", color: "#334155" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>Font Color</span>
-                  <input 
-                    type="color" 
-                    value={subFontColor} 
-                    onChange={(e) => setSubFontColor(e.target.value)}
-                    style={{ width: "30px", height: "30px", padding: 0, border: "none", borderRadius: "4px", cursor: "pointer" }}
-                  />
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {["#FFFFFF", "#000000", "#FDE047", "#EF4444", "#3B82F6", "#22C55E"].map(color => (
+                      <div
+                        key={color}
+                        onClick={() => setSubFontColor(color)}
+                        style={{
+                          width: "20px", height: "20px", borderRadius: "50%", 
+                          backgroundColor: color, cursor: "pointer",
+                          border: subFontColor === color ? "2px solid #3b82f6" : "1px solid #cbd5e1",
+                          boxShadow: subFontColor === color ? "0 0 0 2px #fff inset" : "none"
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
                   <span>Background Color</span>
-                  <input 
-                    type="color" 
-                    value={subBgColor} 
-                    onChange={(e) => setSubBgColor(e.target.value)}
-                    style={{ width: "30px", height: "30px", padding: 0, border: "none", borderRadius: "4px", cursor: "pointer" }}
-                  />
+                  <div style={{ display: "flex", gap: "6px" }}>
+                    {["#000000", "#FFFFFF", "#1E293B", "#DC2626", "#2563EB", "#16A34A"].map(color => (
+                      <div
+                        key={color}
+                        onClick={() => setSubBgColor(color)}
+                        style={{
+                          width: "20px", height: "20px", borderRadius: "50%", 
+                          backgroundColor: color, cursor: "pointer",
+                          border: subBgColor === color ? "2px solid #3b82f6" : "1px solid #cbd5e1",
+                          boxShadow: subBgColor === color ? "0 0 0 2px #fff inset" : "none"
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>Bg Opacity ({subBgOpacity}%)</span>
