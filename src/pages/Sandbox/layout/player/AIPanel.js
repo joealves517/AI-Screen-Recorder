@@ -279,6 +279,40 @@ const AIPanel = () => {
   const [subFontSize, setSubFontSize] = useState(24);
   const [subMarginBottom, setSubMarginBottom] = useState(20);
 
+  // Live preview for subtitles
+  useEffect(() => {
+    let styleEl = document.getElementById("dynamic-subtitle-styles");
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "dynamic-subtitle-styles";
+      document.head.appendChild(styleEl);
+    }
+    const hex = subBgColor.replace('#', '');
+    const r = parseInt(hex.length === 3 ? hex.slice(0, 1).repeat(2) : hex.slice(0, 2), 16);
+    const g = parseInt(hex.length === 3 ? hex.slice(1, 2).repeat(2) : hex.slice(2, 4), 16);
+    const b = parseInt(hex.length === 3 ? hex.slice(2, 3).repeat(2) : hex.slice(4, 6), 16);
+    const bgRgba = `rgba(${r}, ${g}, ${b}, ${subBgOpacity / 100})`;
+
+    styleEl.innerHTML = `
+      ::cue {
+        color: ${subFontColor} !important;
+        background-color: ${bgRgba} !important;
+        font-size: ${subFontSize}px !important;
+      }
+      .plyr__caption {
+        color: ${subFontColor} !important;
+        background-color: ${bgRgba} !important;
+        font-size: ${subFontSize}px !important;
+      }
+      .plyr__captions {
+        transform: translateY(-${subMarginBottom}px) !important;
+      }
+      video::-webkit-media-text-track-display {
+        transform: translateY(-${subMarginBottom}px) !important;
+      }
+    `;
+  }, [subFontColor, subBgColor, subBgOpacity, subFontSize, subMarginBottom]);
+
   // User tier for smart error messages
   const [userTier, setUserTier] = useState("guest"); // "guest" | "free" | "pro"
 
@@ -888,7 +922,7 @@ const AIPanel = () => {
                   />
                 </div>
                 <div style={{ marginTop: "8px", fontSize: "11px", color: "#64748b", fontStyle: "italic", lineHeight: "1.4" }}>
-                  * This styling applies to hardcoded subtitles when downloading the video. Wait for the upcoming rendering update.
+                  * The live preview is shown on the video player above. These styles will be hardcoded into the video when downloading.
                 </div>
               </div>
             )}
