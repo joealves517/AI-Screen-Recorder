@@ -18,6 +18,7 @@ import {
   SearchIcon as Search,
   CircleHelpIcon as Info,
   UserRoundCheckIcon as LogIn,
+  SettingsIcon as Settings,
   ZapIcon as Crown,
   BadgeAlertIcon as AlertTriangle
 } from "lucide-animated";
@@ -269,6 +270,14 @@ const AIPanel = () => {
   const [targetLang, setTargetLang] = useState("vi");
   const [subtitlesApplied, setSubtitlesApplied] = useState(false);
   const [translatedSegments, setTranslatedSegments] = useState(null);
+
+  // Subtitle styling
+  const [subSettingsOpen, setSubSettingsOpen] = useState(false);
+  const [subFontColor, setSubFontColor] = useState("#FFFFFF");
+  const [subBgColor, setSubBgColor] = useState("#000000");
+  const [subBgOpacity, setSubBgOpacity] = useState(70);
+  const [subFontSize, setSubFontSize] = useState(24);
+  const [subMarginBottom, setSubMarginBottom] = useState(20);
 
   // User tier for smart error messages
   const [userTier, setUserTier] = useState("guest"); // "guest" | "free" | "pro"
@@ -802,6 +811,88 @@ const AIPanel = () => {
               </AnimatedIcon> Translated subtitles applied!
             </div>
           )}
+
+          {/* Subtitle Styling Settings */}
+          <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e2e8f0" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                cursor: "pointer",
+                color: "#475569",
+                fontSize: "13px",
+                fontWeight: "500",
+              }}
+              onClick={() => setSubSettingsOpen(!subSettingsOpen)}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <AnimatedIcon animation="none">
+                  <Settings size={14} />
+                </AnimatedIcon>
+                Subtitle Styling
+              </div>
+              <AnimatedIcon animation="none">
+                {subSettingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              </AnimatedIcon>
+            </div>
+            
+            {subSettingsOpen && (
+              <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px", fontSize: "12px", color: "#334155" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Font Color</span>
+                  <input 
+                    type="color" 
+                    value={subFontColor} 
+                    onChange={(e) => setSubFontColor(e.target.value)}
+                    style={{ width: "30px", height: "30px", padding: 0, border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Background Color</span>
+                  <input 
+                    type="color" 
+                    value={subBgColor} 
+                    onChange={(e) => setSubBgColor(e.target.value)}
+                    style={{ width: "30px", height: "30px", padding: 0, border: "none", borderRadius: "4px", cursor: "pointer" }}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Bg Opacity ({subBgOpacity}%)</span>
+                  <input 
+                    type="range" 
+                    min="0" max="100" 
+                    value={subBgOpacity} 
+                    onChange={(e) => setSubBgOpacity(e.target.value)}
+                    style={{ width: "100px", cursor: "pointer" }}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Font Size ({subFontSize}px)</span>
+                  <input 
+                    type="range" 
+                    min="14" max="48" 
+                    value={subFontSize} 
+                    onChange={(e) => setSubFontSize(e.target.value)}
+                    style={{ width: "100px", cursor: "pointer" }}
+                  />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Margin Bottom ({subMarginBottom}px)</span>
+                  <input 
+                    type="range" 
+                    min="0" max="100" 
+                    value={subMarginBottom} 
+                    onChange={(e) => setSubMarginBottom(e.target.value)}
+                    style={{ width: "100px", cursor: "pointer" }}
+                  />
+                </div>
+                <div style={{ marginTop: "8px", fontSize: "11px", color: "#64748b", fontStyle: "italic", lineHeight: "1.4" }}>
+                  * This styling applies to hardcoded subtitles when downloading the video. Wait for the upcoming rendering update.
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 3. Summarize — result appears inline below */}
