@@ -12,6 +12,7 @@ import muteVideo from "./utils/muteVideo";
 import reencodeVideo from "./utils/reencodeVideo";
 import toGIF from "./utils/toGIF";
 import toWebM from "./utils/toWebM";
+import burnSubtitles from "./utils/burnSubtitles";
 
 const Sandbox = () => {
   const iframeRef = useRef(null);
@@ -231,6 +232,28 @@ const Sandbox = () => {
           type: "download-webm",
           base64,
           topLevel: true,
+        });
+      } catch (error) {
+        sendMessage({
+          type: "ffmpeg-error",
+          error: JSON.stringify(error),
+        });
+      }
+    } else if (message.type === "burn-subtitles") {
+      try {
+        const blob = await burnSubtitles(
+          ffmpegInstance.current,
+          message.blob,
+          message.assData
+        );
+        const base64 = await toBase64(blob);
+
+        sendMessage({
+          type: "download-mp4",
+          base64,
+          topLevel: true,
+          isBurned: true,
+          title: message.title,
         });
       } catch (error) {
         sendMessage({

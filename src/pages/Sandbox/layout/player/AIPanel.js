@@ -609,6 +609,85 @@ const AIPanel = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadHardcoded = async () => {
+    const segs = translatedSegments || segments;
+    if (!segs || segs.length === 0) return;
+    
+    const source = contentState.blob || contentState.webm || contentState.rawBlob;
+    if (!source) {
+      return;
+    }
+    const videoBlob = source instanceof Blob ? source : new Blob([source], { type: "video/webm" });
+
+    const formatAssTime = (ms) => {
+      const d = new Date(ms);
+      const h = Math.floor(ms / 3600000);
+      const m = d.getUTCMinutes().toString().padStart(2, "0");
+      const s = d.getUTCSeconds().toString().padStart(2, "0");
+      const cs = Math.floor(d.getUTCMilliseconds() / 10).toString().padStart(2, "0");
+      return `${h}:${m}:${s}.${cs}`;
+    };
+
+    const hexToAssColor = (hex, opacity = 100) => {
+      const cleanHex = hex.replace('#', '');
+      let r, g, b;
+      if (cleanHex.length === 3) {
+        r = cleanHex.slice(0, 1).repeat(2);
+        g = cleanHex.slice(1, 2).repeat(2);
+        b = cleanHex.slice(2, 3).repeat(2);
+      } else {
+        r = cleanHex.slice(0, 2);
+        g = cleanHex.slice(2, 4);
+        b = cleanHex.slice(4, 6);
+      }
+      const alphaVal = Math.round(255 * (1 - (opacity / 100)));
+      const a = alphaVal.toString(16).padStart(2, '0').toUpperCase();
+      r = r.toUpperCase();
+      g = g.toUpperCase();
+      b = b.toUpperCase();
+      return `&H${a}${b}${g}${r}`;
+    };
+
+    const primaryAss = hexToAssColor(subFontColor, 100);
+    const backAss = hexToAssColor(subBgColor, subBgOpacity);
+
+    // Using Satoshi-Bold for a premium look
+    let assData = `[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Satoshi,${subFontSize * 2},${primaryAss},&H000000FF,&H00000000,${backAss},-1,0,0,0,100,100,0,0,3,1,0,2,10,10,${subMarginBottom * 2},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`;
+
+    segs.forEach((seg) => {
+      const start = formatAssTime(seg.start);
+      const end = formatAssTime(seg.end);
+      const text = seg.text.replace(/\n/g, "\\N");
+      assData += `Dialogue: 0,${start},${end},Default,,0,0,0,,${text}\n`;
+    });
+
+    setContentState((prev) => ({
+      ...prev,
+      downloading: true,
+      isFfmpegRunning: true,
+      processingProgress: 0,
+    }));
+
+    const title = contentState.title || "ai-recording";
+    window.parent.postMessage({
+      type: "burn-subtitles",
+      blob: videoBlob,
+      assData,
+      title
+    }, "*");
+  };
+
   const handleSummarize = () => {
     if (locked || isProcessing || summary) return;
     setError(null);
@@ -937,7 +1016,29 @@ const AIPanel = () => {
                     style={{ width: "100px", cursor: "pointer" }}
                   />
                 </div>
-                <div style={{ marginTop: "8px", fontSize: "11px", color: "#64748b", fontStyle: "italic", lineHeight: "1.4" }}>
+                
+                {/* Burn-in Button */}
+                <button
+                  onClick={handleDownloadHardcoded}
+                  disabled={contentState.isFfmpegRunning || contentState.downloading}
+                  style={{
+                    ...applyButtonStyle(contentState.isFfmpegRunning || contentState.downloading),
+                    marginTop: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
+                    width: "100%",
+                    background: "#10b981", // distinct green color
+                  }}
+                >
+                  <AnimatedIcon animation="none">
+                    <Download size={16} />
+                  </AnimatedIcon>
+                  {contentState.isFfmpegRunning ? "Rendering Video..." : "Hardcode & Download Video"}
+                </button>
+
+                <div style={{ marginTop: "4px", fontSize: "11px", color: "#64748b", fontStyle: "italic", lineHeight: "1.4", textAlign: "center" }}>
                   * The live preview is shown on the video player above. These styles will be hardcoded into the video when downloading.
                 </div>
               </div>
