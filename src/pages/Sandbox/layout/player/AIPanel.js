@@ -851,17 +851,36 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     </div>
   );
 
-  const renderResultCard = (content, bgColor, borderColor, textColor) => {
+  const renderResultOrSkeleton = (content, taskKey) => {
+    if (activeTask === taskKey && !content) {
+      return (
+        <div
+          style={{
+            padding: "12px",
+            background: "transparent",
+            border: "1px solid transparent",
+            borderRadius: "10px",
+            marginTop: "2px",
+            marginBottom: "4px"
+          }}
+        >
+          <div style={{ height: "16px", width: "40%", borderRadius: "4px", background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)", backgroundSize: "200% 100%", animation: "aiShimmer 1.5s infinite" }} />
+          <div style={{ height: "12px", width: "100%", borderRadius: "4px", marginTop: "12px", background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)", backgroundSize: "200% 100%", animation: "aiShimmer 1.5s infinite" }} />
+          <div style={{ height: "12px", width: "90%", borderRadius: "4px", marginTop: "8px", background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)", backgroundSize: "200% 100%", animation: "aiShimmer 1.5s infinite" }} />
+          <div style={{ height: "12px", width: "70%", borderRadius: "4px", marginTop: "8px", background: "linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%)", backgroundSize: "200% 100%", animation: "aiShimmer 1.5s infinite" }} />
+        </div>
+      );
+    }
     if (!content) return null;
     return (
       <div
         style={{
           padding: "12px",
-          background: bgColor,
-          border: `1px solid ${borderColor}`,
+          background: "transparent",
+          border: "1px solid transparent",
           borderRadius: "10px",
           fontSize: "13px",
-          color: textColor,
+          color: "#334155",
           maxHeight: "160px",
           overflowY: "auto",
           marginTop: "2px",
@@ -875,6 +894,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
   return (
     <div className={styles.section}>
+      <style>{`
+        @keyframes aiShimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
       <div
         className={styles.sectionTitle}
         style={{ display: "flex", alignItems: "center", gap: "8px" }}
@@ -1175,7 +1200,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           disabled: locked || (isProcessing && activeTask !== "summarize"),
           showLockText: locked,
         })}
-        {renderResultCard(
+        {renderResultOrSkeleton(
           summary && (
             <>
               <strong>Summary:</strong>
@@ -1185,9 +1210,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               />
             </>
           ),
-          "#f0fdfa",
-          "#ccfbf1",
-          "#134e4a"
+          "summarize"
         )}
 
         {/* 4. Key Takeaways — result appears inline below */}
@@ -1206,7 +1229,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           disabled: locked || (isProcessing && activeTask !== "action-items"),
           showLockText: locked,
         })}
-        {renderResultCard(
+        {renderResultOrSkeleton(
           actionItems && (
             <>
               <strong>Key Takeaways:</strong>
@@ -1216,9 +1239,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               />
             </>
           ),
-          "#fffbeb",
-          "#fde68a",
-          "#92400e"
+          "action-items"
         )}
 
         {/* 5. Smart Title — result appears inline below */}
@@ -1237,7 +1258,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           disabled: locked || (isProcessing && activeTask !== "title"),
           showLockText: locked,
         })}
-        {renderResultCard(
+        {renderResultOrSkeleton(
           titleData && (
             <>
               <strong>Title:</strong>
@@ -1248,9 +1269,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               <p style={{ marginTop: "4px", lineHeight: "1.5" }}>{titleData.description}</p>
             </>
           ),
-          "#fdf4ff",
-          "#f5d0fe",
-          "#4a044e"
+          "title"
         )}
       </div>
     </div>
