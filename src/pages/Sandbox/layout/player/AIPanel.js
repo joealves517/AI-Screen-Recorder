@@ -1064,16 +1064,16 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             </div>
 
             {subSettingsOpen && (
-              <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px", fontSize: "12px", color: "#334155" }}>
+              <div style={{ marginTop: "12px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "#475569" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>Font Color</span>
+                  <span style={{ fontWeight: 500 }}>Font Color</span>
                   <div style={{ display: "flex", gap: "6px" }}>
                     {["#FFFFFF", "#000000", "#FDE047", "#EF4444", "#3B82F6", "#22C55E"].map(color => (
                       <div
                         key={color}
                         onClick={() => setSubFontColor(color)}
                         style={{
-                          width: "20px", height: "20px", borderRadius: "50%",
+                          width: "22px", height: "22px", transition: "all 0.2s ease", borderRadius: "50%",
                           backgroundColor: color, cursor: "pointer",
                           border: subFontColor === color ? "2px solid #3b82f6" : "1px solid #cbd5e1",
                           boxShadow: subFontColor === color ? "0 0 0 2px #fff inset" : "none"
@@ -1082,15 +1082,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     ))}
                   </div>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "4px" }}>
-                  <span>Background Color</span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontWeight: 500 }}>Background Color</span>
                   <div style={{ display: "flex", gap: "6px" }}>
                     {["#000000", "#FFFFFF", "#1E293B", "#DC2626", "#2563EB", "#16A34A"].map(color => (
                       <div
                         key={color}
                         onClick={() => setSubBgColor(color)}
                         style={{
-                          width: "20px", height: "20px", borderRadius: "50%",
+                          width: "22px", height: "22px", transition: "all 0.2s ease", borderRadius: "50%",
                           backgroundColor: color, cursor: "pointer",
                           border: subBgColor === color ? "2px solid #3b82f6" : "1px solid #cbd5e1",
                           boxShadow: subBgColor === color ? "0 0 0 2px #fff inset" : "none"
@@ -1099,34 +1099,35 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     ))}
                   </div>
                 </div>
+                <div style={{ height: "1px", background: "#e2e8f0", margin: "2px 0" }} />
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>Bg Opacity ({subBgOpacity}%)</span>
+                  <span style={{ fontWeight: 500 }}>Bg Opacity <span style={{ color: "#94a3b8", fontWeight: "normal" }}>({subBgOpacity}%)</span></span>
                   <input
                     type="range"
                     min="0" max="100"
                     value={subBgOpacity}
                     onChange={(e) => setSubBgOpacity(e.target.value)}
-                    style={{ width: "100px", cursor: "pointer" }}
+                    style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
                   />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>Font Size ({subFontSize}px)</span>
+                  <span style={{ fontWeight: 500 }}>Font Size <span style={{ color: "#94a3b8", fontWeight: "normal" }}>({subFontSize}px)</span></span>
                   <input
                     type="range"
                     min="14" max="48"
                     value={subFontSize}
                     onChange={(e) => setSubFontSize(e.target.value)}
-                    style={{ width: "100px", cursor: "pointer" }}
+                    style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
                   />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>Margin Bottom ({subMarginBottom}px)</span>
+                  <span style={{ fontWeight: 500 }}>Margin Bottom <span style={{ color: "#94a3b8", fontWeight: "normal" }}>({subMarginBottom}px)</span></span>
                   <input
                     type="range"
                     min="0" max="100"
                     value={subMarginBottom}
                     onChange={(e) => setSubMarginBottom(e.target.value)}
-                    style={{ width: "100px", cursor: "pointer" }}
+                    style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
                   />
                 </div>
 
