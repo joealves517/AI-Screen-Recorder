@@ -895,12 +895,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         {/* 1. Generate Subtitles (was "Generate Transcript") */}
         {renderButton({
           Icon: AudioLines,
-          title: segments ? "Regenerate Subtitles" : "Generate Subtitles",
+          title: segments ? "Subtitles Generated" : "Generate Subtitles",
           description:
             activeTask === "transcribe"
               ? "Gemini AI is processing..."
+              : segments
+              ? "Transcription complete."
               : "Auto-transcribe & add subtitles to video.",
-          onClick: handleTranscribe,
+          onClick: segments ? undefined : handleTranscribe,
           taskKey: "transcribe",
           disabled: isProcessing && activeTask !== "transcribe",
           showLockText: false,
@@ -1124,7 +1126,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                   <AnimatedIcon animation="none">
                     <Download size={16} />
                   </AnimatedIcon>
-                  {contentState.isFfmpegRunning ? "Rendering Video..." : "Hardcode & Download Video"}
+                  {contentState.isFfmpegRunning ? `Rendering Video (${contentState.processingProgress || 0}%)` : "Hardcode & Download Video"}
                 </button>
 
                 <div style={{ marginTop: "4px", fontSize: "11px", color: "#64748b", fontStyle: "italic", lineHeight: "1.4", textAlign: "center" }}>

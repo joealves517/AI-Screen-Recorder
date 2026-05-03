@@ -7,6 +7,7 @@ import cutVideo from "./utils/cutVideo";
 import muteVideo from "./utils/muteVideo";
 import reencodeVideo from "./utils/reencodeVideo";
 import toGIF from "./utils/toGIF";
+import burnSubtitles from "./utils/burnSubtitles";
 import getFrame from "./utils/getFrame";
 import hasAudio from "./utils/hasAudio";
 import convertMp4ToWebm from "./utils/convertMp4ToWebm";
@@ -248,6 +249,31 @@ const Sandbox = () => {
             message.time
           );
           sendMessage({ type: "new-frame", frame: blob });
+          break;
+        }
+
+        case "burn-subtitles": {
+          try {
+            const blob = await burnSubtitles(
+              ffmpegInstance.current,
+              message.blob,
+              message.assData
+            );
+            const base64 = await toBase64(blob);
+
+            sendMessage({
+              type: "download-mp4",
+              base64,
+              topLevel: true,
+              isBurned: true,
+              title: message.title,
+            });
+          } catch (error) {
+            sendMessage({
+              type: "ffmpeg-error",
+              error: JSON.stringify(error),
+            });
+          }
           break;
         }
 
