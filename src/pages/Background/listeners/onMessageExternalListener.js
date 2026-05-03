@@ -1,2 +1,15 @@
-// Cloud features removed — external messaging listener disabled.
-export const onMessageExternalListener = () => {};
+/**
+ * Cross-extension message handler.
+ * Responds to PING from sister extensions (BlackNote, Spark AI)
+ * to enable ecosystem feature detection.
+ */
+export const onMessageExternalListener = () => {
+  chrome.runtime.onMessageExternal.addListener(
+    (message, _sender, sendResponse) => {
+      if (message?.type === "PING") {
+        sendResponse({ pong: true });
+        return;
+      }
+    }
+  );
+};

@@ -42,6 +42,7 @@ app.use("/api/screenity", express.json({ limit: "50mb" }));
 app.use(express.json({ limit: "2mb" }));
 
 // ─── Rate Limiting ──────────────────────────────────────────────────
+app.use("/api/screenity/free", rateLimit);
 app.use("/api/screenity", rateLimit);
 
 // ─── Routes ─────────────────────────────────────────────────────────

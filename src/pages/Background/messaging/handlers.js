@@ -706,6 +706,26 @@ export const copyToClipboard = (text) => {
 // Initialize message router and register all handlers
 export const setupHandlers = () => {
   registerProxyStorageHandlers();
+
+  // Cross-extension relay: forward messages from extension pages to external extensions
+  registerMessage("RELAY_EXTERNAL", async (message) => {
+    const { targetExtensionId, payload } = message;
+    if (!targetExtensionId || !payload) {
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(targetExtensionId, payload, (response) => {
+        if (chrome.runtime.lastError) {
+          console.warn("[AISR][Ecosystem] External relay failed:", chrome.runtime.lastError.message);
+          resolve(null);
+          return;
+        }
+        resolve(response || null);
+      });
+    });
+  });
+
   registerMessage("desktop-capture", async (message, sender) => {
     const now = Date.now();
     if (desktopCaptureInFlight || now - lastDesktopCaptureAt < 1200) {

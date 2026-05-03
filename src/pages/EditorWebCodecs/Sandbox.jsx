@@ -251,6 +251,19 @@ const Sandbox = () => {
           break;
         }
 
+        case "set-saved-state": {
+          if (!message.saved) {
+            window.onbeforeunload = function (e) {
+              e.preventDefault();
+              e.returnValue = "";
+              return "";
+            };
+          } else {
+            window.onbeforeunload = null;
+          }
+          break;
+        }
+
         case "has-audio": {
           const audio = await hasAudio(ffmpegInstance.current, message.video);
           sendMessage({ type: "updated-has-audio", hasAudio: audio });
@@ -476,6 +489,43 @@ const Sandbox = () => {
             sendMessage({ type: "ai-translate-result", translatedSegments });
           } catch (err) {
             sendMessage({ type: "ai-translate-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ecosystem-relay": {
+          // Relay cross-extension messages from the sandboxed AIPanel
+          // Route through background service worker for reliable external messaging
+          const { targetExtensionIds, payload, fallbackUrl } = message;
+          if (targetExtensionIds && targetExtensionIds.length > 0 && payload) {
+            const ids = targetExtensionIds;
+            let currentIndex = 0;
+
+            const tryNextId = () => {
+              if (currentIndex >= ids.length) {
+                if (fallbackUrl) {
+                  chrome.tabs.create({ url: fallbackUrl });
+                }
+                return;
+              }
+
+              const currentId = ids[currentIndex];
+              try {
+                chrome.runtime.sendMessage(currentId, payload, (response) => {
+                  if (chrome.runtime.lastError || !response) {
+                    currentIndex++;
+                    tryNextId();
+                  } else {
+                    sendMessage({ type: "ecosystem-relay-response", response });
+                  }
+                });
+              } catch {
+                currentIndex++;
+                tryNextId();
+              }
+            };
+            
+            tryNextId();
           }
           break;
         }

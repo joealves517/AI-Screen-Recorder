@@ -30,7 +30,7 @@ const freeAI = new GoogleGenAI({
 });
 
 const PREMIUM_MODEL = "gemini-2.5-flash";
-const FREE_MODEL = "gemini-flash-lite-latest";
+const FREE_MODEL = "gemini-2.5-flash-lite";
 
 /** Pick the correct AI client and model based on whether credits are available */
 function pickAIClient(hasPremiumCredits: boolean) {

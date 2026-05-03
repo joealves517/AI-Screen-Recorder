@@ -20,8 +20,96 @@ import {
   UserRoundCheckIcon as LogIn,
   SettingsIcon as Settings,
   ZapIcon as Crown,
-  BadgeAlertIcon as AlertTriangle
+  BadgeAlertIcon as AlertTriangle,
+  MessageCircleIcon as MessageCircle,
+  BookmarkIcon as Bookmark
 } from "lucide-animated";
+
+import blackNoteIconUrl from "../../../../assets/blacknote-icon.png";
+import sparkAiIconUrl from "../../../../assets/spark-ai-icon.svg";
+
+const BlackNoteIcon = ({ size = 20 }) => <img src={blackNoteIconUrl} width={size} height={size} alt="BlackNote" style={{ objectFit: 'contain' }} />;
+const SparkAIIcon = ({ size = 20 }) => <img src={sparkAiIconUrl} width={size} height={size} alt="Spark AI" style={{ objectFit: 'contain' }} />;
+
+// ─── Cross-Extension Ecosystem ──────────────────────────────────────
+const ECOSYSTEM = {
+  BLACKNOTE: {
+    ids: ["cgmimbllhpkfcegecbdhldfmlfbfdhfg", "kifnbpilpjgdkjbpcejligaglcjdkjjb"],
+    name: "BlackNote",
+    storeUrl: "https://chromewebstore.google.com/detail/blacknote/cgmimbllhpkfcegecbdhldfmlfbfdhfg",
+  },
+  SPARK_AI: {
+    ids: ["jaddgjjhbekcjdpmoglkeakpihbmgiah", "cainihlnefiebaigcjiniandhodkajaj"],
+    name: "Spark AI",
+    storeUrl: "https://chromewebstore.google.com/detail/spark-ai/jaddgjjhbekcjdpmoglkeakpihbmgiah",
+  },
+};
+
+/**
+ * Relay a cross-extension message through the parent frame → background script.
+ * The sandbox iframe has no chrome API access, so all ecosystem
+ * communication must go through postMessage.
+ */
+const relayEcosystemMessage = (targetExtensionIds, message, fallbackUrl) => {
+  window.parent.postMessage(
+    { type: "ecosystem-relay", targetExtensionIds, payload: message, fallbackUrl },
+    "*"
+  );
+};
+
+const sendToBlackNote = (title, content) => {
+  relayEcosystemMessage(
+    ECOSYSTEM.BLACKNOTE.ids,
+    { type: "INSERT_TO_BLACKNOTE", payload: { title, content } },
+    ECOSYSTEM.BLACKNOTE.storeUrl
+  );
+};
+
+const openSparkAI = (segments, title) => {
+  const formatTime = (seconds) => {
+    const pad = (num) => Math.floor(num).toString().padStart(2, "0");
+    const m = seconds / 60;
+    const s = seconds % 60;
+    return `${pad(m)}:${pad(s)}`;
+  };
+  const content = segments.map(seg => `[${formatTime(seg.start)}] ${seg.text}`).join("\n");
+
+  relayEcosystemMessage(
+    ECOSYSTEM.SPARK_AI.ids,
+    { 
+      type: "SET_EXTERNAL_CONTEXT", 
+      payload: { 
+        appName: "AI Screen Recorder",
+        appIcon: "video",
+        title: title || "Screen Recording",
+        description: "Video Transcript",
+        content: content
+      } 
+    },
+    ECOSYSTEM.SPARK_AI.storeUrl
+  );
+};
+
+/** Branded chip showing extension name */
+const ExtensionChip = ({ name, color = "#6366f1" }) => (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "4px",
+      padding: "2px 8px 2px 6px",
+      borderRadius: "20px",
+      fontSize: "10px",
+      fontWeight: "600",
+      color: color,
+      background: `${color}14`,
+      border: `1px solid ${color}30`,
+      whiteSpace: "nowrap",
+    }}
+  >
+    {name}
+  </span>
+);
 
 // --- Inline style constants ---
 const statusStyle = {
@@ -120,7 +208,7 @@ const LanguageSelect = ({ value, onChange, disabled, options, groups }) => {
 
   const filteredGroups = groups.map(group => ({
     label: group.label,
-    languages: group.languages.filter(code => 
+    languages: group.languages.filter(code =>
       (options[code] || code).toLowerCase().includes(search.toLowerCase())
     )
   })).filter(group => group.languages.length > 0);
@@ -380,11 +468,11 @@ const AIPanel = () => {
     const vttContent = formatToVTT(segs);
     const blob = new Blob([vttContent], { type: "text/vtt" });
     const url = URL.createObjectURL(blob);
-    
+
     setContentState((prev) => {
       const existingTracks = prev.subtitleTracks || [];
       const filtered = existingTracks.filter(t => t.srclang !== langCode);
-      
+
       const langLabel = allLanguages[langCode] || langCode;
       const newTrack = {
         kind: "captions",
@@ -393,7 +481,7 @@ const AIPanel = () => {
         src: url,
         default: !isOriginal, // Auto-switch to translation
       };
-      
+
       const updatedTracks = filtered.map(t => ({ ...t, default: false }));
       updatedTracks.push(newTrack);
 
@@ -612,7 +700,7 @@ const AIPanel = () => {
   const handleDownloadHardcoded = async () => {
     const segs = translatedSegments || segments;
     if (!segs || segs.length === 0) return;
-    
+
     const source = contentState.blob || contentState.webm || contentState.rawBlob;
     if (!source) {
       return;
@@ -949,7 +1037,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 {subSettingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
               </AnimatedIcon>
             </div>
-            
+
             {subSettingsOpen && (
               <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px", fontSize: "12px", color: "#334155" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -960,7 +1048,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         key={color}
                         onClick={() => setSubFontColor(color)}
                         style={{
-                          width: "20px", height: "20px", borderRadius: "50%", 
+                          width: "20px", height: "20px", borderRadius: "50%",
                           backgroundColor: color, cursor: "pointer",
                           border: subFontColor === color ? "2px solid #3b82f6" : "1px solid #cbd5e1",
                           boxShadow: subFontColor === color ? "0 0 0 2px #fff inset" : "none"
@@ -977,7 +1065,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         key={color}
                         onClick={() => setSubBgColor(color)}
                         style={{
-                          width: "20px", height: "20px", borderRadius: "50%", 
+                          width: "20px", height: "20px", borderRadius: "50%",
                           backgroundColor: color, cursor: "pointer",
                           border: subBgColor === color ? "2px solid #3b82f6" : "1px solid #cbd5e1",
                           boxShadow: subBgColor === color ? "0 0 0 2px #fff inset" : "none"
@@ -988,35 +1076,35 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>Bg Opacity ({subBgOpacity}%)</span>
-                  <input 
-                    type="range" 
-                    min="0" max="100" 
-                    value={subBgOpacity} 
+                  <input
+                    type="range"
+                    min="0" max="100"
+                    value={subBgOpacity}
                     onChange={(e) => setSubBgOpacity(e.target.value)}
                     style={{ width: "100px", cursor: "pointer" }}
                   />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>Font Size ({subFontSize}px)</span>
-                  <input 
-                    type="range" 
-                    min="14" max="48" 
-                    value={subFontSize} 
+                  <input
+                    type="range"
+                    min="14" max="48"
+                    value={subFontSize}
                     onChange={(e) => setSubFontSize(e.target.value)}
                     style={{ width: "100px", cursor: "pointer" }}
                   />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>Margin Bottom ({subMarginBottom}px)</span>
-                  <input 
-                    type="range" 
-                    min="0" max="100" 
-                    value={subMarginBottom} 
+                  <input
+                    type="range"
+                    min="0" max="100"
+                    value={subMarginBottom}
                     onChange={(e) => setSubMarginBottom(e.target.value)}
                     style={{ width: "100px", cursor: "pointer" }}
                   />
                 </div>
-                
+
                 {/* Burn-in Button */}
                 <button
                   onClick={handleDownloadHardcoded}
@@ -1029,6 +1117,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     justifyContent: "center",
                     gap: "6px",
                     width: "100%",
+                    boxSizing: "border-box",
                     background: "#10b981", // distinct green color
                   }}
                 >
@@ -1046,25 +1135,49 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           </div>
         </div>
 
+        {/* ─── Chat with Video (Spark AI) ─── */}
+        {segments && transcript && (
+          <div
+            role="button"
+            className={styles.button}
+            onClick={() => openSparkAI(segments, contentState.title)}
+            style={{ cursor: "pointer", transition: "opacity 0.2s ease" }}
+          >
+            <div className={styles.buttonLeft}>
+              <AnimatedIcon animation="none">
+                <SparkAIIcon size={20} />
+              </AnimatedIcon>
+            </div>
+            <div className={styles.buttonMiddle}>
+              <div className={styles.buttonTitle}>Chat with Video</div>
+              <div className={styles.buttonDescription} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                Ask AI anything about this recording
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 3. Summarize — result appears inline below */}
         {renderButton({
-          Icon: FileText,
-          title: summary ? "Summary Generated" : "Summarize Video",
+          Icon: summary ? BlackNoteIcon : FileText,
+          title: summary ? "Save Summary" : "Summarize Video",
           description: summary
-            ? "Summary is ready."
+            ? "Save to BlackNote"
             : activeTask === "summarize"
-            ? "Reading transcript..."
-            : "Get a quick summary of the video.",
-          onClick: handleSummarize,
+              ? "Reading transcript..."
+              : "Get a quick summary of the video.",
+          onClick: summary
+            ? () => sendToBlackNote("Video Summary", summary)
+            : handleSummarize,
           taskKey: "summarize",
-          disabled: locked || !!summary,
+          disabled: locked || (isProcessing && activeTask !== "summarize"),
           showLockText: locked,
         })}
         {renderResultCard(
           summary && (
             <>
               <strong>Summary:</strong>
-              <div 
+              <div
                 style={{ marginTop: "4px", lineHeight: "1.5" }}
                 dangerouslySetInnerHTML={{ __html: marked.parse(summary) }}
               />
@@ -1077,23 +1190,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         {/* 4. Key Takeaways — result appears inline below */}
         {renderButton({
-          Icon: ListChecks,
-          title: actionItems ? "Key Takeaways Generated" : "Key Takeaways",
+          Icon: actionItems ? BlackNoteIcon : ListChecks,
+          title: actionItems ? "Save Takeaways" : "Key Takeaways",
           description: actionItems
-            ? "Takeaways are ready."
+            ? "Save to BlackNote"
             : activeTask === "action-items"
-            ? "Analyzing transcript..."
-            : "Extract bullet points & to-dos.",
-          onClick: handleActionItems,
+              ? "Analyzing transcript..."
+              : "Extract bullet points & to-dos.",
+          onClick: actionItems
+            ? () => sendToBlackNote("Video Key Takeaways", actionItems)
+            : handleActionItems,
           taskKey: "action-items",
-          disabled: locked || !!actionItems,
+          disabled: locked || (isProcessing && activeTask !== "action-items"),
           showLockText: locked,
         })}
         {renderResultCard(
           actionItems && (
             <>
               <strong>Key Takeaways:</strong>
-              <div 
+              <div
                 style={{ marginTop: "4px", lineHeight: "1.5" }}
                 dangerouslySetInnerHTML={{ __html: marked.parse(actionItems) }}
               />
@@ -1106,16 +1221,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         {/* 5. Smart Title — result appears inline below */}
         {renderButton({
-          Icon: TextSelect,
-          title: titleData ? "Title Generated" : "Smart Title & Details",
+          Icon: titleData ? BlackNoteIcon : TextSelect,
+          title: titleData ? "Save Title" : "Smart Title & Details",
           description: titleData
-            ? "Title is ready."
+            ? "Save to BlackNote"
             : activeTask === "title"
-            ? "Crafting metadata..."
-            : "Generate YouTube-ready title.",
-          onClick: handleGenerateTitle,
+              ? "Crafting metadata..."
+              : "Generate YouTube-ready title.",
+          onClick: titleData
+            ? () => sendToBlackNote(titleData.title, `**${titleData.title}**\n\n${titleData.description}`)
+            : handleGenerateTitle,
           taskKey: "title",
-          disabled: locked || !!titleData,
+          disabled: locked || (isProcessing && activeTask !== "title"),
           showLockText: locked,
         })}
         {renderResultCard(

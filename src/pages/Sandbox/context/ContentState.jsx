@@ -505,14 +505,10 @@ const ContentState = (props) => {
     loadInitialTitle();
   }, []);
 
-  // Show a popup when attempting to close the tab if the user has not downloaded their video
   useEffect(() => {
-    if (!contentState.saved) {
-      window.onbeforeunload = function () {
-        return true;
-      };
-    } else {
-      window.onbeforeunload = null;
+    // Notify parent frame so it can set its own beforeunload (avoids sandbox gesture warning)
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: "set-saved-state", saved: contentState.saved }, "*");
     }
   }, [contentState.saved]);
 

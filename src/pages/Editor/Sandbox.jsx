@@ -261,6 +261,16 @@ const Sandbox = () => {
           error: JSON.stringify(error),
         });
       }
+    } else if (message.type === "set-saved-state") {
+      if (!message.saved) {
+        window.onbeforeunload = function (e) {
+          e.preventDefault();
+          e.returnValue = "";
+          return "";
+        };
+      } else {
+        window.onbeforeunload = null;
+      }
     }
   };
 

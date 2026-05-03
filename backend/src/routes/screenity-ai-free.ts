@@ -14,7 +14,7 @@ const ai = new GoogleGenAI({
   apiKey: "AIzaSyB9Idi7DYIkSWnl1urpImbCIhNMztPVFSU",
 });
 
-const MODEL = "gemini-flash-lite-latest";
+const MODEL = "gemini-2.5-flash-lite";
 
 // ─── Transcribe ─────────────────────────────────────────────────────
 
