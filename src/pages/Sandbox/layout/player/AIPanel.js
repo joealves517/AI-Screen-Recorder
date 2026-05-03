@@ -875,14 +875,12 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     return (
       <div
         style={{
-          padding: "12px",
-          background: "transparent",
-          border: "1px solid transparent",
+          padding: "16px",
+          background: "linear-gradient(135deg, #f8fafc 0%, rgba(248, 250, 252, 0) 100%)",
+          border: "1px solid #e2e8f0",
           borderRadius: "10px",
           fontSize: "13px",
           color: "#334155",
-          maxHeight: "160px",
-          overflowY: "auto",
           marginTop: "2px",
           marginBottom: "4px",
         }}
