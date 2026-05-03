@@ -19,7 +19,7 @@ router.get(
       email: authReq.userEmail,
       displayName: authReq.userName,
       picture: authReq.userPicture,
-    });
+    }, "AI Screen Recorder");
 
     res.json({
       userId: authReq.userId,

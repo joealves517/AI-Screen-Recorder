@@ -1,4 +1,4 @@
-const burnSubtitles = async (ffmpeg, videoBlob, assData) => {
+const burnSubtitles = async (ffmpeg, videoBlob, assData, onProgress) => {
   // Read video into memory
   const videoBuffer = await window.fetch(window.URL.createObjectURL(videoBlob)).then((res) => res.arrayBuffer());
   ffmpeg.FS("writeFile", "input.webm", new Uint8Array(videoBuffer));
@@ -16,6 +16,13 @@ const burnSubtitles = async (ffmpeg, videoBlob, assData) => {
     ffmpeg.FS("writeFile", "/fonts/Satoshi-Bold.ttf", new Uint8Array(fontBuffer));
   } catch (err) {
     console.error("Could not load font", err);
+  }
+
+  // Set progress callback if provided
+  if (onProgress && ffmpeg.setProgress) {
+    ffmpeg.setProgress(({ ratio }) => {
+      onProgress(Math.max(0, Math.min(100, Math.round(ratio * 100))));
+    });
   }
 
   // Run FFmpeg

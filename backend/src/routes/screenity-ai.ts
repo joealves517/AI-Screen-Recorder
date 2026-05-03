@@ -65,7 +65,7 @@ router.post(
       email: authReq.userEmail,
       displayName: authReq.userName,
       picture: authReq.userPicture,
-    });
+    }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
     const { client, model } = pickAIClient(usePremium);
@@ -151,7 +151,7 @@ router.post(
       email: authReq.userEmail,
       displayName: authReq.userName,
       picture: authReq.userPicture,
-    });
+    }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
     const { client, model } = pickAIClient(usePremium);
@@ -213,7 +213,7 @@ router.post(
       email: authReq.userEmail,
       displayName: authReq.userName,
       picture: authReq.userPicture,
-    });
+    }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
     const { client, model } = pickAIClient(usePremium);
@@ -304,7 +304,7 @@ router.post(
       email: authReq.userEmail,
       displayName: authReq.userName,
       picture: authReq.userPicture,
-    });
+    }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
     const { client, model } = pickAIClient(usePremium);

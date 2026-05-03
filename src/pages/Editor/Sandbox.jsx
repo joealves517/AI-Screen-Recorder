@@ -51,7 +51,7 @@ const Sandbox = () => {
     } catch (error) {
       sendMessage({
         type: "ffmpeg-load-error",
-        error: JSON.stringify(error),
+        error: error instanceof Error ? error.message : JSON.stringify(error),
         fallback: false,
       });
     }
@@ -104,7 +104,7 @@ const Sandbox = () => {
         const base64 = await toBase64(blob);
         sendMessage({ type: "updated-blob", base64: base64, topLevel: true });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "base64-to-blob") {
       try {
@@ -141,7 +141,7 @@ const Sandbox = () => {
         sendMessage({ type: "updated-blob", base64: base64, topLevel: true });
         //sendMessage({ type: "crop-update" });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "cut-video") {
       try {
@@ -161,7 +161,7 @@ const Sandbox = () => {
           addToHistory: true,
         });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "get-frame") {
       try {
@@ -172,7 +172,7 @@ const Sandbox = () => {
         );
         sendMessage({ type: "new-frame", frame: blob });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "has-audio") {
       try {
@@ -197,7 +197,7 @@ const Sandbox = () => {
           addToHistory: true,
         });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "reencode-video") {
       try {
@@ -209,7 +209,7 @@ const Sandbox = () => {
         const base64 = await toBase64(blob);
         sendMessage({ type: "updated-blob", base64: base64, topLevel: true });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "to-gif") {
       try {
@@ -217,7 +217,7 @@ const Sandbox = () => {
         const base64 = await toBase64(blob);
         sendMessage({ type: "download-gif", base64: base64 });
       } catch (error) {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error) });
+        sendMessage({ type: "ffmpeg-error", error: error instanceof Error ? error.message : JSON.stringify(error) });
       }
     } else if (message.type === "to-webm") {
       try {
@@ -236,7 +236,7 @@ const Sandbox = () => {
       } catch (error) {
         sendMessage({
           type: "ffmpeg-error",
-          error: JSON.stringify(error),
+          error: error instanceof Error ? error.message : JSON.stringify(error),
         });
       }
     } else if (message.type === "burn-subtitles") {
@@ -258,7 +258,7 @@ const Sandbox = () => {
       } catch (error) {
         sendMessage({
           type: "ffmpeg-error",
-          error: JSON.stringify(error),
+          error: error instanceof Error ? error.message : JSON.stringify(error),
         });
       }
     } else if (message.type === "set-saved-state") {

@@ -404,8 +404,21 @@ const AIPanel = () => {
   // User tier for smart error messages
   const [userTier, setUserTier] = useState("guest"); // "guest" | "free" | "pro"
 
+  const [isWebCodecs, setIsWebCodecs] = useState(false);
+
   const locked = !segments;
   const allLanguages = getSupportedLanguages();
+
+  useEffect(() => {
+    try {
+      if (window.parent !== window && window.parent.location.pathname.includes("editorwebcodecs")) {
+        setIsWebCodecs(true);
+      }
+    } catch (e) {
+      // Cross-origin access blocked implies it might be sandboxed (Editor mode)
+      setIsWebCodecs(false);
+    }
+  }, []);
 
   // Detect user tier on mount
   useEffect(() => {
@@ -593,14 +606,6 @@ const AIPanel = () => {
               Sign in to enjoy a better and more stable AI experience.
             </div>
           </div>
-          <button
-            onClick={() => chrome.runtime.sendMessage({ type: "handle-login" })}
-            style={ctaButtonStyle("#3b82f6")}
-          >
-            <AnimatedIcon animation="none">
-              <LogIn size={12} />
-            </AnimatedIcon> Sign in
-          </button>
         </div>
       );
     }
@@ -619,14 +624,6 @@ const AIPanel = () => {
               Upgrade to Pro for priority processing and higher limits.
             </div>
           </div>
-          <button
-            onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" })}
-            style={ctaButtonStyle("#f59e0b")}
-          >
-            <AnimatedIcon animation="none">
-              <Crown size={12} />
-            </AnimatedIcon> Upgrade
-          </button>
         </div>
       );
     }
@@ -707,12 +704,13 @@ const AIPanel = () => {
     }
     const videoBlob = source instanceof Blob ? source : new Blob([source], { type: "video/webm" });
 
-    const formatAssTime = (ms) => {
-      const d = new Date(ms);
+    const formatAssTime = (timeValue) => {
+      const val = parseFloat(timeValue) || 0;
+      const ms = Math.floor(val * 1000);
       const h = Math.floor(ms / 3600000);
-      const m = d.getUTCMinutes().toString().padStart(2, "0");
-      const s = d.getUTCSeconds().toString().padStart(2, "0");
-      const cs = Math.floor(d.getUTCMilliseconds() / 10).toString().padStart(2, "0");
+      const m = Math.floor((ms % 3600000) / 60000).toString().padStart(2, "0");
+      const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, "0");
+      const cs = Math.floor((ms % 1000) / 10).toString().padStart(2, "0");
       return `${h}:${m}:${s}.${cs}`;
     };
 
@@ -754,9 +752,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 `;
 
     segs.forEach((seg) => {
-      const start = formatAssTime(seg.start);
-      const end = formatAssTime(seg.end);
-      const text = seg.text.replace(/\n/g, "\\N");
+      const startVal = parseFloat(seg.start) || 0;
+      let endVal = seg.end !== undefined ? parseFloat(seg.end) : startVal + (parseFloat(seg.duration) || 2);
+      
+      // Prevent zero-duration failures which crash FFmpeg ASS filter
+      if (endVal <= startVal) {
+        endVal = startVal + 1.0;
+      }
+      
+      const start = formatAssTime(startVal);
+      const end = formatAssTime(endVal);
+      const text = (seg.text || "").replace(/\n/g, "\\N");
       assData += `Dialogue: 0,${start},${end},Default,,0,0,0,,${text}\n`;
     });
 
@@ -1038,33 +1044,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             </div>
           )}
 
-          {/* Subtitle Styling Settings */}
-          <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #e2e8f0" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                color: "#475569",
-                fontSize: "13px",
-                fontWeight: "500",
-              }}
-              onClick={() => setSubSettingsOpen(!subSettingsOpen)}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {/* Subtitles & Styling - Hide Hardcode options in WebCodecs mode */}
+          <div style={{ marginTop: "16px", borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
+            
+            {!isWebCodecs && (
+              <div
+                onClick={() => setSubSettingsOpen(!subSettingsOpen)}
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+              >
+                <div style={{ fontSize: "13px", fontWeight: "600", color: "#475569", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Settings size={14} /> Subtitle Styling
+                </div>
                 <AnimatedIcon animation="none">
-                  <Settings size={14} />
+                  <ChevronDown size={16} color="#64748b" style={{ transform: subSettingsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
                 </AnimatedIcon>
-                Subtitle Styling
               </div>
-              <AnimatedIcon animation="none">
-                {subSettingsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              </AnimatedIcon>
-            </div>
+            )}
 
-            {subSettingsOpen && (
-              <div style={{ marginTop: "12px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "#475569" }}>
+            {subSettingsOpen && !isWebCodecs && (
+              <div style={{ marginTop: "16px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "#475569" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontWeight: 500 }}>Font Color</span>
                   <div style={{ display: "flex", gap: "6px" }}>
@@ -1130,30 +1128,30 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
                   />
                 </div>
+              </div>
+            )}
 
-                {/* Burn-in Button */}
+            {!isWebCodecs && (
+              <div style={{ marginTop: "16px" }}>
                 <button
                   onClick={handleDownloadHardcoded}
-                  disabled={contentState.isFfmpegRunning || contentState.downloading}
+                  disabled={locked || isProcessing || contentState.downloading}
                   style={{
-                    ...applyButtonStyle(contentState.isFfmpegRunning || contentState.downloading),
-                    marginTop: "8px",
+                    ...applyButtonStyle(locked || isProcessing || contentState.downloading),
+                    width: "100%",
+                    background: "#10b981",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "6px",
-                    width: "100%",
-                    boxSizing: "border-box",
-                    background: "#10b981", // distinct green color
+                    gap: "8px",
                   }}
                 >
                   <AnimatedIcon animation="none">
-                    <Download size={16} />
+                    <Download size={14} />
                   </AnimatedIcon>
-                  {contentState.isFfmpegRunning ? `Rendering Video (${contentState.processingProgress || 0}%)` : "Hardcode & Download Video"}
+                  {contentState.downloading ? "Hardcoding..." : "Hardcode & Download Video"}
                 </button>
-
-                <div style={{ marginTop: "4px", fontSize: "11px", color: "#64748b", fontStyle: "italic", lineHeight: "1.4", textAlign: "center" }}>
+                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "8px", textAlign: "center", fontStyle: "italic", padding: "0 10px" }}>
                   * The live preview is shown on the video player above. These styles will be hardcoded into the video when downloading.
                 </div>
               </div>

@@ -79,7 +79,7 @@ const Sandbox = () => {
     } catch (error) {
       sendMessage({
         type: "ffmpeg-load-error",
-        error: JSON.stringify(error),
+        error: error instanceof Error ? error.message : JSON.stringify(error),
         fallback: true,
       });
     }
@@ -257,7 +257,8 @@ const Sandbox = () => {
             const blob = await burnSubtitles(
               ffmpegInstance.current,
               message.blob,
-              message.assData
+              message.assData,
+              (progress) => sendMessage({ type: "ffmpeg-progress", progress })
             );
             const base64 = await toBase64(blob);
 
@@ -271,7 +272,7 @@ const Sandbox = () => {
           } catch (error) {
             sendMessage({
               type: "ffmpeg-error",
-              error: JSON.stringify(error),
+              error: error instanceof Error ? error.message : JSON.stringify(error),
             });
           }
           break;
@@ -564,7 +565,7 @@ const Sandbox = () => {
       if (errMsg.includes("too long")) {
         sendMessage({ type: "edit-too-long", _opId: message._opId });
       } else {
-        sendMessage({ type: "ffmpeg-error", error: JSON.stringify(error), _opId: message._opId });
+        sendMessage({ type: "ffmpeg-error", error: errMsg, _opId: message._opId });
       }
     }
   };

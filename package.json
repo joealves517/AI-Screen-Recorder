@@ -1,6 +1,6 @@
 {
   "name": "ai-screen-recorder",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "A powerful screen recorder with AI-powered features. Capture, annotate, and edit videos effortlessly.",
   "scripts": {
     "build": "cross-env NODE_ENV=development node utils/build.js",
