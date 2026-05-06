@@ -14,6 +14,7 @@ export interface UserDocument {
         status: string | null;
         currentPeriodEnd: Date | null;
     };
+    apps?: string[];
     createdAt: Date;
     updatedAt: Date;
 }
@@ -23,6 +24,9 @@ export interface UsageLog {
     creditsUsed: number;
     model: string;
     timestamp: Date;
+    inputTokens?: number;
+    outputTokens?: number;
+    [key: string]: unknown;
 }
 export declare function getUserByEmail(email: string): Promise<{
     id: string;
@@ -32,7 +36,7 @@ export declare function createOrUpdateUser(userId: string, profile: {
     email: string;
     displayName: string;
     picture: string;
-}): Promise<UserDocument & {
+}, appName?: string): Promise<UserDocument & {
     id: string;
 }>;
 /**

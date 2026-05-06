@@ -15,15 +15,21 @@ export async function getUserByEmail(email) {
     const doc = snapshot.docs[0];
     return { id: doc.id, data: doc.data() };
 }
-export async function createOrUpdateUser(userId, profile) {
+export async function createOrUpdateUser(userId, profile, appName) {
     const existing = await getUserByEmail(profile.email);
     if (existing) {
-        await usersRef.doc(existing.id).update({
+        const updateData = {
             displayName: profile.displayName,
             picture: profile.picture,
             updatedAt: FieldValue.serverTimestamp(),
-        });
-        return { ...existing.data, ...profile, id: existing.id };
+        };
+        if (appName) {
+            updateData.apps = FieldValue.arrayUnion(appName);
+        }
+        await usersRef.doc(existing.id).update(updateData);
+        const existingApps = existing.data.apps || [];
+        const newApps = appName && !existingApps.includes(appName) ? [...existingApps, appName] : existingApps;
+        return { ...existing.data, ...profile, apps: newApps, id: existing.id };
     }
     const newUser = {
         email: profile.email,
@@ -39,6 +45,7 @@ export async function createOrUpdateUser(userId, profile) {
             status: null,
             currentPeriodEnd: null,
         },
+        apps: appName ? [appName] : [],
         createdAt: new Date(),
         updatedAt: new Date(),
     };

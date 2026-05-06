@@ -72,7 +72,7 @@ import { supportContextQuery } from "../../utils/buildSupportContext";
 
 const API_BASE = process.env.AISR_API_BASE_URL;
 const APP_BASE = process.env.AISR_APP_BASE;
-const CLOUD_FEATURES_ENABLED = false; // Cloud features removed
+const CLOUD_FEATURES_ENABLED = process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 // Debug toggle for post-stop/chunk flow
 const DEBUG_POSTSTOP = false;
 const STOP_RECORDING_TAB_DEBOUNCE_MS = 1200;
@@ -1373,27 +1373,25 @@ export const setupHandlers = () => {
   );
   registerMessage("handle-login", async () => {
     if (!CLOUD_FEATURES_ENABLED) {
-      console.warn("Cloud features disabled, cannot handle login");
       return;
     }
-    // User is explicitly initiating login — clear the stay-logged-out flag.
     await chrome.storage.local.set({ stayLoggedOut: false });
 
-    // Remember the active tab before OAuth popup opens
     const originTab = await getCurrentTab();
+
+    if (originTab?.id) {
+      await chrome.storage.local.set({ originalTabId: originTab.id });
+    }
 
     try {
       const result = await supabaseGoogleLogin();
 
       if (result.success && originTab?.id) {
-        // Refocus the original tab (in case user landed on playground.html)
         try { chrome.tabs.update(originTab.id, { active: true }); } catch {}
-
-        // Notify the content script to refresh auth state and reopen popup
         sendMessageTab(originTab.id, { type: "check-auth" }).catch(() => {});
       }
-    } catch (err) {
-      console.error("[Auth] Supabase login failed:", err.message);
+    } catch {
+      await chrome.storage.local.remove("originalTabId");
     }
   });
   registerMessage("handle-logout", async (message, sender, sendResponse) => {
@@ -2022,25 +2020,31 @@ export const setupHandlers = () => {
   });
   registerMessage("handle-reactivate", async () => {
     if (!CLOUD_FEATURES_ENABLED) {
-      console.warn("Cloud features disabled");
       return;
     }
 
-    chrome.tabs.create({
-      url: `${process.env.AISR_APP_BASE}/reactivate`,
-      active: true,
-    });
+    const CHECKOUT_URL = "https://graphosai.lemonsqueezy.com/checkout/buy/2a8c453e-7b12-4743-bf50-8571c9cfae30";
+    const { aisrUser } = await chrome.storage.local.get("aisrUser");
+    const url = aisrUser?.email
+      ? `${CHECKOUT_URL}?checkout[email]=${encodeURIComponent(aisrUser.email)}`
+      : CHECKOUT_URL;
+
+    chrome.tabs.create({ url, active: true });
   });
   registerMessage("handle-upgrade", async () => {
     if (!CLOUD_FEATURES_ENABLED) {
-      console.warn("Cloud features disabled");
       return;
     }
 
-    chrome.tabs.create({
-      url: `${process.env.AISR_APP_BASE}/upgrade`,
-      active: true,
-    });
+    const CHECKOUT_URL = "https://graphosai.lemonsqueezy.com/checkout/buy/2a8c453e-7b12-4743-bf50-8571c9cfae30";
+
+    // Pre-fill email so Lemon Squeezy links the subscription to the user
+    const { aisrUser } = await chrome.storage.local.get("aisrUser");
+    const url = aisrUser?.email
+      ? `${CHECKOUT_URL}?checkout[email]=${encodeURIComponent(aisrUser.email)}`
+      : CHECKOUT_URL;
+
+    chrome.tabs.create({ url, active: true });
   });
   registerMessage("open-account-settings", async () => {
     if (!CLOUD_FEATURES_ENABLED) {

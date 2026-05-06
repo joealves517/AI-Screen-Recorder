@@ -1,34 +1,39 @@
+import { Conversion, Input, BlobSource, Output, BufferTarget, WebMOutputFormat, ALL_FORMATS, AudioSample } from "mediabunny";
+
 async function muteVideo(ffmpeg, videoBlob, start, end) {
   try {
-    const videoData = new Uint8Array(await videoBlob.arrayBuffer());
+    const target = new BufferTarget();
 
-    // Set the input video file name
-    ffmpeg.FS("writeFile", "input.mp4", videoData);
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(videoBlob),
+      }),
+      output: new Output({
+        target,
+        format: new WebMOutputFormat(),
+      }),
+      audio: {
+        forceTranscode: true,
+        process: (sample) => {
+          const t = sample.timestamp;
+          if (t >= start && t <= end) {
+            // Replace with silence by zeroing the AudioBuffer
+            const buffer = sample.toAudioBuffer();
+            for (let i = 0; i < buffer.numberOfChannels; i++) {
+              buffer.getChannelData(i).fill(0);
+            }
+            // fromAudioBuffer returns AudioSample[] — Conversion.process accepts arrays
+            return AudioSample.fromAudioBuffer(buffer, t);
+          }
+          return sample;
+        }
+      }
+    });
 
-    // Set the output video file name
-    const outputFileName = "output.mp4";
+    await conversion.execute();
 
-    // Mute the audio in the specified time range
-    await ffmpeg.run(
-      "-i",
-      "input.mp4",
-      "-af",
-      `volume='if(between(t,${start},${end}),0,1)':eval=frame`,
-      "-c:v",
-      "copy",
-      "-c:a",
-      "aac",
-      outputFileName
-    );
-
-    // Get the edited video data
-    const data = ffmpeg.FS("readFile", outputFileName);
-
-    // Create a Blob from the edited video data
-    const editedVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-    // Return the edited video Blob
-    return editedVideoBlob;
+    return new Blob([target.buffer], { type: "video/webm" });
   } catch (error) {
     console.error("Error muting video:", error);
     return null;

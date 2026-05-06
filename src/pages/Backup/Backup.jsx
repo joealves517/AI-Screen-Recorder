@@ -360,13 +360,7 @@ const Backup = () => {
             <div className="setupDescription">
               {chrome.i18n.getMessage("backupsDescription1")}
               <br />
-              {chrome.i18n.getMessage("backupsDescription2")}{" "}
-              <a
-                href=""
-                target="_blank"
-              >
-                {chrome.i18n.getMessage("learnMoreDot")}
-              </a>
+              {chrome.i18n.getMessage("backupsDescription2")}
             </div>
             <div className="setupActions">
               <button
@@ -427,13 +421,7 @@ const Backup = () => {
               {chrome.i18n.getMessage("backupsConfirmTitle")}
             </div>
             <div className="subtitle">
-              {chrome.i18n.getMessage("backupsConfirmDescription")}{" "}
-              <a
-                href=""
-                target="_blank"
-              >
-                {chrome.i18n.getMessage("learnMoreDot")}
-              </a>
+              {chrome.i18n.getMessage("backupsConfirmDescription")}
             </div>
 
             <div

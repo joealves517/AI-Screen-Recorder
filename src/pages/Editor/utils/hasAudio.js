@@ -1,4 +1,4 @@
-const hasAudio = async (videoBlob) => {
+const hasAudio = async (ffmpeg, videoBlob) => {
   const videoElement = document.createElement("video");
   videoElement.src = URL.createObjectURL(videoBlob);
 

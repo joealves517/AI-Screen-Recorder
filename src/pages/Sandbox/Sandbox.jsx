@@ -30,12 +30,18 @@ const Sandbox = () => {
     const chromeVersion = getChromeVersion();
 
     if (chromeVersion && chromeVersion > MIN_CHROME_VERSION) {
-      contentState.loadFFmpeg();
+      // FFmpeg has been replaced by WebCodecs, so we just mark it as "loaded"
+      setContentState((prevState) => ({
+        ...prevState,
+        ffmpeg: true,
+        ffmpegLoaded: true,
+      }));
     } else {
       setContentState((prevState) => ({
         ...prevState,
         updateChrome: true,
         ffmpeg: true,
+        ffmpegLoaded: true,
       }));
     }
   }, []);

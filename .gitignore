@@ -9,7 +9,6 @@ node_modules/
 .env
 .env.local
 .env.development
-.env.production
 .env.*.local
 build/
 docs/

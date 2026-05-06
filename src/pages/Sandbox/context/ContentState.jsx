@@ -163,6 +163,8 @@ const ContentState = (props) => {
     redoHistory: [],
     undoDisabled: true,
     redoDisabled: true,
+    isHardcodeEnabled: false,
+    subtitleAssData: null,
     duration: 0,
     mode: "player",
     ffmpegLoaded: false,
@@ -983,10 +985,8 @@ const ContentState = (props) => {
             () => {},
             () => {},
             null,
-            chrome.i18n.getMessage("learnMoreDot"),
-            () => {
-              chrome.runtime.sendMessage({ type: "memory-limit-help" });
-            },
+            null,
+            null,
             false, // colorSafe
             chrome.i18n.getMessage("getHelpButton"),
             () => {
@@ -1550,6 +1550,10 @@ const ContentState = (props) => {
 
       clearEditOp();
 
+      if (event.data.edited !== false) {
+        chrome.storage.local.remove(["aiCache"]).catch(() => {});
+      }
+
       setContentState((prev) => {
         const wasFirstReady = !prev.mp4ready && isTopLevel;
         if (wasFirstReady) {
@@ -1569,6 +1573,16 @@ const ContentState = (props) => {
           processingProgress: 0,
           editErrorType: null,
           hasTempChanges: !isTopLevel,
+
+          ...(event.data.edited !== false ? {
+            transcript: null,
+            summary: null,
+            actionItems: null,
+            titleData: null,
+            segments: null,
+            subtitleTracks: null,
+            subtitleVtt: null,
+          } : {}),
 
           ...(prev.fromCropper && { mode: "player", fromCropper: false }),
           ...(prev.fromAudio && { mode: "player", fromAudio: false }),
@@ -2193,6 +2207,21 @@ const ContentState = (props) => {
       isFfmpegRunning: true,
       processingProgress: 0,
     }));
+
+    if (contentState.isHardcodeEnabled && contentState.subtitleAssData) {
+      const source = contentState.blob || contentState.webm || contentState.rawBlob;
+      if (!source) return;
+      const videoBlob = source instanceof Blob ? source : new Blob([source], { type: "video/webm" });
+      const title = contentState.title || "ai-recording";
+
+      window.parent.postMessage({
+        type: "burn-subtitles",
+        blob: videoBlob,
+        assData: contentState.subtitleAssData,
+        title
+      }, "*");
+      return;
+    }
 
     try {
       // Re-mux fragmented MP4 → standard MP4 for universal compatibility.

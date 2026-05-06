@@ -21,60 +21,17 @@ const Sandbox = () => {
   const ffmpegInstance = useRef(null);
 
   const sendMessage = (message) => {
-    iframeRef.current.contentWindow.postMessage(message, "*");
-  };
-
-  const loadFfmpeg = async () => {
-    if (!scriptLoaded.current) return;
-    if (!triggerLoad.current) return;
-    if (ffmpegInstance.current) return;
-
-    try {
-      const { createFFmpeg } = FFmpeg;
-      // Initialize ffmpeg.js
-      ffmpegInstance.current = createFFmpeg({
-        log: false,
-        progress: (params) => {
-          // Send progress updates to parent window
-          if (params.ratio && params.ratio >= 0) {
-            const percentage = Math.min(Math.round(params.ratio * 100), 100);
-            sendMessage({
-              type: "ffmpeg-progress",
-              progress: percentage,
-            });
-          }
-        },
-        corePath: "assets/vendor/ffmpeg-core.js",
-      });
-      await ffmpegInstance.current.load();
-      sendMessage({ type: "ffmpeg-loaded" });
-    } catch (error) {
-      sendMessage({
-        type: "ffmpeg-load-error",
-        error: error instanceof Error ? error.message : JSON.stringify(error),
-        fallback: false,
-      });
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(message, "*");
     }
   };
 
-  useEffect(() => {
-    const script = document.createElement("script");
+  const loadFfmpeg = async () => {
+    // FFmpeg is no longer needed — signal "loaded" immediately
+    // but only when the iframe is actually ready to receive messages
+    sendMessage({ type: "ffmpeg-loaded" });
+  };
 
-    script.src = "assets/vendor/ffmpeg.min.js";
-    script.async = true;
-
-    // On load, set scriptLoaded to true
-    script.onload = () => {
-      scriptLoaded.current = true;
-      loadFfmpeg();
-    };
-
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   const toBase64 = (blob) => {
     return new Promise((resolve, reject) => {

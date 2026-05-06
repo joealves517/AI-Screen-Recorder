@@ -1,4 +1,4 @@
-async function blobToArrayBuffer(blob) {
+async function blobToArrayBuffer(ffmpeg, blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {

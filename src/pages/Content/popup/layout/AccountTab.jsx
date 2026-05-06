@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+import { motion } from "framer-motion";
 import { contentStateContext } from "../../context/ContentState";
 
 /**
@@ -13,7 +14,7 @@ const GoogleLogo = () => (
   </svg>
 );
 
-import { MicIcon, FileTextIcon, SparklesIcon, LanguagesIcon, ZapIcon, CircleCheckIcon, LogoutIcon } from "lucide-animated";
+import { MicIcon, FileTextIcon, SparklesIcon, LanguagesIcon, ZapIcon, CircleCheckIcon, LogoutIcon, LoaderPinwheelIcon } from "lucide-animated";
 import { AnimatedIcon } from "../../components/AnimatedIcon";
 
 const GeminiIcon = ({ size = 40 }) => {
@@ -77,98 +78,119 @@ const AIFeatureItem = ({ icon, title, description, available }) => (
 );
 
 // ─── Guest View (Not logged in) ─────────────────────────────────────
-const GuestView = () => (
-  <div style={{ padding: "16px" }}>
-    {/* Hero */}
-    <div style={{
-      textAlign: "center",
-      padding: "10px 16px 20px",
-    }}>
+const GuestView = () => {
+  const [isLoggingIn, setIsLoggingIn] = React.useState(false);
+
+  const handleLoginClick = () => {
+    setIsLoggingIn(true);
+    chrome.runtime.sendMessage({ type: "handle-login" }).catch(() => {});
+    // Reset after 10s in case the auth window is closed without completing
+    setTimeout(() => setIsLoggingIn(false), 10000);
+  };
+
+  return (
+    <div style={{ padding: "16px" }}>
+      {/* Hero */}
       <div style={{
-        margin: "0 auto 14px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        textAlign: "center",
+        padding: "4px 16px 12px",
       }}>
-        <GeminiIcon size={40} />
+        <div style={{
+          margin: "0 auto 10px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <GeminiIcon size={36} />
+        </div>
+        <h3 style={{
+          fontSize: "16px",
+          fontWeight: "600",
+          color: "#374151",
+          margin: "0 0 4px",
+          letterSpacing: "-0.01em",
+        }}>AI-Powered Recording</h3>
       </div>
-      <h3 style={{
-        fontSize: "17px",
-        fontWeight: "600",
-        color: "#374151",
-        margin: "0 0 6px",
-        letterSpacing: "-0.01em",
-      }}>AI-Powered Recording</h3>
-    </div>
 
-    {/* AI Features — each with a distinct Lucide icon */}
-    <div style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "2px",
-      marginBottom: "18px",
-    }}>
-      <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
-        title="Smart Transcription"
-        description="Auto-transcribe recordings with AI"
-        available={true}
-      />
-      <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
-        title="AI Summarization"
-        description="Get key points from long videos"
-        available={true}
-      />
-      <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
-        title="Smart Titles"
-        description="Auto-generate titles & descriptions"
-        available={true}
-      />
-      <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
-        title="Translation"
-        description="Multi-language subtitle support"
-        available={true}
-      />
-    </div>
-
-    {/* Login CTA */}
-    <button
-      onClick={() => chrome.runtime.sendMessage({ type: "handle-login" })}
-      style={{
-        width: "100%",
-        height: "44px",
-        background: "#F3F4F6",
-        color: "#374151",
-        border: "1px solid #E5E7EB",
-        borderRadius: "12px",
-        fontSize: "14px",
-        fontWeight: "600",
-        cursor: "pointer",
+      <div style={{
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "8px",
-        transition: "all 0.2s ease",
-      }}
-    >
-      <GoogleLogo />
-      Sign in with Google
-    </button>
+        flexDirection: "column",
+        gap: "2px",
+        marginBottom: "14px",
+      }}>
+        <AIFeatureItem
+          icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          title="Smart Transcription"
+          description="Auto-transcribe recordings with AI"
+          available={true}
+        />
+        <AIFeatureItem
+          icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          title="AI Summarization"
+          description="Get key points from long videos"
+          available={true}
+        />
+        <AIFeatureItem
+          icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          title="Smart Titles"
+          description="Auto-generate titles & descriptions"
+          available={true}
+        />
+        <AIFeatureItem
+          icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          title="Translation"
+          description="Multi-language subtitle support"
+          available={true}
+        />
+      </div>
 
-    <p style={{
-      fontSize: "11px",
-      color: "#9CA3AF",
-      textAlign: "center",
-      margin: "10px 0 0",
-      lineHeight: "1.4",
-    }}>
-      Free features available without sign-in
-    </p>
-  </div>
-);
+      {/* Login CTA */}
+      <button
+        onClick={handleLoginClick}
+        disabled={isLoggingIn}
+        style={{
+          width: "100%",
+          height: "44px",
+          background: "#F3F4F6",
+          color: isLoggingIn ? "#9CA3AF" : "#374151",
+          border: "1px solid #E5E7EB",
+          borderRadius: "99px",
+          fontSize: "14px",
+          fontWeight: "600",
+          cursor: isLoggingIn ? "default" : "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          transition: "all 0.2s ease",
+        }}
+      >
+        {isLoggingIn ? (
+          <motion.span
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 0 }}
+          >
+            <LoaderPinwheelIcon size={18} color="#9CA3AF" strokeWidth={2} style={{ display: "flex" }} />
+          </motion.span>
+        ) : (
+          <GoogleLogo />
+        )}
+        {isLoggingIn ? "Signing in..." : "Sign in with Google"}
+      </button>
+
+      <p style={{
+        fontSize: "11px",
+        color: "#9CA3AF",
+        textAlign: "center",
+        margin: "10px 0 0",
+        lineHeight: "1.4",
+      }}>
+        Free features available without sign-in
+      </p>
+    </div>
+  );
+};
 
 // ─── Logged-In View ──────────────────────────────────────────────────
 const LoggedInView = ({ user, isPro, onLogout }) => (
@@ -222,18 +244,14 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
       <div style={{
         display: "flex",
         alignItems: "center",
-        gap: "4px",
         padding: "4px 10px",
         borderRadius: "99px",
-        background: isPro
-          ? "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)"
-          : "linear-gradient(135deg, #EBF4FF 0%, #DBEAFE 100%)",
+        background: "#F3F4F6",
         fontSize: "11px",
         fontWeight: "700",
-        color: isPro ? "#92400E" : "#1D4ED8",
+        color: "#6B7280",
         letterSpacing: "0.02em",
       }}>
-        {isPro ? <AnimatedIcon animation="none"><ZapIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={12} strokeWidth={2} /></AnimatedIcon> : null}
         {isPro ? "PRO" : "FREE"}
       </div>
     </div>
@@ -254,27 +272,27 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
         padding: "0 4px 4px",
       }}>AI Features</div>
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Transcription"
-        description={isPro ? "Vertex AI — high accuracy" : "Gemini Flash Lite"}
+        description={isPro ? "Vertex AI — high accuracy" : "Limited usage"}
         available={true}
       />
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="AI Summarization"
-        description={isPro ? "Advanced analysis" : "Basic summarization"}
+        description={isPro ? "Advanced analysis" : "Limited usage"}
         available={true}
       />
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Titles"
-        description={isPro ? "Premium quality" : "Auto-generated"}
+        description={isPro ? "Premium quality" : "Limited usage"}
         available={true}
       />
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={20} color="#4B5563" strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Translation"
-        description={isPro ? "Unlimited" : "Coming soon"}
+        description={isPro ? "Unlimited" : "Limited usage"}
         available={true}
       />
     </div>
@@ -283,7 +301,7 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
     {!isPro && (
       <button
         onClick={() => {
-          chrome.runtime.sendMessage({ type: "handle-upgrade" });
+          chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {});
         }}
         style={{
           width: "100%",
@@ -345,7 +363,7 @@ const AccountTab = () => {
   const user = contentState.aisrUser;
 
   const handleLogout = () => {
-    chrome.runtime.sendMessage({ type: "handle-logout" });
+    chrome.runtime.sendMessage({ type: "handle-logout" }).catch(() => {});
     setContentState((prev) => ({
       ...prev,
       isLoggedIn: false,

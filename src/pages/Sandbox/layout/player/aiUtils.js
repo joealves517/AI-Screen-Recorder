@@ -1,7 +1,7 @@
 export const LANGUAGE_GROUPS = [
   {
     label: "Popular",
-    languages: ["en", "es", "fr", "de", "vi", "ja", "ko", "zh"],
+    languages: ["original", "en", "es", "fr", "de", "vi", "ja", "ko", "zh"],
   },
   {
     label: "All Languages",
@@ -14,6 +14,7 @@ export const LANGUAGE_GROUPS = [
 
 export const getSupportedLanguages = () => {
   return {
+    original: "Original",
     en: "English",
     es: "Spanish",
     fr: "French",
@@ -60,8 +61,15 @@ function formatTimestamp(seconds) {
 export const formatToVTT = (segments) => {
   let vtt = "WEBVTT\n\n";
   segments.forEach((seg, i) => {
+    const startVal = parseFloat(seg.start) || 0;
+    let endVal = seg.end !== undefined ? parseFloat(seg.end) : startVal + (parseFloat(seg.duration) || 2);
+    
+    if (endVal <= startVal) {
+      endVal = startVal + 1.0;
+    }
+
     vtt += `${i + 1}\n`;
-    vtt += `${formatTimestamp(seg.start)} --> ${formatTimestamp(seg.end)}\n`;
+    vtt += `${formatTimestamp(startVal)} --> ${formatTimestamp(endVal)}\n`;
     vtt += `${seg.text}\n\n`;
   });
   return vtt;
@@ -70,8 +78,15 @@ export const formatToVTT = (segments) => {
 export const formatToSRT = (segments) => {
   let srt = "";
   segments.forEach((seg, i) => {
-    const start = formatTimestamp(seg.start).replace(".", ",");
-    const end = formatTimestamp(seg.end).replace(".", ",");
+    const startVal = parseFloat(seg.start) || 0;
+    let endVal = seg.end !== undefined ? parseFloat(seg.end) : startVal + (parseFloat(seg.duration) || 2);
+    
+    if (endVal <= startVal) {
+      endVal = startVal + 1.0;
+    }
+
+    const start = formatTimestamp(startVal).replace(".", ",");
+    const end = formatTimestamp(endVal).replace(".", ",");
     srt += `${i + 1}\n${start} --> ${end}\n${seg.text}\n\n`;
   });
   return srt;

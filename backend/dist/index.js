@@ -12,11 +12,17 @@ const app = express();
 app.use(helmet());
 app.use(cors({
     origin: [
-        // BlackNote Chrome extension (Web Store)
+        // Spark AI Chrome extension
+        "chrome-extension://jaddgjjhbekcjdpmoglkeakpihbmgiah",
+        // BlackNote Chrome extension
         "chrome-extension://cgmimbllhpkfcegecbdhldfmlfbfdhfg",
-        // BlackNote Chrome extension (development)
+        // AI Screen Recorder Chrome extension
+        "chrome-extension://imhihgooenkgfnmklplobjmnglalaomm",
+        // Dev / old
+        "chrome-extension://jpmmjclfhdbkdhmjibgjheeagobhafmd",
         "chrome-extension://kifnbpilpjgdkjbpcejligaglcjdkjjb",
-        // Screenity Chrome extension (allow all origins during dev)
+        "chrome-extension://hmpblhofhafggbbnihgfmdjecedleiai",
+        // Allow any chrome extension during development
         /^chrome-extension:\/\/.+$/,
     ],
     methods: ["GET", "POST", "OPTIONS"],
@@ -31,6 +37,7 @@ app.use("/api/webhook/ls", express.raw({ type: "application/json" }), webhookRou
 app.use("/api/screenity", express.json({ limit: "50mb" }));
 app.use(express.json({ limit: "2mb" }));
 // ─── Rate Limiting ──────────────────────────────────────────────────
+app.use("/api/screenity/free", rateLimit);
 app.use("/api/screenity", rateLimit);
 // ─── Routes ─────────────────────────────────────────────────────────
 app.use("/api/screenity/free", screenityAiFreeRouter);

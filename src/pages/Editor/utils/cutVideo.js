@@ -1,142 +1,59 @@
+import { Conversion, Input, BlobSource, Output, BufferTarget, WebMOutputFormat, ALL_FORMATS } from "mediabunny";
+
 async function cutVideo(ffmpeg, videoBlob, start, end, cut, duration, encode) {
-  const videoData = new Uint8Array(await videoBlob.arrayBuffer());
+  try {
+    const target = new BufferTarget();
+    
+    // For trim mode, mediabunny has built-in `trim` config
+    const trimConfig = !cut ? { start, end } : undefined;
 
-  // Set the input video file name
-  ffmpeg.FS("writeFile", "input.mp4", videoData);
+    // For cut mode (remove middle section), we manually drop frames and adjust timestamps
+    const cutAmount = end - start;
 
-  // Set the output video file name
-  const outputFileName = cut ? "output-cut.mp4" : "output-trimmed.mp4";
-  let encodeOptions = [
-    "-c:v",
-    "copy",
-    "-c:a",
-    "copy",
-    "-reset_timestamps",
-    "1",
-  ];
-  if (encode) {
-    encodeOptions = [
-      "-preset",
-      "superfast",
-      "-threads",
-      "0",
-      "-r",
-      "30",
-      "-tune",
-      "fastdecode",
-    ];
-  }
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(videoBlob),
+      }),
+      output: new Output({
+        target,
+        format: new WebMOutputFormat(),
+      }),
+      trim: trimConfig,
+      video: {
+        forceTranscode: encode || cut, // Need transcode if we manually modify timestamps (cut mode)
+        process: cut ? (sample) => {
+          const t = sample.timestamp;
+          if (t >= start && t < end) {
+            return null; // Drop frame in cut region
+          }
+          if (t >= end) {
+            sample.setTimestamp(t - cutAmount);
+          }
+          return sample;
+        } : undefined,
+      },
+      audio: {
+        forceTranscode: encode || cut,
+        process: cut ? (sample) => {
+          const t = sample.timestamp;
+          if (t >= start && t < end) {
+            return null; // Drop sample in cut region
+          }
+          if (t >= end) {
+            sample.setTimestamp(t - cutAmount);
+          }
+          return sample;
+        } : undefined,
+      }
+    });
 
-  if (cut) {
-    if (start > 0 && end < duration) {
-      await ffmpeg.run(
-        "-ss",
-        "0",
-        "-i",
-        "input.mp4",
-        "-to",
-        start.toString(),
-        ...encodeOptions,
-        "part1.mp4"
-      );
+    await conversion.execute();
 
-      // Then, cut the video from the end time to the end
-      await ffmpeg.run(
-        "-ss",
-        end.toString(),
-        "-i",
-        "input.mp4",
-        "-to",
-        duration.toString(),
-        ...encodeOptions,
-        "part2.mp4"
-      );
-
-      // Create a text file with the list of input videos
-      ffmpeg.FS("writeFile", "input.txt", "file 'part1.mp4'\nfile 'part2.mp4'");
-
-      // Concatenate the two remaining parts
-      await ffmpeg.run(
-        "-f",
-        "concat",
-        "-safe",
-        "0",
-        "-i",
-        "input.txt",
-        "-c",
-        "copy",
-        outputFileName
-      );
-
-      // Get the edited video data
-      const data = ffmpeg.FS("readFile", outputFileName);
-
-      // Create a Blob from the edited video data
-      const editedVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-      // Return the edited video Blob
-      return editedVideoBlob;
-    } else if (start == 0 && end < duration) {
-      await ffmpeg.run(
-        "-ss",
-        end.toString(),
-        "-i",
-        "input.mp4",
-        "-to",
-        duration.toString(),
-        ...encodeOptions,
-        outputFileName
-      );
-
-      // Get the edited video data
-      const data = ffmpeg.FS("readFile", outputFileName);
-
-      // Create a Blob from the edited video data
-      const editedVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-      // Return the edited video Blob
-      return editedVideoBlob;
-    } else if (start > 0 && end == duration) {
-      await ffmpeg.run(
-        "-ss",
-        "0",
-        "-i",
-        "input.mp4",
-        "-to",
-        start.toString(),
-        ...encodeOptions,
-        outputFileName
-      );
-
-      // Get the edited video data
-      const data = ffmpeg.FS("readFile", outputFileName);
-
-      // Create a Blob from the edited video data
-      const editedVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-      // Return the edited video Blob
-      return editedVideoBlob;
-    }
-  } else {
-    await ffmpeg.run(
-      "-ss",
-      start.toString(),
-      "-i",
-      "input.mp4",
-      "-t",
-      (end - start).toString(),
-      ...encodeOptions,
-      outputFileName
-    );
-
-    // Get the edited video data
-    const data = ffmpeg.FS("readFile", outputFileName);
-
-    // Create a Blob from the edited video data
-    const editedVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-    // Return the edited video Blob
-    return editedVideoBlob;
+    return new Blob([target.buffer], { type: "video/webm" });
+  } catch (error) {
+    console.error("Error cutting/trimming video:", error);
+    return null;
   }
 }
 

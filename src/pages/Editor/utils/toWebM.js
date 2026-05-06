@@ -1,27 +1,33 @@
+import { Conversion, Input, BlobSource, Output, BufferTarget, WebMOutputFormat, ALL_FORMATS } from "mediabunny";
+
 async function toWebM(ffmpeg, blob) {
-  const inputData = new Uint8Array(await blob.arrayBuffer());
-  ffmpeg.FS("writeFile", "input.mp4", inputData);
+  try {
+    const target = new BufferTarget();
+    
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(blob),
+      }),
+      output: new Output({
+        target,
+        format: new WebMOutputFormat(),
+      }),
+      video: {
+        forceTranscode: true, // Transcode to VP8/VP9 for WebM compatibility
+      },
+      audio: {
+        forceTranscode: true, // Transcode to Opus/Vorbis
+      }
+    });
 
-  const output = "output.webm";
+    await conversion.execute();
 
-  await ffmpeg.run(
-    "-i",
-    "input.mp4",
-    "-c:v",
-    "libvpx", // VP8 (much faster)
-    "-b:v",
-    "2M", // higher bitrate = fewer CPU cycles
-    "-crf",
-    "10", // low compression work
-    "-speed",
-    "8", // EXTREMELY important for WASM
-    "-threads",
-    "0",
-    "-auto-alt-ref",
-    "0", // turn off slow filtering
-    output
-  );
-
-  const data = ffmpeg.FS("readFile", output);
-  return new Blob([data.buffer], { type: "video/webm" });
+    return new Blob([target.buffer], { type: "video/webm" });
+  } catch (error) {
+    console.error("Error converting to WebM:", error);
+    return null;
+  }
 }
+
+export default toWebM;

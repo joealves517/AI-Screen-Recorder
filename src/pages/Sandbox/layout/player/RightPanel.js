@@ -668,7 +668,7 @@ const RightPanel = () => {
               {chrome.i18n.getMessage("sandboxExportTitle")}
             </div>
             <div className={styles.buttonWrap}>
-              {contentState.fallback && (
+              {contentState.fallback && !contentState.isHardcodeEnabled && (
                 <div
                   role="button"
                   className={styles.button}
@@ -744,7 +744,7 @@ const RightPanel = () => {
                       : mp4ShowNotAvailable
                       ? getNotAvailableLabel()
                       : contentState.mp4ready && !contentState.isFfmpegRunning
-                      ? chrome.i18n.getMessage("downloadMP4ButtonDescription")
+                      ? (contentState.isHardcodeEnabled ? "Export an .mp4 video with hardcoded subtitles" : chrome.i18n.getMessage("downloadMP4ButtonDescription"))
                       : getPreparingLabel()}
                   </div>
                 </div>
@@ -756,12 +756,12 @@ const RightPanel = () => {
               </div>
                 );
               })()}
-              {!contentState.fallback && (
+              {!contentState.fallback && !contentState.isHardcodeEnabled && (
                 <div
                   role="button"
                   className={styles.button}
                   onClick={() => contentState.downloadWEBM()}
-                  disabled={contentState.isFfmpegRunning}
+                  disabled={contentState.isFfmpegRunning || contentState.isHardcodeEnabled}
                 >
                   <div className={styles.buttonLeft}>
                     <AnimatedIcon animation="none">
@@ -776,9 +776,7 @@ const RightPanel = () => {
                     </div>
                     <div className={styles.buttonDescription}>
                       {!contentState.isFfmpegRunning
-                        ? chrome.i18n.getMessage(
-                            "downloadWEBMButtonDescription"
-                          )
+                        ? (contentState.isHardcodeEnabled ? "Not available when hardcoding subtitles" : chrome.i18n.getMessage("downloadWEBMButtonDescription"))
                         : getPreparingLabel()}
                     </div>
                   </div>
@@ -789,6 +787,7 @@ const RightPanel = () => {
                   </div>
                 </div>
               )}
+              {!contentState.isHardcodeEnabled && (
               <div
                 role="button"
                 className={styles.button}
@@ -800,7 +799,8 @@ const RightPanel = () => {
                   contentState.isFfmpegRunning ||
                   contentState.duration > 30 ||
                   !contentState.mp4ready ||
-                  contentState.noffmpeg
+                  contentState.noffmpeg ||
+                  contentState.isHardcodeEnabled
                 }
               >
                 <div className={styles.buttonLeft}>
@@ -823,7 +823,7 @@ const RightPanel = () => {
                           !contentState.override)
                       ? getNotAvailableLabel()
                       : contentState.mp4ready
-                      ? chrome.i18n.getMessage("downloadGIFButtonDescription")
+                      ? (contentState.isHardcodeEnabled ? "Not available when hardcoding subtitles" : chrome.i18n.getMessage("downloadGIFButtonDescription"))
                       : getPreparingLabel()}
                   </div>
                 </div>
@@ -833,6 +833,7 @@ const RightPanel = () => {
     </AnimatedIcon>
                 </div>
               </div>
+              )}
             </div>
           </div>
 

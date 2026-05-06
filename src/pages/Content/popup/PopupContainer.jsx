@@ -212,73 +212,9 @@ const PopupContainer = (props) => {
     pillRef.current,
   ]);
 
-  useEffect(() => {
-    const isPro = Boolean(contentState.isLoggedIn && contentState.isSubscribed);
-    if (!isCloudBuild || !isPro) return;
-    runProPopupOnboardingIfNeeded({
-      rootContext: props.shadowRef?.current?.shadowRoot || document,
-      isPro,
-      isLoggedIn: Boolean(contentState.isLoggedIn),
-      popupOpen: Boolean(contentState.showPopup && contentState.showExtension),
-      cameraEnabled: Boolean(contentState.cameraActive),
-      pendingRecording: Boolean(contentState.pendingRecording),
-      preparingRecording: Boolean(contentState.preparingRecording),
-      recording: Boolean(contentState.recording),
-      countdownActive: Boolean(contentState.countdownActive),
-      isCountdownVisible: Boolean(contentState.isCountdownVisible),
-    });
-  }, [
-    isCloudBuild,
-    contentState.isLoggedIn,
-    contentState.isSubscribed,
-    contentState.showPopup,
-    contentState.showExtension,
-    contentState.recordingToScene,
-    contentState.cameraActive,
-    contentState.pendingRecording,
-    contentState.preparingRecording,
-    contentState.recording,
-    contentState.countdownActive,
-    contentState.isCountdownVisible,
-    props.shadowRef,
-  ]);
-
-  useEffect(() => {
-    const isPro = Boolean(contentState.isLoggedIn && contentState.isSubscribed);
-    const cameraEnabled = Boolean(contentState.cameraActive);
-    if (wasCameraActiveRef.current === null) {
-      wasCameraActiveRef.current = cameraEnabled;
-      return;
-    }
-    const becameEnabled = cameraEnabled && !wasCameraActiveRef.current;
-    wasCameraActiveRef.current = cameraEnabled;
-    if (!becameEnabled || !isCloudBuild || !isPro) return;
-    runProCameraOnboardingIfNeeded({
-      rootContext: props.shadowRef?.current?.shadowRoot || document,
-      isPro,
-      isLoggedIn: Boolean(contentState.isLoggedIn),
-      popupOpen: Boolean(contentState.showPopup && contentState.showExtension),
-      cameraEnabled,
-      pendingRecording: Boolean(contentState.pendingRecording),
-      preparingRecording: Boolean(contentState.preparingRecording),
-      recording: Boolean(contentState.recording),
-      countdownActive: Boolean(contentState.countdownActive),
-      isCountdownVisible: Boolean(contentState.isCountdownVisible),
-    });
-  }, [
-    isCloudBuild,
-    contentState.cameraActive,
-    contentState.isLoggedIn,
-    contentState.isSubscribed,
-    contentState.showPopup,
-    contentState.showExtension,
-    contentState.pendingRecording,
-    contentState.preparingRecording,
-    contentState.recording,
-    contentState.countdownActive,
-    contentState.isCountdownVisible,
-    props.shadowRef,
-  ]);
+  // Pro onboarding from legacy extension — disabled
+  // useEffect(() => { ... runProPopupOnboardingIfNeeded ... }, []);
+  // useEffect(() => { ... runProCameraOnboardingIfNeeded ... }, []);
 
   return (
     <div

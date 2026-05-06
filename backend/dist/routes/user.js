@@ -13,7 +13,7 @@ router.get("/", requireAuth, async (req, res) => {
         email: authReq.userEmail,
         displayName: authReq.userName,
         picture: authReq.userPicture,
-    });
+    }, "AI Screen Recorder");
     res.json({
         userId: authReq.userId,
         email: user.email,

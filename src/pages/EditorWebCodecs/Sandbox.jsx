@@ -477,6 +477,66 @@ const Sandbox = () => {
           break;
         }
 
+        case "ai-chapters": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/summarize`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ transcript: message.transcript, style: "chapters" }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const { summary } = await response.json();
+            sendMessage({ type: "ai-chapters-result", summary });
+          } catch (err) {
+            sendMessage({ type: "ai-chapters-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-social": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/summarize`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ transcript: message.transcript, style: "social" }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const { summary } = await response.json();
+            sendMessage({ type: "ai-social-result", summary });
+          } catch (err) {
+            sendMessage({ type: "ai-social-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-quiz": {
+          try {
+            const { endpoint, headers } = await getCloudRunConfig();
+            const response = await fetch(`${endpoint}/summarize`, {
+              method: "POST",
+              headers,
+              body: JSON.stringify({ transcript: message.transcript, style: "quiz" }),
+            });
+            if (!response.ok) {
+              const err = await response.json().catch(() => ({}));
+              throw new Error(err.error || `API ${response.status}`);
+            }
+            const { summary } = await response.json();
+            sendMessage({ type: "ai-quiz-result", summary });
+          } catch (err) {
+            sendMessage({ type: "ai-quiz-error", error: err.message });
+          }
+          break;
+        }
+
         case "ai-title": {
           try {
             const { endpoint, headers } = await getCloudRunConfig();

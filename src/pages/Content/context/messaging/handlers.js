@@ -529,17 +529,33 @@ export const setupHandlers = () => {
       return;
     }
 
-    if (!state.showPopup) {
-      setContentState((prev) => ({
-        ...prev,
-        showExtension: false,
-        recording: false,
-        paused: false,
-        pipEnded: false,
-        time: 0,
-        timer: 0,
-      }));
-    }
+    // Full UI cleanup — must match stopRecording() in ContentState.jsx
+    setContentState((prev) => ({
+      ...prev,
+      showExtension: false,
+      recording: false,
+      paused: false,
+      pipEnded: false,
+      tabCaptureFrame: false,
+      pendingRecording: false,
+      preparingRecording: false,
+      timeWarning: false,
+      drawingMode: false,
+      blurMode: false,
+      toolbarMode: "",
+      cursorMode: "none",
+      cursorEffects: [],
+      time: 0,
+      timer: 0,
+    }));
+
+    // Remove blur overlays from all elements
+    const elements = document.querySelectorAll(".aisr-blur");
+    elements.forEach((element) => {
+      element.classList.remove("aisr-blur");
+    });
+
+    setTimer(0);
   });
 
   registerMessage("recording-error", () => {

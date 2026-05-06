@@ -110,7 +110,7 @@ const VideoPlayer = (props) => {
         sources: [
           {
             src: vidUrl,
-            type: contentState.blob ? "video/mp4" : "video/webm",
+            type: contentState.blob ? contentState.blob.type : (contentState.webm ? contentState.webm.type : "video/webm"),
           },
         ],
       };

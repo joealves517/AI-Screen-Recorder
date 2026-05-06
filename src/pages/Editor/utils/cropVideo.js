@@ -1,42 +1,39 @@
+import { Conversion, Input, BlobSource, Output, BufferTarget, WebMOutputFormat, ALL_FORMATS } from "mediabunny";
+
 async function cropVideo(ffmpeg, videoBlob, cropParameters) {
-  const videoData = new Uint8Array(await videoBlob.arrayBuffer());
+  try {
+    const target = new BufferTarget();
 
-  // Set the input video file name
-  ffmpeg.FS("writeFile", "input.mp4", videoData);
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(videoBlob),
+      }),
+      output: new Output({
+        target,
+        format: new WebMOutputFormat(),
+      }),
+      video: {
+        forceTranscode: true, // Need transcode to crop frames
+        crop: {
+          left: cropParameters.x,
+          top: cropParameters.y,
+          width: cropParameters.width,
+          height: cropParameters.height,
+        },
+      },
+      audio: {
+        forceTranscode: false, // Stream copy the audio
+      }
+    });
 
-  // Set the output video file name
-  const outputFileName = "output-cropped.mp4";
+    await conversion.execute();
 
-  // Build FFmpeg command for cropping
-  const ffmpegCommand = [
-    "-i",
-    "input.mp4",
-    "-vf",
-    `crop=${cropParameters.width}:${cropParameters.height}:${cropParameters.x}:${cropParameters.y}`,
-    "-c:a",
-    "copy",
-    "-preset",
-    "superfast",
-    "-threads",
-    "0",
-    "-r",
-    "30",
-    "-tune",
-    "fastdecode",
-    outputFileName,
-  ];
-
-  // Run FFmpeg to crop the video
-  await ffmpeg.run(...ffmpegCommand);
-
-  // Get the cropped video data
-  const data = ffmpeg.FS("readFile", outputFileName);
-
-  // Create a Blob from the cropped video data
-  const croppedVideoBlob = new Blob([data.buffer], { type: "video/mp4" });
-
-  // Return the cropped video Blob
-  return croppedVideoBlob;
+    return new Blob([target.buffer], { type: "video/webm" });
+  } catch (error) {
+    console.error("Error cropping video:", error);
+    return null;
+  }
 }
 
 export default cropVideo;

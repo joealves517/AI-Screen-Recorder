@@ -242,11 +242,15 @@ const Wrapper = () => {
 
       {contentState.zoomEnabled && <ZoomContainer />}
       <BlurTool />
-      {contentState.showExtension || contentState.recording ? (
+      {contentState.showExtension || 
+       contentState.recording || 
+       window.location.href.indexOf(safeUrls.playground) !== -1 || 
+       window.location.href.indexOf(safeUrls.setup) !== -1 ? (
         <div>
           {!contentState.recording &&
             !contentState.drawingMode &&
-            !contentState.blurMode && (
+            !contentState.blurMode &&
+            !contentState.showPopup && (
               <div
                 style={{
                   // all: "unset",

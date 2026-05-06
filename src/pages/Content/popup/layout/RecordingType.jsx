@@ -168,8 +168,8 @@ const RecordingType = (props) => {
                 },
                 () => {},
                 null,
-                chrome.i18n.getMessage("learnMoreDot"),
-                URL2,
+                null,
+                null,
                 true,
                 false
               );
@@ -226,8 +226,8 @@ const RecordingType = (props) => {
                 },
                 () => {},
                 null,
-                chrome.i18n.getMessage("learnMoreDot"),
-                URL2,
+                null,
+                null,
                 true,
                 false
               );

@@ -157,10 +157,18 @@ router.post(
     const { client, model } = pickAIClient(usePremium);
 
     try {
-      const prompt =
-        style === "keypoints"
-          ? `Extract the key points from this video transcript as a bullet-point list. Each point should be a concise, actionable insight:\n\n${transcript}`
-          : `Summarize the following video transcript in 2-3 sentences:\n\n${transcript}`;
+      let prompt = "";
+      if (style === "keypoints") {
+        prompt = `Extract the key points from this video transcript as a bullet-point list. Each point should be a concise, actionable insight:\n\n${transcript}`;
+      } else if (style === "chapters") {
+        prompt = `Generate YouTube-style smart chapters for this video transcript. Format as a bulleted list with clear, catchy titles for each section:\n\n${transcript}`;
+      } else if (style === "social") {
+        prompt = `Repurpose this video transcript into an engaging, professional social media post (e.g., for LinkedIn or Twitter). Include a catchy hook, main takeaways, and relevant hashtags:\n\n${transcript}`;
+      } else if (style === "quiz") {
+        prompt = `Based on this video transcript, generate a short interactive quiz with 3 multiple choice questions to test the viewer's knowledge. Provide the questions first, then list the correct answers at the end:\n\n${transcript}`;
+      } else {
+        prompt = `Summarize the following video transcript in 2-3 sentences:\n\n${transcript}`;
+      }
 
       const response = await client.models.generateContent({
         model,

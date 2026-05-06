@@ -463,8 +463,8 @@ const ContentState = (props) => {
         },
         () => {},
         null,
-        chrome.i18n.getMessage("learnMoreDot"),
-        URL,
+        null,
+        null,
         true,
       );
       setStartFlowOutcome("cancelled", { error: "permission-denied" });
@@ -513,8 +513,8 @@ const ContentState = (props) => {
           clearAction,
           () => {},
           null,
-          chrome.i18n.getMessage("learnMoreDot"),
-          helpURL,
+          null,
+          null,
           false, // colorSafe
           chrome.i18n.getMessage("getHelpButton"),
           () => {
@@ -1328,7 +1328,7 @@ const ContentState = (props) => {
         // succession (e.g. loginWithWebsite writes isLoggedIn + isSubscribed
         // + lastAuthCheck). Coalesce into one verify call.
         clearTimeout(verifyDebounceRef.current);
-        verifyDebounceRef.current = setTimeout(verifyUser, 2000);
+        verifyDebounceRef.current = setTimeout(verifyUser, 500);
       }
       if (changes.recordingNow) {
         shouldUpdateTimer = true;
@@ -1339,6 +1339,12 @@ const ContentState = (props) => {
           paused: Boolean(changes.paused.newValue),
         }));
         shouldUpdateTimer = true;
+      }
+      if (changes.customRegion) {
+        setContentState((prev) => ({
+          ...prev,
+          customRegion: Boolean(changes.customRegion.newValue),
+        }));
       }
       if (changes.recording) {
         const isRecording = Boolean(changes.recording.newValue);

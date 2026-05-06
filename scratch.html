@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script type="module">
+import { Conversion, Input, BlobSource, Output, BufferTarget, Mp4OutputFormat, ALL_FORMATS } from "./node_modules/mediabunny/dist/modules/src/index.js";
+
+async function test() {
+  try {
+    // create a fake video blob (this might fail Input parsing, but let's see)
+    const blob = new Blob([new Uint8Array(100)], {type: 'video/webm'});
+    const target = new BufferTarget();
+    
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(blob),
+      }),
+      output: new Output({
+        target,
+        format: new Mp4OutputFormat({ fastStart: "in-memory" }),
+      })
+    });
+    console.log("Init OK");
+  } catch (e) {
+    console.error("INIT ERROR:", e);
+  }
+}
+test();
+</script>
+</body>
+</html>

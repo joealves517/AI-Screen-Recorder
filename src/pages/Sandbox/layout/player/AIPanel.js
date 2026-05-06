@@ -22,14 +22,18 @@ import {
   ZapIcon as Crown,
   BadgeAlertIcon as AlertTriangle,
   MessageCircleIcon as MessageCircle,
-  BookmarkIcon as Bookmark
+  BookmarkIcon as Bookmark,
+  ListIcon as LayoutList,
+  MessageSquareMoreIcon as Share2,
+  CircleHelpIcon as FileQuestion,
+  ActivityIcon as Activity
 } from "lucide-animated";
 
 import blackNoteIconUrl from "../../../../assets/blacknote-icon.png";
 import sparkAiIconUrl from "../../../../assets/spark-ai-icon.svg";
 
-const BlackNoteIcon = ({ size = 20 }) => <img src={blackNoteIconUrl} width={size} height={size} alt="BlackNote" style={{ objectFit: 'contain' }} />;
-const SparkAIIcon = ({ size = 20 }) => <img src={sparkAiIconUrl} width={size} height={size} alt="Spark AI" style={{ objectFit: 'contain' }} />;
+const BlackNoteIcon = React.forwardRef(({ size = 20 }, ref) => <img ref={ref} src={blackNoteIconUrl} width={size} height={size} alt="BlackNote" style={{ objectFit: 'contain' }} />);
+const SparkAIIcon = React.forwardRef(({ size = 20 }, ref) => <img ref={ref} src={sparkAiIconUrl} width={size} height={size} alt="Spark AI" style={{ objectFit: 'contain' }} />);
 
 // ─── Cross-Extension Ecosystem ──────────────────────────────────────
 const ECOSYSTEM = {
@@ -143,6 +147,7 @@ const applyButtonStyle = (disabled) => ({
   fontWeight: "600",
   cursor: disabled ? "not-allowed" : "pointer",
   whiteSpace: "nowrap",
+  boxSizing: "border-box",
   transition: "background 0.2s",
 });
 
@@ -275,24 +280,6 @@ const LanguageSelect = ({ value, onChange, disabled, options, groups }) => {
             />
           </div>
           <div style={{ overflowY: "auto", padding: "4px" }}>
-            {search === "" && (
-              <div
-                onClick={() => handleSelect("original")}
-                style={{
-                  padding: "8px 12px",
-                  fontSize: "13px",
-                  cursor: "pointer",
-                  borderRadius: "4px",
-                  background: value === "original" ? "#f1f5f9" : "transparent",
-                  fontWeight: value === "original" ? "600" : "400",
-                  color: "#334155"
-                }}
-                onMouseOver={(e) => { if (value !== "original") e.currentTarget.style.background = "#f8fafc" }}
-                onMouseOut={(e) => { if (value !== "original") e.currentTarget.style.background = "transparent" }}
-              >
-                Original Language
-              </div>
-            )}
             {filteredGroups.map(group => (
               <div key={group.label}>
                 <div style={{
@@ -352,10 +339,13 @@ const AIPanel = () => {
   const [summary, setSummary] = useState(null);
   const [actionItems, setActionItems] = useState(null);
   const [titleData, setTitleData] = useState(null);
+  const [chapters, setChapters] = useState(null);
+  const [social, setSocial] = useState(null);
+  const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState(null);
 
   // Translation state
-  const [targetLang, setTargetLang] = useState("vi");
+  const [targetLang, setTargetLang] = useState("original");
   const [subtitlesApplied, setSubtitlesApplied] = useState(false);
   const [translatedSegments, setTranslatedSegments] = useState(null);
 
@@ -443,6 +433,9 @@ const AIPanel = () => {
       if (cache.summary) setSummary(cache.summary);
       if (cache.actionItems) setActionItems(cache.actionItems);
       if (cache.titleData) setTitleData(cache.titleData);
+      if (cache.chapters) setChapters(cache.chapters);
+      if (cache.social) setSocial(cache.social);
+      if (cache.quiz) setQuiz(cache.quiz);
       if (cache.targetLang) setTargetLang(cache.targetLang);
 
       // Restore subtitles to video player
@@ -466,12 +459,15 @@ const AIPanel = () => {
         summary,
         actionItems,
         titleData,
+        chapters,
+        social,
+        quiz,
         targetLang,
         translatedSegments,
         subtitlesApplied,
       },
     });
-  }, [segments, transcript, summary, actionItems, titleData, targetLang, translatedSegments, subtitlesApplied]);
+  }, [segments, transcript, summary, actionItems, titleData, chapters, social, quiz, targetLang, translatedSegments, subtitlesApplied]);
 
   /**
    * Apply segments to the video player as VTT subtitles.
@@ -492,7 +488,7 @@ const AIPanel = () => {
         label: isOriginal ? "AI Subtitles (EN)" : `AI Subtitles (${langLabel})`,
         srclang: langCode,
         src: url,
-        default: !isOriginal, // Auto-switch to translation
+        default: true, // Auto-switch to newly applied track
       };
 
       const updatedTracks = filtered.map(t => ({ ...t, default: false }));
@@ -551,8 +547,32 @@ const AIPanel = () => {
           setActiveTask("");
           break;
 
+        case "ai-chapters-result":
+          setChapters(event.data.summary);
+          setIsProcessing(false);
+          setActiveTask("");
+          break;
+
+        case "ai-social-result":
+          setSocial(event.data.summary);
+          setIsProcessing(false);
+          setActiveTask("");
+          break;
+
+        case "ai-quiz-result":
+          setQuiz(event.data.summary);
+          setIsProcessing(false);
+          setActiveTask("");
+          break;
+
         case "ai-translate-result": {
-          const translated = event.data.translatedSegments || [];
+          const translatedRaw = event.data.translatedSegments || [];
+          const translated = translatedRaw.map((seg, i) => ({
+            ...seg,
+            start: seg.start !== undefined ? seg.start : segments[i]?.start,
+            end: seg.end !== undefined ? seg.end : segments[i]?.end,
+            duration: seg.duration !== undefined ? seg.duration : segments[i]?.duration,
+          }));
           setTranslatedSegments(translated);
           setIsProcessing(false);
           setActiveTask("");
@@ -574,7 +594,7 @@ const AIPanel = () => {
           break;
       }
     },
-    [setContentState]
+    [setContentState, segments, targetLang]
   );
 
   useEffect(() => {
@@ -694,15 +714,12 @@ const AIPanel = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownloadHardcoded = async () => {
+  useEffect(() => {
     const segs = translatedSegments || segments;
-    if (!segs || segs.length === 0) return;
-
-    const source = contentState.blob || contentState.webm || contentState.rawBlob;
-    if (!source) {
+    if (!segs || segs.length === 0) {
+      setContentState(prev => prev.subtitleAssData !== null ? { ...prev, subtitleAssData: null } : prev);
       return;
     }
-    const videoBlob = source instanceof Blob ? source : new Blob([source], { type: "video/webm" });
 
     const formatAssTime = (timeValue) => {
       const val = parseFloat(timeValue) || 0;
@@ -737,7 +754,6 @@ const AIPanel = () => {
     const primaryAss = hexToAssColor(subFontColor, 100);
     const backAss = hexToAssColor(subBgColor, subBgOpacity);
 
-    // Using Satoshi-Bold for a premium look
     let assData = `[Script Info]
 ScriptType: v4.00+
 PlayResX: 1920
@@ -748,17 +764,12 @@ Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour,
 Style: Default,Satoshi,${subFontSize * 2},${primaryAss},&H000000FF,&H00000000,${backAss},-1,0,0,0,100,100,0,0,3,1,0,2,10,10,${subMarginBottom * 2},1
 
 [Events]
-Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-`;
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n`;
 
     segs.forEach((seg) => {
       const startVal = parseFloat(seg.start) || 0;
       let endVal = seg.end !== undefined ? parseFloat(seg.end) : startVal + (parseFloat(seg.duration) || 2);
-      
-      // Prevent zero-duration failures which crash FFmpeg ASS filter
-      if (endVal <= startVal) {
-        endVal = startVal + 1.0;
-      }
+      if (endVal <= startVal) endVal = startVal + 1.0;
       
       const start = formatAssTime(startVal);
       const end = formatAssTime(endVal);
@@ -766,21 +777,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       assData += `Dialogue: 0,${start},${end},Default,,0,0,0,,${text}\n`;
     });
 
-    setContentState((prev) => ({
-      ...prev,
-      downloading: true,
-      isFfmpegRunning: true,
-      processingProgress: 0,
-    }));
-
-    const title = contentState.title || "ai-recording";
-    window.parent.postMessage({
-      type: "burn-subtitles",
-      blob: videoBlob,
-      assData,
-      title
-    }, "*");
-  };
+    setContentState(prev => prev.subtitleAssData === assData ? prev : { ...prev, subtitleAssData: assData });
+  }, [translatedSegments, segments, subFontColor, subBgColor, subBgOpacity, subFontSize, subMarginBottom, setContentState]);
 
   const handleSummarize = () => {
     if (locked || isProcessing || summary) return;
@@ -804,6 +802,30 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     setIsProcessing(true);
     setActiveTask("title");
     window.parent.postMessage({ type: "ai-title", transcript }, "*");
+  };
+
+  const handleChapters = () => {
+    if (locked || isProcessing || chapters) return;
+    setError(null);
+    setIsProcessing(true);
+    setActiveTask("chapters");
+    window.parent.postMessage({ type: "ai-chapters", transcript }, "*");
+  };
+
+  const handleSocial = () => {
+    if (locked || isProcessing || social) return;
+    setError(null);
+    setIsProcessing(true);
+    setActiveTask("social");
+    window.parent.postMessage({ type: "ai-social", transcript }, "*");
+  };
+
+  const handleQuiz = () => {
+    if (locked || isProcessing || quiz) return;
+    setError(null);
+    setIsProcessing(true);
+    setActiveTask("quiz");
+    window.parent.postMessage({ type: "ai-quiz", transcript }, "*");
   };
 
   // --- Render helpers ---
@@ -857,7 +879,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     </div>
   );
 
-  const renderResultOrSkeleton = (content, taskKey) => {
+  const renderResultOrSkeleton = (content, taskKey, rawText, titleForBlackNote) => {
     if (activeTask === taskKey && !content) {
       return (
         <div
@@ -882,16 +904,49 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       <div
         style={{
           padding: "16px",
-          background: "linear-gradient(135deg, #f8fafc 0%, rgba(248, 250, 252, 0) 100%)",
+          background: "#fff",
           border: "1px solid #e2e8f0",
           borderRadius: "10px",
           fontSize: "13px",
           color: "#334155",
           marginTop: "2px",
           marginBottom: "4px",
+          position: "relative",
+          overflow: "hidden"
         }}
       >
-        {content}
+        <div style={{
+          maxHeight: "65px",
+          overflow: "hidden",
+          lineHeight: "1.5",
+          maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+          WebkitMaskImage: "-webkit-linear-gradient(top, black 40%, transparent 100%)"
+        }}>
+          {content}
+        </div>
+        <button
+          onClick={() => sendToBlackNote(titleForBlackNote, rawText)}
+          style={{
+            marginTop: "12px",
+            padding: "8px 14px",
+            background: "#0f172a",
+            color: "white",
+            borderRadius: "6px",
+            border: "none",
+            fontSize: "12px",
+            fontWeight: "500",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            width: "fit-content",
+            transition: "background 0.2s ease"
+          }}
+          onMouseOver={(e) => e.currentTarget.style.background = "#1e293b"}
+          onMouseOut={(e) => e.currentTarget.style.background = "#0f172a"}
+        >
+          <BlackNoteIcon size={14} /> Read More in BlackNote
+        </button>
       </div>
     );
   };
@@ -903,14 +958,42 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
         }
+        @keyframes loopWave {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.15); opacity: 0.6; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-loop-wave {
+          animation: loopWave 1.5s infinite ease-in-out;
+        }
+        .modern-slider {
+          -webkit-appearance: none;
+          width: 110px;
+          height: 6px;
+          background: #e2e8f0;
+          border-radius: 3px;
+          outline: none;
+        }
+        .modern-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: #3b82f6;
+          cursor: pointer;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          transition: transform 0.1s ease;
+        }
+        .modern-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+        }
       `}</style>
       <div
         className={styles.sectionTitle}
         style={{ display: "flex", alignItems: "center", gap: "8px" }}
       >
-        <AnimatedIcon animation="none">
-          <Sparkles size={18} color="#eab308" fill="#fef08a" />
-        </AnimatedIcon> AI Intelligence
+        AI Intelligence
       </div>
 
       {/* Smart error banner */}
@@ -921,45 +1004,43 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         className={styles.buttonWrap}
         style={{ display: "flex", flexDirection: "column", gap: "12px" }}
       >
-        {/* 1. Generate Subtitles (was "Generate Transcript") */}
-        {renderButton({
-          Icon: AudioLines,
-          title: segments ? "Subtitles Generated" : "Generate Subtitles",
-          description:
-            activeTask === "transcribe"
-              ? "Gemini AI is processing..."
-              : segments
-              ? "Transcription complete."
-              : "Auto-transcribe & add subtitles to video.",
-          onClick: segments ? undefined : handleTranscribe,
-          taskKey: "transcribe",
-          disabled: isProcessing && activeTask !== "transcribe",
-          showLockText: false,
-          rightAction: segments ? (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownloadSubtitles(translatedSegments || segments);
-              }}
-              title="Download .SRT"
-              style={downloadButtonStyle}
-              onMouseOver={(e) => (e.currentTarget.style.background = "#e2e8f0")}
-              onMouseOut={(e) => (e.currentTarget.style.background = "#f1f5f9")}
-            >
-              <AnimatedIcon animation="none">
-                <Download size={16} color="#475569" />
-              </AnimatedIcon>
-            </button>
-          ) : undefined,
-        })}
-
-        {/* Subtitle status */}
-        {subtitlesApplied && !translatedSegments && (
-          <div style={statusStyle}>
-            <AnimatedIcon animation="none">
-              <Sparkles size={14} />
-            </AnimatedIcon> Subtitles applied to video!
-          </div>
+        {/* 1. Top Action: Progress Box OR Smart Video Analysis */}
+        {!segments && (
+          isProcessing && activeTask === "transcribe" ? (
+            <div style={{
+              padding: "16px",
+              background: "linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%)",
+              border: "1px solid #bfdbfe",
+              borderRadius: "12px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.1)"
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#3b82f6", fontWeight: "600", fontSize: "14px" }}>
+                <div className="animate-loop-wave" style={{ display: "flex" }}>
+                  <AnimatedIcon animation="none">
+                    <AudioLines size={20} color="#60a5fa" />
+                  </AnimatedIcon>
+                </div>
+                {progress < 30 ? "Analyzing video audio..." : progress < 70 ? "Extracting intelligence..." : "Almost there..."}
+              </div>
+              <div style={{ width: "100%", height: "6px", background: "#dbeafe", borderRadius: "3px", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${progress}%`, background: "#3b82f6", transition: "width 0.3s ease" }} />
+              </div>
+            </div>
+          ) : (
+            renderButton({
+              Icon: AudioLines,
+              title: "Smart Video Analysis",
+              description: "Extract intelligence, subtitles, and metadata.",
+              onClick: handleTranscribe,
+              taskKey: "transcribe",
+              disabled: isProcessing,
+              showLockText: false,
+              rightAction: null,
+            })
+          )
         )}
 
         {/* 2. Translate & Add Subtitles */}
@@ -1010,58 +1091,48 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             />
             <button
               onClick={handleApplySubtitles}
-              disabled={isProcessing || locked}
-              style={applyButtonStyle(isProcessing || locked)}
+              disabled={isProcessing || locked || subtitlesApplied}
+              style={applyButtonStyle(isProcessing || locked || subtitlesApplied)}
               onMouseOver={(e) => {
-                if (!locked && !isProcessing)
+                if (!locked && !isProcessing && !subtitlesApplied)
                   e.currentTarget.style.background = "#2563eb";
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.background = "#3b82f6";
+                if (!locked && !isProcessing && !subtitlesApplied)
+                  e.currentTarget.style.background = "#3b82f6";
               }}
             >
-              {activeTask === "translate" ? "Translating..." : "Apply"}
+              {activeTask === "translate" ? "Translating..." : subtitlesApplied ? "Applied" : "Apply"}
             </button>
-            {subtitlesApplied && translatedSegments && (
-              <button
-                onClick={() => handleDownloadSubtitles(translatedSegments)}
-                title="Download translated .SRT"
-                style={downloadButtonStyle}
-                onMouseOver={(e) => (e.currentTarget.style.background = "#e2e8f0")}
-                onMouseOut={(e) => (e.currentTarget.style.background = "#f1f5f9")}
-              >
-                <AnimatedIcon animation="none">
-                  <Download size={18} color="#475569" />
-                </AnimatedIcon>
-              </button>
-            )}
-          </div>
-          {subtitlesApplied && translatedSegments && (
-            <div style={statusStyle}>
+            <button
+              onClick={() => handleDownloadSubtitles(translatedSegments || segments)}
+              title="Download .SRT"
+              style={downloadButtonStyle}
+              disabled={locked}
+              onMouseOver={(e) => { if (!locked) e.currentTarget.style.background = "#e2e8f0"; }}
+              onMouseOut={(e) => { if (!locked) e.currentTarget.style.background = "#f1f5f9"; }}
+            >
               <AnimatedIcon animation="none">
-                <Sparkles size={14} />
-              </AnimatedIcon> Translated subtitles applied!
-            </div>
-          )}
-
-          {/* Subtitles & Styling - Hide Hardcode options in WebCodecs mode */}
+                <Download size={18} color={locked ? "#cbd5e1" : "#475569"} />
+              </AnimatedIcon>
+            </button>
+          </div>
+          {/* Subtitles & Styling */}
           <div style={{ marginTop: "16px", borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
             
-            {!isWebCodecs && (
-              <div
-                onClick={() => setSubSettingsOpen(!subSettingsOpen)}
-                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
-              >
-                <div style={{ fontSize: "13px", fontWeight: "600", color: "#475569", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Settings size={14} /> Subtitle Styling
-                </div>
-                <AnimatedIcon animation="none">
-                  <ChevronDown size={16} color="#64748b" style={{ transform: subSettingsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-                </AnimatedIcon>
+            <div
+              onClick={() => setSubSettingsOpen(!subSettingsOpen)}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+            >
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#475569", display: "flex", alignItems: "center", gap: "6px" }}>
+                <Settings size={14} /> Subtitle Styling
               </div>
-            )}
+              <AnimatedIcon animation="none">
+                <ChevronDown size={16} color="#64748b" style={{ transform: subSettingsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+              </AnimatedIcon>
+            </div>
 
-            {subSettingsOpen && !isWebCodecs && (
+            {subSettingsOpen && (
               <div style={{ marginTop: "16px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "#475569" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontWeight: 500 }}>Font Color</span>
@@ -1105,7 +1176,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     min="0" max="100"
                     value={subBgOpacity}
                     onChange={(e) => setSubBgOpacity(e.target.value)}
-                    style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
+                    className="modern-slider"
                   />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1115,7 +1186,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     min="14" max="48"
                     value={subFontSize}
                     onChange={(e) => setSubFontSize(e.target.value)}
-                    style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
+                    className="modern-slider"
                   />
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1125,76 +1196,64 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                     min="0" max="100"
                     value={subMarginBottom}
                     onChange={(e) => setSubMarginBottom(e.target.value)}
-                    style={{ width: "110px", cursor: "pointer", accentColor: "#3b82f6" }}
+                    className="modern-slider"
                   />
                 </div>
-              </div>
-            )}
-
-            {!isWebCodecs && (
-              <div style={{ marginTop: "16px" }}>
-                <button
-                  onClick={handleDownloadHardcoded}
-                  disabled={locked || isProcessing || contentState.downloading}
-                  style={{
-                    ...applyButtonStyle(locked || isProcessing || contentState.downloading),
-                    width: "100%",
-                    background: "#10b981",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <AnimatedIcon animation="none">
-                    <Download size={14} />
-                  </AnimatedIcon>
-                  {contentState.downloading ? "Hardcoding..." : "Hardcode & Download Video"}
-                </button>
-                <div style={{ fontSize: "10px", color: "#64748b", marginTop: "8px", textAlign: "center", fontStyle: "italic", padding: "0 10px" }}>
-                  * The live preview is shown on the video player above. These styles will be hardcoded into the video when downloading.
+                <div style={{ height: "1px", background: "#e2e8f0" }} />
+                <div>
+                  <div 
+                    style={{ display: "flex", alignItems: "center", cursor: "pointer", gap: "10px", fontWeight: 500 }}
+                    onClick={(e) => setContentState(prev => ({ ...prev, isHardcodeEnabled: !prev.isHardcodeEnabled }))}
+                  >
+                    <div style={{
+                      width: "36px", height: "20px",
+                      background: contentState.isHardcodeEnabled ? "#10b981" : "#cbd5e1",
+                      borderRadius: "20px", position: "relative",
+                      transition: "background 0.2s ease"
+                    }}>
+                      <div style={{
+                        width: "16px", height: "16px", background: "#ffffff",
+                        borderRadius: "50%", position: "absolute", top: "2px",
+                        left: contentState.isHardcodeEnabled ? "18px" : "2px",
+                        transition: "left 0.2s ease",
+                        boxShadow: "0 1px 3px rgba(0,0,0,0.2)"
+                      }} />
+                    </div>
+                    Hardcode subtitles on download
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#64748b", marginTop: "12px", fontStyle: "italic", lineHeight: 1.4 }}>
+                    * The live preview is shown on the video player above. These styles will be hardcoded into the video when downloading.
+                  </div>
                 </div>
+
               </div>
             )}
           </div>
         </div>
 
         {/* ─── Chat with Video (Spark AI) ─── */}
-        {segments && transcript && (
-          <div
-            role="button"
-            className={styles.button}
-            onClick={() => openSparkAI(segments, contentState.title)}
-            style={{ cursor: "pointer", transition: "opacity 0.2s ease" }}
-          >
-            <div className={styles.buttonLeft}>
-              <AnimatedIcon animation="none">
-                <SparkAIIcon size={20} />
-              </AnimatedIcon>
-            </div>
-            <div className={styles.buttonMiddle}>
-              <div className={styles.buttonTitle}>Chat with Video</div>
-              <div className={styles.buttonDescription} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                Ask AI anything about this recording
-              </div>
-            </div>
-          </div>
-        )}
+        {renderButton({
+          Icon: SparkAIIcon,
+          title: "Chat with Video",
+          description: "Ask AI anything about this recording.",
+          onClick: () => {
+            if (!locked) openSparkAI(segments, contentState.title);
+          },
+          taskKey: "chat",
+          disabled: locked || isProcessing,
+          showLockText: locked,
+        })}
 
         {/* 3. Summarize — result appears inline below */}
         {renderButton({
-          Icon: summary ? BlackNoteIcon : FileText,
-          title: summary ? "Save Summary" : "Summarize Video",
-          description: summary
-            ? "Save to BlackNote"
-            : activeTask === "summarize"
-              ? "Reading transcript..."
-              : "Get a quick summary of the video.",
-          onClick: summary
-            ? () => sendToBlackNote("Video Summary", summary)
-            : handleSummarize,
+          Icon: FileText,
+          title: "Summarize Video",
+          description: activeTask === "summarize"
+            ? "Reading transcript..."
+            : "Get a quick summary of the video.",
+          onClick: handleSummarize,
           taskKey: "summarize",
-          disabled: locked || (isProcessing && activeTask !== "summarize"),
+          disabled: locked || (isProcessing && activeTask !== "summarize") || summary,
           showLockText: locked,
         })}
         {renderResultOrSkeleton(
@@ -1207,23 +1266,21 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               />
             </>
           ),
-          "summarize"
+          "summarize",
+          summary,
+          "Video Summary"
         )}
 
         {/* 4. Key Takeaways — result appears inline below */}
         {renderButton({
-          Icon: actionItems ? BlackNoteIcon : ListChecks,
-          title: actionItems ? "Save Takeaways" : "Key Takeaways",
-          description: actionItems
-            ? "Save to BlackNote"
-            : activeTask === "action-items"
-              ? "Analyzing transcript..."
-              : "Extract bullet points & to-dos.",
-          onClick: actionItems
-            ? () => sendToBlackNote("Video Key Takeaways", actionItems)
-            : handleActionItems,
+          Icon: ListChecks,
+          title: "Key Takeaways",
+          description: activeTask === "action-items"
+            ? "Analyzing transcript..."
+            : "Extract bullet points & to-dos.",
+          onClick: handleActionItems,
           taskKey: "action-items",
-          disabled: locked || (isProcessing && activeTask !== "action-items"),
+          disabled: locked || (isProcessing && activeTask !== "action-items") || actionItems,
           showLockText: locked,
         })}
         {renderResultOrSkeleton(
@@ -1236,23 +1293,21 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               />
             </>
           ),
-          "action-items"
+          "action-items",
+          actionItems,
+          "Video Key Takeaways"
         )}
 
         {/* 5. Smart Title — result appears inline below */}
         {renderButton({
-          Icon: titleData ? BlackNoteIcon : TextSelect,
-          title: titleData ? "Save Title" : "Smart Title & Details",
-          description: titleData
-            ? "Save to BlackNote"
-            : activeTask === "title"
-              ? "Crafting metadata..."
-              : "Generate YouTube-ready title.",
-          onClick: titleData
-            ? () => sendToBlackNote(titleData.title, `**${titleData.title}**\n\n${titleData.description}`)
-            : handleGenerateTitle,
+          Icon: TextSelect,
+          title: "Smart Title & Details",
+          description: activeTask === "title"
+            ? "Crafting metadata..."
+            : "Generate YouTube-ready title.",
+          onClick: handleGenerateTitle,
           taskKey: "title",
-          disabled: locked || (isProcessing && activeTask !== "title"),
+          disabled: locked || (isProcessing && activeTask !== "title") || titleData,
           showLockText: locked,
         })}
         {renderResultOrSkeleton(
@@ -1266,7 +1321,90 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
               <p style={{ marginTop: "4px", lineHeight: "1.5" }}>{titleData.description}</p>
             </>
           ),
-          "title"
+          "title",
+          titleData ? `**${titleData.title}**\n\n${titleData.description}` : "",
+          titleData ? titleData.title : ""
+        )}
+
+        {/* 6. Smart Chapters */}
+        {renderButton({
+          Icon: LayoutList,
+          title: "Smart Chapters",
+          description: activeTask === "chapters"
+            ? "Structuring video..."
+            : "Auto-generate YouTube timestamps.",
+          onClick: handleChapters,
+          taskKey: "chapters",
+          disabled: locked || (isProcessing && activeTask !== "chapters") || chapters,
+          showLockText: locked,
+        })}
+        {renderResultOrSkeleton(
+          chapters && (
+            <>
+              <strong>Smart Chapters:</strong>
+              <div
+                style={{ marginTop: "4px", lineHeight: "1.5" }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(chapters) }}
+              />
+            </>
+          ),
+          "chapters",
+          chapters,
+          "Video Chapters"
+        )}
+
+        {/* 7. Social Media Post */}
+        {renderButton({
+          Icon: Share2,
+          title: "Social Media Post",
+          description: activeTask === "social"
+            ? "Drafting post..."
+            : "Repurpose video for LinkedIn/Twitter.",
+          onClick: handleSocial,
+          taskKey: "social",
+          disabled: locked || (isProcessing && activeTask !== "social") || social,
+          showLockText: locked,
+        })}
+        {renderResultOrSkeleton(
+          social && (
+            <>
+              <strong>Social Media Post:</strong>
+              <div
+                style={{ marginTop: "4px", lineHeight: "1.5" }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(social) }}
+              />
+            </>
+          ),
+          "social",
+          social,
+          "Social Media Post"
+        )}
+
+        {/* 8. Quiz Generation */}
+        {renderButton({
+          Icon: FileQuestion,
+          title: "Quiz Generation",
+          description: activeTask === "quiz"
+            ? "Generating questions..."
+            : "Create interactive questions.",
+          onClick: handleQuiz,
+          taskKey: "quiz",
+          disabled: locked || (isProcessing && activeTask !== "quiz") || quiz,
+          showLockText: locked,
+        })}
+        {renderResultOrSkeleton(
+          quiz && (
+            <>
+              <strong>Quiz:</strong>
+              <div
+                style={{ marginTop: "4px", lineHeight: "1.5" }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(quiz) }}
+              />
+            </>
+          ),
+          "quiz",
+          quiz,
+          "Video Quiz"
         )}
       </div>
     </div>

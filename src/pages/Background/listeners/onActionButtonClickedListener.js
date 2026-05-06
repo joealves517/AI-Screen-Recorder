@@ -6,7 +6,7 @@ import {
 } from "../tabManagement";
 import { sendMessageRecord } from "../recording/sendMessageRecord.js";
 
-const CLOUD_FEATURES_ENABLED = false; // Cloud features removed
+const CLOUD_FEATURES_ENABLED = process.env.AISR_ENABLE_CLOUD_FEATURES === "true";
 
 // Utility to handle tab messaging logic
 const handleTabMessaging = async (tab) => {

@@ -10,7 +10,7 @@ const router = Router();
 const ai = new GoogleGenAI({
     apiKey: "AIzaSyB9Idi7DYIkSWnl1urpImbCIhNMztPVFSU",
 });
-const MODEL = "gemini-flash-lite-latest";
+const MODEL = "gemini-2.5-flash-lite";
 // ─── Transcribe ─────────────────────────────────────────────────────
 router.post("/transcribe", async (req, res) => {
     const { audioBase64, mimeType, language } = req.body;

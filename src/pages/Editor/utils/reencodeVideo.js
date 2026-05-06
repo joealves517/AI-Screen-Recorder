@@ -1,26 +1,33 @@
-async function reencodeVideo(ffmpeg, blob) {
-  const videoData = new Uint8Array(await blob.arrayBuffer());
-  const outputFileName = "output.mp4";
-  ffmpeg.FS("writeFile", "input.mp4", videoData);
-  await ffmpeg.run(
-    "-i",
-    "input.mp4",
-    "-preset",
-    "superfast",
-    "-threads",
-    "0",
-    "-r",
-    "30",
-    "-tune",
-    "fastdecode",
-    outputFileName
-  );
+import { Conversion, Input, BlobSource, Output, BufferTarget, WebMOutputFormat, ALL_FORMATS } from "mediabunny";
 
-  const data = ffmpeg.FS("readFile", outputFileName);
-  const editedVideoBlob = new Blob([data.buffer], {
-    type: "video/mp4",
-  });
-  return editedVideoBlob;
+async function reencodeVideo(ffmpeg, blob) {
+  try {
+    const target = new BufferTarget();
+
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(blob),
+      }),
+      output: new Output({
+        target,
+        format: new WebMOutputFormat(),
+      }),
+      video: {
+        forceTranscode: true,
+      },
+      audio: {
+        forceTranscode: true,
+      }
+    });
+
+    await conversion.execute();
+
+    return new Blob([target.buffer], { type: "video/webm" });
+  } catch (error) {
+    console.error("Error re-encoding video:", error);
+    return null;
+  }
 }
 
 export default reencodeVideo;

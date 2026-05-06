@@ -133,6 +133,10 @@ $margin-offset: 8px;
   transition: none !important;
   padding-left: 40px;
   padding-right: 40px;
+  background-color: transparent !important;
+}
+.advanced-cropper-background {
+  background-color: transparent !important;
 }
 .advanced-cropper-artificial-transition {
   transition: none !important;

@@ -1,3 +1,5 @@
+import { Conversion, Input, BlobSource, Output, BufferTarget, WebMOutputFormat, ALL_FORMATS } from "mediabunny";
+
 function base64ToUint8Array(base64) {
   const dataURLRegex = /^data:.+;base64,/;
   if (dataURLRegex.test(base64)) {
@@ -16,29 +18,36 @@ function base64ToUint8Array(base64) {
 }
 
 async function base64ToBlob(ffmpeg, base64) {
-  const input = base64ToUint8Array(base64);
-  ffmpeg.FS("writeFile", "input.webm", input);
+  try {
+    const input = base64ToUint8Array(base64);
+    const inputBlob = new Blob([input], { type: "video/webm" });
 
-  await ffmpeg.run(
-    "-i",
-    "input.webm",
-    "-max_muxing_queue_size",
-    "512",
-    "-preset",
-    "superfast",
-    "-threads",
-    "0",
-    "-r",
-    "30",
-    "-tune",
-    "fastdecode",
-    "output.mp4"
-  );
+    const target = new BufferTarget();
 
-  const data = ffmpeg.FS("readFile", "output.mp4");
-  const videoBlob = new Blob([data.buffer], { type: "video/mp4" });
+    const conversion = await Conversion.init({
+      input: new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(inputBlob),
+      }),
+      output: new Output({
+        target,
+        format: new WebMOutputFormat(),
+      }),
+      video: {
+        forceTranscode: true,
+      },
+      audio: {
+        forceTranscode: true,
+      }
+    });
 
-  return videoBlob;
+    await conversion.execute();
+
+    return new Blob([target.buffer], { type: "video/webm" });
+  } catch (error) {
+    console.error("Error converting base64 to blob:", error);
+    return null;
+  }
 }
 
 export default base64ToBlob;
