@@ -245,14 +245,7 @@ const SettingsMenu = (props) => {
             setRestore(response.restore);
           });
 
-        if (CLOUD_FEATURES_ENABLED && contentState.isSubscribed) {
-          chrome.runtime
-            .sendMessage({ type: "check-cloud-restore" })
-            .then((response) => {
-              setCloudRestore(response?.cloudRestore ?? false);
-            })
-            .catch(() => setCloudRestore(false));
-        }
+        // Cloud restore checks removed
 
         chrome.storage.local.get(["fastRecorderStatus"], (result) => {
           const status = result.fastRecorderStatus || null;
@@ -713,36 +706,7 @@ const SettingsMenu = (props) => {
                 </DropdownMenu.ItemIndicator>
               </DropdownMenu.CheckboxItem>
             )}
-          {!oldChrome && (
-              <DropdownMenu.CheckboxItem
-                className="DropdownMenuItem"
-                onSelect={(e) => {
-                  e.preventDefault();
-                }}
-                onCheckedChange={(checked) => {
-                  if (!checked) {
-                    chrome.runtime.sendMessage({ type: "close-backup-tab" });
-                  }
-                  setContentState((prevContentState) => ({
-                    ...prevContentState,
-                    backup: checked,
-                    backupSetup: false,
-                  }));
-                  chrome.storage.local.set({
-                    backup: checked,
-                    backupSetup: false,
-                  });
-                }}
-                checked={contentState.backup}
-                style={{ paddingLeft: "12px" }}
-              >
-                <AnimatedIcon animation="none"><CloudUploadIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
-                {chrome.i18n.getMessage("backupsToggle")}
-                <DropdownMenu.ItemIndicator className="ItemIndicator">
-                  <AnimatedIcon animation="none"><CheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} color="white" strokeWidth={3} /></AnimatedIcon>
-                </DropdownMenu.ItemIndicator>
-              </DropdownMenu.CheckboxItem>
-            )}
+
           {true && (
             <DropdownMenu.Item
               className="DropdownMenuItem"
@@ -787,58 +751,7 @@ const SettingsMenu = (props) => {
               {chrome.i18n.getMessage("supportSettingsOption")}
             </DropdownMenu.Item>
           )}
-          {CLOUD_FEATURES_ENABLED && (
-            <>
-              {contentState.isLoggedIn && contentState.isSubscribed && (
-                <DropdownMenu.Item
-                  className="DropdownMenuItem"
-                  onSelect={async (e) => {
-                    e.preventDefault();
-                    await resetOnboardingSeen(["proPopupCore", "proCameraInfo"]);
-                    props.setOpen(false);
-                    runProPopupOnboardingIfNeeded({
-                      rootContext: props.shadowRef?.current?.shadowRoot || document,
-                      isPro: Boolean(
-                        contentState.isLoggedIn && contentState.isSubscribed
-                      ),
-                      isLoggedIn: Boolean(contentState.isLoggedIn),
-                      popupOpen: Boolean(
-                        contentState.showPopup && contentState.showExtension
-                      ),
-                      cameraEnabled: Boolean(contentState.cameraActive),
-                      pendingRecording: Boolean(contentState.pendingRecording),
-                      preparingRecording: Boolean(contentState.preparingRecording),
-                      recording: Boolean(contentState.recording),
-                      countdownActive: Boolean(contentState.countdownActive),
-                      isCountdownVisible: Boolean(contentState.isCountdownVisible),
-                      forceStart: true,
-                    });
-                  }}
-                  style={{ paddingLeft: "12px" }}
-                >
-                  <AnimatedIcon animation="none"><RefreshCcwIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
-                  {chrome.i18n.getMessage("resetOnboardingOption") ||
-                    "Reset onboarding"}
-                </DropdownMenu.Item>
-              )}
-              {contentState.isLoggedIn && contentState.isSubscribed && (
-                <DropdownMenu.Item
-                  className="DropdownMenuItem"
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    chrome.runtime.sendMessage({
-                      type: "restore-cloud-recording",
-                    });
-                  }}
-                  disabled={!cloudRestore}
-                  style={{ paddingLeft: "12px" }}
-                >
-                  <AnimatedIcon animation="none"><CloudDownloadIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", marginRight: "8px" }} size={14} color="#6B7280" strokeWidth={2} /></AnimatedIcon>
-                  {chrome.i18n.getMessage("recoverLastRecordingOption")}
-                </DropdownMenu.Item>
-              )}
-            </>
-          )}
+
           {CLOUD_FEATURES_ENABLED && (
             <DropdownMenu.Item
               className="DropdownMenuItem"

@@ -98,9 +98,11 @@ export async function supabaseGoogleLogin() {
               });
               if (backendRes.ok) {
                 const backendUser = await backendRes.json();
+                const quotaExhausted = backendUser.tier === "premium" && (backendUser.credits !== undefined && Number(backendUser.credits) <= 0);
                 await chrome.storage.local.set({
                   isSubscribed: backendUser.tier === "premium",
                   proSubscription: backendUser.subscription || null,
+                  quotaExhausted: quotaExhausted,
                 });
               }
             } catch (backendErr) {

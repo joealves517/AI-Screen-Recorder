@@ -138,45 +138,9 @@ export const stopRecording = async () => {
   if (postStopEditorOpening || postStopEditorOpened) {
     // Editor already opened by stop-recording-tab flow; avoid opening a second tab.
     // That flow will trigger processing when the tab finishes loading.
-  } else if (hasWebCodecs) {
-    diagEvent("editor-open", { type: "editorwebcodecs" });
-    // Use Mediabunny (editorwebcodecs.html) when WebCodecs is supported
-    const query = postStopRecordingId
-      ? `?mode=postStop&recordingId=${encodeURIComponent(postStopRecordingId)}`
-      : "?mode=postStop";
-    const wcUrl = `editorwebcodecs.html${query}`;
-    chrome.tabs.create(
-      { url: wcUrl, active: true },
-      (tab) => {
-        if (chrome.runtime.lastError || !tab?.id) {
-          handleEditorOpenFailed(wcUrl, chrome.runtime.lastError?.message);
-          return;
-        }
-        chrome.tabs.onUpdated.addListener(function _(
-          tabId,
-          changeInfo,
-          updatedTab,
-        ) {
-          if (tabId === tab.id && changeInfo.status === "complete") {
-            chrome.tabs.onUpdated.removeListener(_);
-            chrome.storage.local.set({ sandboxTab: tab.id });
-            (async () => {
-              try {
-                await waitForContentScript(tab.id);
-                await sendMessageTab(tab.id, { type: "fallback-recording" });
-              } catch (err) {
-                console.error("❌ Failed to wait/send to content script:", err);
-              }
-            })();
-          }
-        });
-      },
-    );
-
-    chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
   } else if (duration > maxDuration) {
     diagEvent("editor-open", { type: "editorviewer", duration });
-    // Fallback for large recordings without WebCodecs - use viewer mode
+    // Fallback for large recordings - use viewer mode
 
     const query = postStopRecordingId
       ? `?mode=postStop&recordingId=${encodeURIComponent(postStopRecordingId)}`
@@ -212,36 +176,39 @@ export const stopRecording = async () => {
 
     chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
   } else {
-    diagEvent("editor-open", { type: "editor-ffmpeg" });
-    // Use FFmpeg (editor.html) for browsers without WebCodecs
+    diagEvent("editor-open", { type: "editorwebcodecs" });
+    // Use Mediabunny (editorwebcodecs.html)
     const query = postStopRecordingId
       ? `?mode=postStop&recordingId=${encodeURIComponent(postStopRecordingId)}`
       : "?mode=postStop";
-    const ffmpegUrl = `editor.html${query}`;
-    chrome.tabs.create({ url: ffmpegUrl, active: true }, (tab) => {
-      if (chrome.runtime.lastError || !tab?.id) {
-        handleEditorOpenFailed(ffmpegUrl, chrome.runtime.lastError?.message);
-        return;
-      }
-      chrome.tabs.onUpdated.addListener(function _(
-        tabId,
-        changeInfo,
-        updatedTab,
-      ) {
-        if (tabId === tab.id && changeInfo.status === "complete") {
-          chrome.tabs.onUpdated.removeListener(_);
-          chrome.storage.local.set({ sandboxTab: tab.id });
-          (async () => {
-            try {
-              await waitForContentScript(tab.id);
-              await sendMessageTab(tab.id, { type: "fallback-recording" });
-            } catch (err) {
-              console.error("❌ Failed to wait/send to content script:", err);
-            }
-          })();
+    const wcUrl = `editorwebcodecs.html${query}`;
+    chrome.tabs.create(
+      { url: wcUrl, active: true },
+      (tab) => {
+        if (chrome.runtime.lastError || !tab?.id) {
+          handleEditorOpenFailed(wcUrl, chrome.runtime.lastError?.message);
+          return;
         }
-      });
-    });
+        chrome.tabs.onUpdated.addListener(function _(
+          tabId,
+          changeInfo,
+          updatedTab,
+        ) {
+          if (tabId === tab.id && changeInfo.status === "complete") {
+            chrome.tabs.onUpdated.removeListener(_);
+            chrome.storage.local.set({ sandboxTab: tab.id });
+            (async () => {
+              try {
+                await waitForContentScript(tab.id);
+                await sendMessageTab(tab.id, { type: "fallback-recording" });
+              } catch (err) {
+                console.error("❌ Failed to wait/send to content script:", err);
+              }
+            })();
+          }
+        });
+      },
+    );
 
     chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {}).catch(() => {});
   }
@@ -406,7 +373,7 @@ export const handleStopRecordingTab = async (request) => {
       );
     } else {
       const editorUrl =
-        duration > maxDuration ? "editorviewer.html" : "editor.html";
+        duration > maxDuration ? "editorviewer.html" : "editorwebcodecs.html";
       diagEvent("editor-open", { type: editorUrl.replace(".html", ""), via: "stop-tab", duration });
       // MediaRecorder/FFmpeg path: open editor normally (no postStop gating)
       chrome.tabs.create({ url: editorUrl, active: true }, (tab) => {

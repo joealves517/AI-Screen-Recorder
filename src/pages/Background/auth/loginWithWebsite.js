@@ -94,6 +94,7 @@ export const loginWithWebsite = async () => {
     const subscribed = responseData.tier === "premium";
     const subscription = responseData.subscription || null;
     const hasSubscribedBefore = subscribed;
+    const quotaExhausted = subscribed && (responseData.credits !== undefined && Number(responseData.credits) <= 0);
 
     await chrome.storage.local.set({
       aisrUser: user,
@@ -103,6 +104,7 @@ export const loginWithWebsite = async () => {
       isSubscribed: subscribed,
       proSubscription: subscription,
       hasSubscribedBefore: !!hasSubscribedBefore,
+      quotaExhausted: quotaExhausted,
       pushToTalk: false,
       onboarding: false,
       showProSplash: false,

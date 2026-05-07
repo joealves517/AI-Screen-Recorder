@@ -238,7 +238,7 @@ const CropUI = (props) => {
                 contentState.height
               );
             }}
-            disabled={contentState.isFfmpegRunning}
+            disabled={contentState.isProcessing}
           >
             {chrome.i18n.getMessage("sandboxCropUpdateButton") || "Update crop"}
           </button> */}
@@ -249,23 +249,23 @@ const CropUI = (props) => {
         <button
           className="button simpleButton blackButton"
           onClick={handleCancel}
-          disabled={contentState.isFfmpegRunning}
+          disabled={contentState.isProcessing}
         >
           {chrome.i18n.getMessage("sandboxEditorCancelButton")}
         </button>
         <button
           className="button secondaryButton"
           onClick={handleRevert}
-          disabled={contentState.isFfmpegRunning}
+          disabled={contentState.isProcessing}
         >
           {chrome.i18n.getMessage("sandboxEditorRevertButton")}
         </button>
         <button
           className="button primaryButton"
           onClick={saveChanges}
-          disabled={contentState.isFfmpegRunning}
+          disabled={contentState.isProcessing}
         >
-          {contentState.isFfmpegRunning ? (
+          {contentState.isProcessing ? (
             contentState.processingProgress > 0 ? (
               <>
                 {chrome.i18n.getMessage("sandboxEditorSaveProgressButton") ||

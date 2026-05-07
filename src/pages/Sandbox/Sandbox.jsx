@@ -33,25 +33,25 @@ const Sandbox = () => {
       // FFmpeg has been replaced by WebCodecs, so we just mark it as "loaded"
       setContentState((prevState) => ({
         ...prevState,
-        ffmpeg: true,
-        ffmpegLoaded: true,
+        useProcessor: true,
+        processorLoaded: true,
       }));
     } else {
       setContentState((prevState) => ({
         ...prevState,
         updateChrome: true,
-        ffmpeg: true,
-        ffmpegLoaded: true,
+        useProcessor: true,
+        processorLoaded: true,
       }));
     }
   }, []);
 
   useEffect(() => {
-    if (!contentState.blob || !contentState.ffmpeg) return;
+    if (!contentState.blob || !contentState.useProcessor) return;
     if (contentState.frame) return;
     // Frame extraction now works in fallback mode using Canvas API
     contentState.getFrame();
-  }, [contentState.blob, contentState.ffmpeg]);
+  }, [contentState.blob, contentState.useProcessor]);
 
   // Programmatically add custom scrollbars
   useEffect(() => {
@@ -142,7 +142,7 @@ const Sandbox = () => {
       contentState.mode === "crop" &&
       contentState.getFrame &&
       contentState.blob &&
-      contentState.ffmpeg
+      contentState.useProcessor
     ) {
       // Small delay to ensure state updates have propagated
       setTimeout(() => {
@@ -157,7 +157,7 @@ const Sandbox = () => {
       <Modal />
       <video></video>
       {/* Render the WaveformGenerator component and pass the ffmpeg instance as a prop */}
-      {contentState.ffmpeg &&
+      {contentState.useProcessor &&
         contentState.ready &&
         contentState.mode === "edit" && <Editor />}
       {contentState.mode != "edit" && contentState.ready && <Player />}

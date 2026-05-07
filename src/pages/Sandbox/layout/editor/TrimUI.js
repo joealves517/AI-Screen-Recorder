@@ -63,7 +63,7 @@ const TrimUI = (props) => {
             className="button secondaryButton"
             onClick={() => contentState.handleTrim(false)}
             disabled={
-              contentState.isFfmpegRunning ||
+              contentState.isProcessing ||
               (contentState.start === 0 && contentState.end === 1)
             }
           >
@@ -81,7 +81,7 @@ const TrimUI = (props) => {
             className="button secondaryButton"
             disabled={
               (contentState.start === 0 && contentState.end === 1) ||
-              contentState.isFfmpegRunning
+              contentState.isProcessing
             }
             onClick={() => contentState.handleTrim(true)}
           >
@@ -98,7 +98,7 @@ const TrimUI = (props) => {
           <button
             className="button secondaryButton"
             onClick={() => contentState.handleMute()}
-            disabled={contentState.isFfmpegRunning}
+            disabled={contentState.isProcessing}
           >
             <AnimatedIcon animation="none">
               <Mute size={16} color="currentColor" style={{ marginRight: 6 }} />
@@ -122,7 +122,7 @@ const TrimUI = (props) => {
           <button
             className="button simpleButton"
             onClick={() => contentState.undo()}
-            disabled={undoDisabled || contentState.isFfmpegRunning}
+            disabled={undoDisabled || contentState.isProcessing}
           >
             <AnimatedIcon animation="none">
               <Undo size={16} color="currentColor" style={{ marginRight: 6 }} />
@@ -132,7 +132,7 @@ const TrimUI = (props) => {
           <button
             className="button simpleButton"
             onClick={() => contentState.redo()}
-            disabled={redoDisabled || contentState.isFfmpegRunning}
+            disabled={redoDisabled || contentState.isProcessing}
           >
             <AnimatedIcon animation="none">
               <Redo size={16} color="currentColor" style={{ marginRight: 6 }} />

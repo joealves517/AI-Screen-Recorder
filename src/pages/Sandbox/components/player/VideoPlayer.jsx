@@ -160,7 +160,7 @@ const VideoPlayer = (props) => {
           !contentStateRef.current.mp4ready &&
           !contentStateRef.current.blob &&
           !bannerRef.current &&
-          !contentStateRef.current.noffmpeg &&
+          !contentStateRef.current.nativeUnsupported &&
           !(
             contentStateRef.current.duration >
               contentStateRef.current.editLimit &&

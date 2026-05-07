@@ -47,7 +47,6 @@ const PopupContainer = (props) => {
   const [contentState, setContentState] = useContext(contentStateContext);
   const contentStateRef = useRef(contentState);
   const [tab, setTab] = useState("record");
-  const [badge, setBadge] = useState(TempLogo);
   const PopupRef = useRef(null);
   const [elastic, setElastic] = React.useState("");
   const [shake, setShake] = React.useState("");
@@ -133,13 +132,6 @@ const PopupContainer = (props) => {
   const onValueChange = (tab) => {
     setTab(tab);
 
-    if (contentState.isLoggedIn) {
-      const avatar = contentState?.aisrUser?.avatar || contentState?.aisrUser?.picture;
-      setBadge(avatar || ProfilePic);
-    } else {
-      setBadge(TempLogo);
-    }
-
     setContentState((prevContentState) => ({
       ...prevContentState,
       bigTab: tab,
@@ -148,20 +140,6 @@ const PopupContainer = (props) => {
   useEffect(() => {
     setTab(contentState.bigTab);
   }, []);
-
-  useEffect(() => {
-    if (contentState.isLoggedIn) {
-      const avatar = contentState?.aisrUser?.avatar || contentState?.aisrUser?.picture;
-      setBadge(avatar || ProfilePic);
-    } else {
-      setBadge(TempLogo);
-    }
-  }, [
-    contentState.isLoggedIn,
-    contentState.isSubscribed,
-    contentState.aisrUser,
-    tab,
-  ]);
 
   const showWelcomeSplash = Boolean(
     isCloudBuild &&
@@ -297,12 +275,12 @@ const PopupContainer = (props) => {
             {...popupDragHandleProps}
           >
             <img
-              src={badge}
+              src={TempLogo}
               crossOrigin="anonymous"
               style={{
                 width: "46px",
                 height: "46px",
-                borderRadius: contentState.isLoggedIn ? "50%" : "0",
+                borderRadius: "0",
                 filter: "none",
                 userSelect: "none",
                 pointerEvents: "none",

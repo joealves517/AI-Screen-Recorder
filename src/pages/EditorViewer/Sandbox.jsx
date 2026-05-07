@@ -11,7 +11,7 @@ const Sandbox = () => {
 
   const onMessage = async (message) => {
     if (message.type === "load-ffmpeg") {
-      sendMessage({ type: "ffmpeg-load-error", fallback: true });
+      sendMessage({ type: "processor-load-error", fallback: true });
     } else if (
       message.type === "add-audio-to-video" ||
       message.type === "base64-to-blob" ||
@@ -22,7 +22,7 @@ const Sandbox = () => {
       message.type === "to-gif"
     ) {
       sendMessage({
-        type: "ffmpeg-error",
+        type: "processor-error",
         error:
           "Processing not available in viewer mode. Please use a modern browser (Chrome 94+) for editing features.",
       });

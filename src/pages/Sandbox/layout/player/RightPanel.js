@@ -38,10 +38,10 @@ const RightPanel = () => {
 
   // Returns a context-specific "not available" label for disabled buttons
   const getNotAvailableLabel = () => {
-    if (contentState.fallback && contentState.noffmpeg && contentState.editLimit === 0) {
+    if (contentState.fallback && contentState.nativeUnsupported && contentState.editLimit === 0) {
       return chrome.i18n.getMessage("notAvailableLongRecording");
     }
-    if (contentState.fallback && contentState.noffmpeg) {
+    if (contentState.fallback && contentState.nativeUnsupported) {
       return chrome.i18n.getMessage("notAvailableRecoveryMode");
     }
     return chrome.i18n.getMessage("notAvailableLabel");
@@ -92,7 +92,7 @@ const RightPanel = () => {
 
     contentState.createBackup();
 
-    if (!contentState.frame && !contentState.isFfmpegRunning) {
+    if (!contentState.frame && !contentState.isProcessing) {
       contentState.getFrame();
     }
 
@@ -266,6 +266,7 @@ const RightPanel = () => {
       {contentState.mode === "crop" && <CropUI />}
       {contentState.mode === "player" && (
         <div>
+          <div id="right-panel-alert-container"></div>
           {!contentState.fallback && contentState.offline && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
@@ -284,7 +285,7 @@ const RightPanel = () => {
               </div>
             </div>
           )}
-          {contentState.fallback && contentState.noffmpeg && contentState.editLimit === 0 && (
+          {contentState.fallback && contentState.nativeUnsupported && contentState.editLimit === 0 && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
                 <AnimatedIcon animation="none">
@@ -293,10 +294,10 @@ const RightPanel = () => {
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
-                  {chrome.i18n.getMessage("longRecordingTitle")}
+                  Feature Not Supported
                 </div>
                 <div className={styles.buttonDescription}>
-                  {chrome.i18n.getMessage("longRecordingDescription")}
+                  Advanced video editing is not supported on your current device or browser. Please download the raw recording.
                 </div>
               </div>
               <div
@@ -307,7 +308,7 @@ const RightPanel = () => {
               </div>
             </div>
           )}
-          {contentState.fallback && contentState.noffmpeg && contentState.editLimit !== 0 && (
+          {contentState.fallback && contentState.nativeUnsupported && contentState.editLimit !== 0 && (
             <div className={styles.alert}>
               <div className={styles.buttonLeft}>
                 <AnimatedIcon animation="none">
@@ -316,10 +317,10 @@ const RightPanel = () => {
               </div>
               <div className={styles.buttonMiddle}>
                 <div className={styles.buttonTitle}>
-                  {chrome.i18n.getMessage("recoveryModeTitle")}
+                  Feature Not Supported
                 </div>
                 <div className={styles.buttonDescription}>
-                  {chrome.i18n.getMessage("recoveryModeDescription")}
+                  Advanced video editing is not supported on your current device or browser. Please download the raw recording.
                 </div>
               </div>
               <div
@@ -418,12 +419,12 @@ const RightPanel = () => {
                 </div>
               </div>
             )}
-          {(!contentState.mp4ready || contentState.isFfmpegRunning) &&
+          {(!contentState.mp4ready || contentState.isProcessing) &&
             (contentState.duration <= contentState.editLimit ||
               contentState.override) &&
             !contentState.offline &&
             !contentState.updateChrome &&
-            !contentState.noffmpeg && (
+            !contentState.nativeUnsupported && (
               <div className={styles.alert}>
                 <div className={styles.buttonLeft}>
                   <AnimatedIcon animation="none">
@@ -435,12 +436,12 @@ const RightPanel = () => {
                     {chrome.i18n.getMessage("videoProcessingLabelTitle")}
                   </div>
                   <div className={styles.buttonDescription}>
-                    {contentState.isFfmpegRunning
+                    {contentState.isProcessing
                       ? chrome.i18n.getMessage("editProcessingSafeDescription")
                       : chrome.i18n.getMessage("videoProcessingLabelDescription")}
                   </div>
                 </div>
-                {!contentState.isFfmpegRunning && (
+                {!contentState.isProcessing && (
                 <div
                   className={styles.buttonRight}
                   onClick={() => {
@@ -551,7 +552,7 @@ const RightPanel = () => {
                   (contentState.duration > contentState.editLimit &&
                     !contentState.override) ||
                   !contentState.mp4ready ||
-                  contentState.noffmpeg
+                  contentState.nativeUnsupported
                 }
               >
                 <div className={styles.buttonLeft}>
@@ -564,10 +565,10 @@ const RightPanel = () => {
                     {chrome.i18n.getMessage("editButtonTitle")}
                   </div>
                   <div className={styles.buttonDescription}>
-                    {contentState.offline && !contentState.ffmpegLoaded
+                    {contentState.offline && !contentState.processorLoaded
                       ? chrome.i18n.getMessage("noConnectionLabel")
                       : contentState.updateChrome ||
-                        contentState.noffmpeg ||
+                        contentState.nativeUnsupported ||
                         (contentState.duration > contentState.editLimit &&
                           !contentState.override)
                       ? getNotAvailableLabel()
@@ -590,7 +591,7 @@ const RightPanel = () => {
                   (contentState.duration > contentState.editLimit &&
                     !contentState.override) ||
                   !contentState.mp4ready ||
-                  contentState.noffmpeg
+                  contentState.nativeUnsupported
                 }
               >
                 <div className={styles.buttonLeft}>
@@ -603,10 +604,10 @@ const RightPanel = () => {
                     {chrome.i18n.getMessage("cropButtonTitle")}
                   </div>
                   <div className={styles.buttonDescription}>
-                    {contentState.offline && !contentState.ffmpegLoaded
+                    {contentState.offline && !contentState.processorLoaded
                       ? chrome.i18n.getMessage("noConnectionLabel")
                       : contentState.updateChrome ||
-                        contentState.noffmpeg ||
+                        contentState.nativeUnsupported ||
                         (contentState.duration > contentState.editLimit &&
                           !contentState.override)
                       ? getNotAvailableLabel()
@@ -629,7 +630,7 @@ const RightPanel = () => {
                   (contentState.duration > contentState.editLimit &&
                     !contentState.override) ||
                   !contentState.mp4ready ||
-                  contentState.noffmpeg
+                  contentState.nativeUnsupported
                 }
               >
                 <div className={styles.buttonLeft}>
@@ -642,10 +643,10 @@ const RightPanel = () => {
                     {chrome.i18n.getMessage("addAudioButtonTitle")}
                   </div>
                   <div className={styles.buttonDescription}>
-                    {contentState.offline && !contentState.ffmpegLoaded
+                    {contentState.offline && !contentState.processorLoaded
                       ? chrome.i18n.getMessage("noConnectionLabel")
                       : contentState.updateChrome ||
-                        contentState.noffmpeg ||
+                        contentState.nativeUnsupported ||
                         (contentState.duration > contentState.editLimit &&
                           !contentState.override)
                       ? getNotAvailableLabel()
@@ -673,7 +674,7 @@ const RightPanel = () => {
                   role="button"
                   className={styles.button}
                   onClick={() => contentState.downloadWEBM()}
-                  disabled={contentState.isFfmpegRunning}
+                  disabled={contentState.isProcessing}
                 >
                   <div className={styles.buttonLeft}>
                     <AnimatedIcon animation="none">
@@ -700,19 +701,19 @@ const RightPanel = () => {
               {(() => {
                 // WebCodecs / fast-recorder path produces a native MP4 blob.
                 // Downloading it is just a blob-URL anchor click — no ffmpeg,
-                // no re-encoding — so the editLimit and noffmpeg gates don't
+                // no re-encoding — so the editLimit and nativeUnsupported gates don't
                 // apply. Detect via blob MIME and unblock accordingly.
                 const isNativeMp4 =
                   contentState.blob?.type === "video/mp4";
                 const mp4Disabled = isNativeMp4
-                  ? contentState.isFfmpegRunning || !contentState.mp4ready
-                  : contentState.isFfmpegRunning ||
-                    contentState.noffmpeg ||
+                  ? contentState.isProcessing || !contentState.mp4ready
+                  : contentState.isProcessing ||
+                    contentState.nativeUnsupported ||
                     !contentState.mp4ready;
                 const mp4ShowNotAvailable = isNativeMp4
                   ? false
                   : contentState.updateChrome ||
-                    contentState.noffmpeg ||
+                    contentState.nativeUnsupported ||
                     (contentState.duration > contentState.editLimit &&
                       !contentState.override);
                 return (
@@ -738,12 +739,12 @@ const RightPanel = () => {
                   </div>
                   <div className={styles.buttonDescription}>
                     {contentState.offline &&
-                    !contentState.ffmpegLoaded &&
+                    !contentState.processorLoaded &&
                     !isNativeMp4
                       ? chrome.i18n.getMessage("noConnectionLabel")
                       : mp4ShowNotAvailable
                       ? getNotAvailableLabel()
-                      : contentState.mp4ready && !contentState.isFfmpegRunning
+                      : contentState.mp4ready && !contentState.isProcessing
                       ? (contentState.isHardcodeEnabled ? "Export an .mp4 video with hardcoded subtitles" : chrome.i18n.getMessage("downloadMP4ButtonDescription"))
                       : getPreparingLabel()}
                   </div>
@@ -761,7 +762,7 @@ const RightPanel = () => {
                   role="button"
                   className={styles.button}
                   onClick={() => contentState.downloadWEBM()}
-                  disabled={contentState.isFfmpegRunning || contentState.isHardcodeEnabled}
+                  disabled={contentState.isProcessing || contentState.isHardcodeEnabled}
                 >
                   <div className={styles.buttonLeft}>
                     <AnimatedIcon animation="none">
@@ -775,7 +776,7 @@ const RightPanel = () => {
                         : chrome.i18n.getMessage("downloadWEBMButtonTitle")}
                     </div>
                     <div className={styles.buttonDescription}>
-                      {!contentState.isFfmpegRunning
+                      {!contentState.isProcessing
                         ? (contentState.isHardcodeEnabled ? "Not available when hardcoding subtitles" : chrome.i18n.getMessage("downloadWEBMButtonDescription"))
                         : getPreparingLabel()}
                     </div>
@@ -796,10 +797,10 @@ const RightPanel = () => {
                   contentState.downloadGIF();
                 }}
                 disabled={
-                  contentState.isFfmpegRunning ||
+                  contentState.isProcessing ||
                   contentState.duration > 30 ||
                   !contentState.mp4ready ||
-                  contentState.noffmpeg ||
+                  contentState.nativeUnsupported ||
                   contentState.isHardcodeEnabled
                 }
               >
@@ -815,10 +816,10 @@ const RightPanel = () => {
                       : chrome.i18n.getMessage("downloadGIFButtonTitle")}
                   </div>
                   <div className={styles.buttonDescription}>
-                    {contentState.offline && !contentState.ffmpegLoaded
+                    {contentState.offline && !contentState.processorLoaded
                       ? chrome.i18n.getMessage("noConnectionLabel")
                       : contentState.updateChrome ||
-                        contentState.noffmpeg ||
+                        contentState.nativeUnsupported ||
                         (contentState.duration > contentState.editLimit &&
                           !contentState.override)
                       ? getNotAvailableLabel()

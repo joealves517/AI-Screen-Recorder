@@ -133,9 +133,12 @@ $margin-offset: 8px;
   transition: none !important;
   padding-left: 40px;
   padding-right: 40px;
+  background: transparent !important;
   background-color: transparent !important;
+  box-shadow: none !important;
 }
 .advanced-cropper-background {
+  background: transparent !important;
   background-color: transparent !important;
 }
 .advanced-cropper-artificial-transition {
@@ -149,10 +152,9 @@ $margin-offset: 8px;
 .advanced-cropper-wrapper,
 .advanced-cropper,
 .CropperBackgroundWrapper {
-  /* tile background image svg */
-  background-image: url("chrome-extension://__MSG_@@extension_id__/assets/editor/transparenttile.png") !important;
-  background-repeat: repeat !important;
-  background-size: 20px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   transition: none !important;
 }
 /* Custom styles for the handles */

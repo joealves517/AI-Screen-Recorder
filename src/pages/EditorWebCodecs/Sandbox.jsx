@@ -27,23 +27,28 @@ const getCloudRunConfig = async () => {
   ]);
 
   // Only route to Premium Vertex AI if they are actively subscribed
-  if (isLoggedIn && aisrToken && isSubscribed) {
-    return {
-      endpoint: `${API_BASE}/api/screenity`,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${aisrToken}`,
-      },
-    };
+  if (isLoggedIn && aisrToken) {
+    if (isSubscribed) {
+      return {
+        endpoint: `${API_BASE}/api/screenity`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${aisrToken}`,
+        },
+      };
+    } else {
+      // Free tier — auth required to prevent abuse
+      return {
+        endpoint: `${API_BASE}/api/screenity/free`,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${aisrToken}`,
+        },
+      };
+    }
   }
 
-  // Free/guest tier — no auth required
-  return {
-    endpoint: `${API_BASE}/api/screenity/free`,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+  throw new Error("Authentication required to use Smart AI features.");
 };
 
 /**
@@ -75,10 +80,10 @@ const Sandbox = () => {
     if (mediabunnyLoaded.current || !triggerLoad.current) return;
     try {
       mediabunnyLoaded.current = true;
-      sendMessage({ type: "ffmpeg-loaded" });
+      sendMessage({ type: "processor-loaded" });
     } catch (error) {
       sendMessage({
-        type: "ffmpeg-load-error",
+        type: "processor-load-error",
         error: error instanceof Error ? error.message : JSON.stringify(error),
         fallback: true,
       });
@@ -128,7 +133,7 @@ const Sandbox = () => {
             message.replaceAudio,
             (progress) =>
               sendMessage({
-                type: "ffmpeg-progress",
+                type: "processor-progress",
                 progress: Math.round(progress * 100),
               })
           );
@@ -184,7 +189,7 @@ const Sandbox = () => {
           const webmBlob = base64ToWebmBlob(message.base64);
           const mp4Blob = await convertWebmToMp4(webmBlob, (progress) =>
             sendMessage({
-              type: "ffmpeg-progress",
+              type: "processor-progress",
               progress: Math.round(progress * 100),
             })
           );
@@ -213,7 +218,7 @@ const Sandbox = () => {
               width: message.width,
               height: message.height,
             },
-            (progress) => sendMessage({ type: "ffmpeg-progress", progress })
+            (progress) => sendMessage({ type: "processor-progress", progress })
           );
           const base64 = await toBase64(blob);
           sendMessage({ type: "updated-blob", base64, topLevel: true, _opId: message._opId });
@@ -229,7 +234,7 @@ const Sandbox = () => {
             message.cut,
             message.duration,
             message.encode,
-            (progress) => sendMessage({ type: "ffmpeg-progress", progress })
+            (progress) => sendMessage({ type: "processor-progress", progress })
           );
           const base64 = await toBase64(blob);
           sendMessage({
@@ -258,7 +263,7 @@ const Sandbox = () => {
               ffmpegInstance.current,
               message.blob,
               message.assData,
-              (progress) => sendMessage({ type: "ffmpeg-progress", progress })
+              (progress) => sendMessage({ type: "processor-progress", progress })
             );
             const base64 = await toBase64(blob);
 
@@ -271,7 +276,7 @@ const Sandbox = () => {
             });
           } catch (error) {
             sendMessage({
-              type: "ffmpeg-error",
+              type: "processor-error",
               error: error instanceof Error ? error.message : JSON.stringify(error),
             });
           }
@@ -304,7 +309,7 @@ const Sandbox = () => {
             message.startTime,
             message.endTime,
             message.duration,
-            (progress) => sendMessage({ type: "ffmpeg-progress", progress })
+            (progress) => sendMessage({ type: "processor-progress", progress })
           );
           const base64 = await toBase64(blob);
           sendMessage({
@@ -324,7 +329,7 @@ const Sandbox = () => {
             message.duration,
             (progress) =>
               sendMessage({
-                type: "ffmpeg-progress",
+                type: "processor-progress",
                 progress: Math.round(progress * 100),
               })
           );
@@ -349,7 +354,7 @@ const Sandbox = () => {
 
           const result = await convertMp4ToWebm(message.blob, (progress) =>
             sendMessage({
-              type: "ffmpeg-progress",
+              type: "processor-progress",
               progress: Math.round(progress * 100),
             })
           );
@@ -625,7 +630,7 @@ const Sandbox = () => {
       if (errMsg.includes("too long")) {
         sendMessage({ type: "edit-too-long", _opId: message._opId });
       } else {
-        sendMessage({ type: "ffmpeg-error", error: errMsg, _opId: message._opId });
+        sendMessage({ type: "processor-error", error: errMsg, _opId: message._opId });
       }
     }
   };

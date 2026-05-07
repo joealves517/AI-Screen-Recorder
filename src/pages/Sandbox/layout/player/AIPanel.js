@@ -1,4 +1,6 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
+import ReactDOM from "react-dom";
+import { motion } from "framer-motion";
 import { marked } from "marked";
 import styles from "../../styles/player/_RightPanel.module.scss";
 import { ContentStateContext } from "../../context/ContentState";
@@ -26,7 +28,8 @@ import {
   ListIcon as LayoutList,
   MessageSquareMoreIcon as Share2,
   CircleHelpIcon as FileQuestion,
-  ActivityIcon as Activity
+  ActivityIcon as Activity,
+  LoaderPinwheelIcon
 } from "lucide-animated";
 
 import blackNoteIconUrl from "../../../../assets/blacknote-icon.png";
@@ -162,18 +165,6 @@ const downloadButtonStyle = {
   transition: "background 0.2s",
 };
 
-const errorBannerStyle = (bgColor, textColor) => ({
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-  color: textColor,
-  fontSize: "12px",
-  padding: "12px 14px",
-  background: bgColor,
-  borderRadius: "10px",
-  marginBottom: "12px",
-  flexWrap: "wrap",
-});
 
 const ctaButtonStyle = (bgColor) => ({
   padding: "6px 12px",
@@ -410,16 +401,32 @@ const AIPanel = () => {
     }
   }, []);
 
-  // Detect user tier on mount
+  // Detect user tier on mount and listen for changes
   useEffect(() => {
+    const updateTier = (result) => {
+      if (!result.isLoggedIn) setUserTier("guest");
+      else if (result.isSubscribed && !result.quotaExhausted) setUserTier("pro");
+      else setUserTier("free");
+    };
+
     chrome.storage.local.get(
       ["isLoggedIn", "isSubscribed", "quotaExhausted"],
-      (result) => {
-        if (!result.isLoggedIn) setUserTier("guest");
-        else if (result.isSubscribed && !result.quotaExhausted) setUserTier("pro");
-        else setUserTier("free");
-      }
+      updateTier
     );
+
+    const handleStorageChange = (changes, areaName) => {
+      if (areaName === "local" && (changes.isLoggedIn || changes.isSubscribed || changes.quotaExhausted)) {
+        chrome.storage.local.get(["isLoggedIn", "isSubscribed", "quotaExhausted"], (result) => {
+          updateTier(result);
+          if (result.isLoggedIn) {
+            setError(null); // Clear login required error
+          }
+        });
+      }
+    };
+
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
   // Restore AI data from cache on mount
@@ -605,65 +612,137 @@ const AIPanel = () => {
   // --- Error handling — always show user-friendly messages, never raw errors ---
 
   const handleAIError = (errorMsg) => {
+    // If the error indicates an authentication failure (e.g. 401), try to auto-refresh first
+    if (errorMsg && (errorMsg.includes("401") || errorMsg.includes("Auth") || errorMsg.includes("unauthorized") || errorMsg.includes("Authentication") || errorMsg.includes("invalid_token") || errorMsg.includes("token"))) {
+      chrome.runtime.sendMessage({ type: "refresh-auth" }, (response) => {
+        if (response && response.authenticated) {
+          // Auto-refresh succeeded! Dismiss the error and notify user to retry.
+          setError(null);
+          chrome.runtime.sendMessage({ type: "show-toast", message: "Session auto-refreshed. Please try again." }).catch(() => {});
+        } else {
+          // Auto-refresh failed, force sign-in
+          setUserTier("guest");
+          chrome.storage.local.remove(["aisrToken", "isLoggedIn", "isSubscribed"]).catch(() => {});
+          setError("SERVER_ERROR");
+          setTimeout(() => {
+            const alertContainer = document.getElementById("right-panel-alert-container");
+            if (alertContainer) alertContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          }, 50);
+        }
+      });
+      return; // Skip the generic error display below while we check auth
+    }
+
     // Normalize all errors to a single flag — raw messages are never displayed
     setError("SERVER_ERROR");
+    
+    // Auto-scroll to the top to show the error banner
+    setTimeout(() => {
+      const alertContainer = document.getElementById("right-panel-alert-container");
+      if (alertContainer) {
+        alertContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }, 50);
+  };
+
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleLogin = () => {
+    setIsLoggingIn(true);
+    chrome.runtime.sendMessage({ type: "handle-login" }).catch(() => {});
+    setTimeout(() => setIsLoggingIn(false), 10000); // Reset after 10s if no response
   };
 
   const renderSmartError = () => {
     if (!error) return null;
+    const portalTarget = document.getElementById('right-panel-alert-container');
+    if (!portalTarget) return null;
 
+    let content = null;
     if (userTier === "guest") {
-      return (
-        <div style={errorBannerStyle("#f0f9ff", "#0369a1")}>
-          <AnimatedIcon animation="none">
-            <Info size={14} style={{ flexShrink: 0 }} />
-          </AnimatedIcon>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>
-              Server is currently overloaded
+      content = (
+        <div className={styles.alert}>
+          <div className={styles.buttonLeft}>
+            <AnimatedIcon animation="none">
+              <Lock size={24} color="currentColor" />
+            </AnimatedIcon>
+          </div>
+          <div className={styles.buttonMiddle}>
+            <div className={styles.buttonTitle}>
+              Sign In Required
             </div>
-            <div style={{ fontSize: 11, opacity: 0.8 }}>
-              Sign in to enjoy a better and more stable AI experience.
+            <div className={styles.buttonDescription}>
+              Please sign in to unlock Smart AI features.
+              <div
+                onClick={isLoggingIn ? undefined : handleLogin}
+                style={{ cursor: isLoggingIn ? "default" : "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
+              >
+                {isLoggingIn && (
+                  <motion.span
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    style={{ display: "flex" }}
+                  >
+                    <LoaderPinwheelIcon size={14} color="currentColor" />
+                  </motion.span>
+                )}
+                {isLoggingIn ? "Signing in..." : "Sign in with Google"}
+              </div>
             </div>
           </div>
         </div>
       );
-    }
-
-    if (userTier === "free") {
-      return (
-        <div style={errorBannerStyle("#fffbeb", "#92400e")}>
-          <AnimatedIcon animation="none">
-            <Crown size={14} style={{ flexShrink: 0 }} />
-          </AnimatedIcon>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>
-              Server is currently overloaded
+    } else if (userTier === "free") {
+      content = (
+        <div className={styles.alert}>
+          <div className={styles.buttonLeft}>
+            <AnimatedIcon animation="none">
+              <Crown size={24} color="currentColor" />
+            </AnimatedIcon>
+          </div>
+          <div className={styles.buttonMiddle}>
+            <div className={styles.buttonTitle}>
+              We are currently experiencing high traffic
             </div>
-            <div style={{ fontSize: 11, opacity: 0.8 }}>
+            <div className={styles.buttonDescription}>
               Upgrade to Pro for priority processing and higher limits.
+              <div
+                onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
+                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
+              >
+                {chrome.i18n.getMessage("learnMoreLabel")}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    } else {
+      content = (
+        <div className={styles.alert}>
+          <div className={styles.buttonLeft}>
+            <AnimatedIcon animation="none">
+              <Info size={24} color="currentColor" />
+            </AnimatedIcon>
+          </div>
+          <div className={styles.buttonMiddle}>
+            <div className={styles.buttonTitle}>
+              Your priority quota has been used up
+            </div>
+            <div className={styles.buttonDescription}>
+              You have been switched to the standard tier. Please try again later or contact support.
+              <div
+                onClick={() => setError(null)}
+                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
+              >
+                {chrome.i18n.getMessage("permissionsModalDismiss")}
+              </div>
             </div>
           </div>
         </div>
       );
     }
 
-    // Pro tier — quota exhausted
-    return (
-      <div style={errorBannerStyle("#f0f9ff", "#0369a1")}>
-        <AnimatedIcon animation="none">
-          <Info size={14} style={{ flexShrink: 0 }} />
-        </AnimatedIcon>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 600, marginBottom: 4 }}>
-            Your priority quota has been used up
-          </div>
-          <div style={{ fontSize: 11, opacity: 0.8 }}>
-            You have been switched to the standard tier. Please try again later or contact support.
-          </div>
-        </div>
-      </div>
-    );
+    return ReactDOM.createPortal(content, portalTarget);
   };
 
   // --- Handlers ---
@@ -862,7 +941,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
             <>
               <AnimatedIcon animation="none">
                 <Lock size={12} />
-              </AnimatedIcon> Generate subtitles first
+              </AnimatedIcon> Run Smart Video Analysis first
             </>
           ) : (
             description
@@ -990,6 +1069,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
         }
       `}</style>
       <div
+        id="ai-panel-top"
         className={styles.sectionTitle}
         style={{ display: "flex", alignItems: "center", gap: "8px" }}
       >
@@ -1034,7 +1114,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
               Icon: AudioLines,
               title: "Smart Video Analysis",
               description: "Extract intelligence, subtitles, and metadata.",
-              onClick: handleTranscribe,
+              onClick: userTier === "guest" ? () => setError("LOGIN_REQUIRED") : handleTranscribe,
               taskKey: "transcribe",
               disabled: isProcessing,
               showLockText: false,

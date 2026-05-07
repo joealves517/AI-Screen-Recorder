@@ -1,11 +1,12 @@
 /**
- * Screenity AI Routes — Free tier (Gemini API key, no auth required).
+ * Screenity AI Routes — Free tier (Gemini API key, requires auth to prevent abuse).
  * Uses the project's own API key, NOT shared with other extensions.
  * Rate limited aggressively.
  */
 
 import { Router, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -20,6 +21,7 @@ const MODEL = "gemini-2.5-flash-lite";
 
 router.post(
   "/transcribe",
+  requireAuth,
   async (req: Request, res: Response): Promise<void> => {
     const { audioBase64, mimeType, language } = req.body;
 
@@ -81,6 +83,7 @@ Return ONLY the raw JSON array. No markdown code blocks, no commentary.`,
 
 router.post(
   "/summarize",
+  requireAuth,
   async (req: Request, res: Response): Promise<void> => {
     const { transcript, style } = req.body;
 
@@ -126,6 +129,7 @@ router.post(
 
 router.post(
   "/translate",
+  requireAuth,
   async (req: Request, res: Response): Promise<void> => {
     const { segments, targetLang } = req.body;
 
@@ -194,6 +198,7 @@ ${JSON.stringify(textsPayload)}`,
 
 router.post(
   "/title",
+  requireAuth,
   async (req: Request, res: Response): Promise<void> => {
     const { transcript } = req.body;
 

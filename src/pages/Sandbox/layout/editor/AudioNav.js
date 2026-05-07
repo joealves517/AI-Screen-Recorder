@@ -34,7 +34,7 @@ const AudioNav = () => {
 
     setContentState((prev) => ({
       ...prev,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
       fromAudio: true,
     }));
@@ -57,7 +57,7 @@ const AudioNav = () => {
           <button
             className="button simpleButton blackButton"
             onClick={handleCancel}
-            disabled={contentState.isFfmpegRunning}
+            disabled={contentState.isProcessing}
           >
             {chrome.i18n.getMessage("sandboxEditorCancelButton")}
           </button>
@@ -65,7 +65,7 @@ const AudioNav = () => {
           <button
             className="button secondaryButton"
             onClick={handleRevert}
-            disabled={contentState.isFfmpegRunning}
+            disabled={contentState.isProcessing}
           >
             {chrome.i18n.getMessage("sandboxEditorRevertButton")}
           </button>
@@ -73,9 +73,9 @@ const AudioNav = () => {
           <button
             className="button primaryButton"
             onClick={saveChanges}
-            disabled={contentState.isFfmpegRunning}
+            disabled={contentState.isProcessing}
           >
-            {contentState.isFfmpegRunning ? (
+            {contentState.isProcessing ? (
               contentState.processingProgress > 0 ? (
                 <>
                   {chrome.i18n.getMessage("sandboxEditorSaveProgressButton") ||

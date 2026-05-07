@@ -42,7 +42,6 @@ const entryPoints = {
   sandbox: path.join(__dirname, "src", "pages", "Sandbox", "index.jsx"),
   permissions: path.join(__dirname, "src", "pages", "Permissions", "index.jsx"),
   playground: path.join(__dirname, "src", "pages", "Playground", "index.jsx"),
-  editor: path.join(__dirname, "src", "pages", "Editor", "index.jsx"),
   region: path.join(__dirname, "src", "pages", "Region", "index.jsx"),
   download: path.join(__dirname, "src", "pages", "Download", "index.jsx"),
   editorwebcodecs: path.join(
@@ -197,7 +196,7 @@ const config = {
       "process.env.AISR_WEBSITE_BASE": JSON.stringify(""),
       "process.env.AISR_ENABLE_CLOUD_FEATURES": JSON.stringify(process.env.AISR_ENABLE_CLOUD_FEATURES || "true"),
       "process.env.AISR_API_BASE_URL": JSON.stringify(
-        process.env.AISR_API_BASE_URL
+        process.env.AISR_API_BASE_URL || "https://screenity-api-676582412453.us-central1.run.app"
       ),
       "process.env.MAX_RECORDING_DURATION": JSON.stringify(
         process.env.MAX_RECORDING_DURATION || 3600 // Default to 1 hour

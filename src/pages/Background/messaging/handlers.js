@@ -2120,7 +2120,18 @@ export const setupHandlers = () => {
   registerMessage("refresh-auth", async () => {
     if (!CLOUD_FEATURES_ENABLED)
       return { success: false, message: "Cloud features disabled" };
-    return await loginWithWebsite();
+    
+    try {
+      const { refreshSupabaseToken } = await import("../auth/supabaseAuth.js");
+      const newToken = await refreshSupabaseToken();
+      if (newToken) {
+        return { authenticated: true };
+      }
+    } catch (e) {
+      console.warn("Manual token refresh failed:", e);
+    }
+    
+    return { authenticated: false };
   });
   registerMessage("sync-recording-state", async (message, sendResponse) => {
     const {

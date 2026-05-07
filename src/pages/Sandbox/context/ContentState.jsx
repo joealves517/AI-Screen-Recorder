@@ -167,10 +167,10 @@ const ContentState = (props) => {
     subtitleAssData: null,
     duration: 0,
     mode: "player",
-    ffmpegLoaded: false,
+    processorLoaded: false,
     frame: null,
     getFrame: null,
-    isFfmpegRunning: false,
+    isProcessing: false,
     reencoding: false,
     prevWidth: 0,
     width: 0,
@@ -197,7 +197,7 @@ const ContentState = (props) => {
     driveEnabled: false,
     hasBeenEdited: false,
     dragInteracted: false,
-    noffmpeg: false,
+    nativeUnsupported: false,
     processingProgress: 0, // Progress percentage (0-100) for current operation
     openModal: null,
     rawBlob: null,
@@ -329,7 +329,7 @@ const ContentState = (props) => {
         );
         setContentState((prev) => ({
           ...prev,
-          isFfmpegRunning: true,
+          isProcessing: true,
           processingProgress: Math.max(prev.processingProgress || 0, prePct),
         }));
         if (status.stage === "chunks_ready" || status.stage === "ready") {
@@ -723,11 +723,11 @@ const ContentState = (props) => {
         mp4ready: true,
         ready: true,
         rawBlob: blob,
-        isFfmpegRunning: false,
-        noffmpeg: false,
+        isProcessing: false,
+        nativeUnsupported: false,
         // Native MP4 from WebCodecs: trim/crop go through mediabunny streaming
         // ops, and mute/add-audio have their own 15-min cap. 7 min is a
-        // leftover from the ffmpeg.wasm era — bump to 15 min to match.
+        // legacy processor flag — bump to 15 min to match.
         editLimit: Math.max(prev.editLimit || 0, 900),
       }));
 
@@ -839,7 +839,7 @@ const ContentState = (props) => {
               // Skip conversion only if Chrome is outdated or recording exceeds edit limit
               if (
                 contentStateRef.current.updateChrome ||
-                contentStateRef.current.noffmpeg ||
+                contentStateRef.current.nativeUnsupported ||
                 (contentStateRef.current.duration >
                   contentStateRef.current.editLimit &&
                   !contentStateRef.current.override)
@@ -848,7 +848,7 @@ const ContentState = (props) => {
                   ...prevState,
                   webm: fixedWebm,
                   ready: true,
-                  isFfmpegRunning: false,
+                  isProcessing: false,
                 }));
                 chrome.runtime.sendMessage({ type: "recording-complete" });
                 return;
@@ -874,7 +874,7 @@ const ContentState = (props) => {
           // Skip conversion only if Chrome is outdated or recording exceeds edit limit
           if (
             contentStateRef.current.updateChrome ||
-            contentStateRef.current.noffmpeg ||
+            contentStateRef.current.nativeUnsupported ||
             (contentStateRef.current.duration >
               contentStateRef.current.editLimit &&
               !contentStateRef.current.override)
@@ -883,7 +883,7 @@ const ContentState = (props) => {
               ...prevState,
               webm: fixedWebm,
               ready: true,
-              isFfmpegRunning: false,
+              isProcessing: false,
             }));
             chrome.runtime.sendMessage({ type: "recording-complete" });
             return;
@@ -908,7 +908,7 @@ const ContentState = (props) => {
         // Skip conversion only if Chrome is outdated or recording exceeds edit limit
         if (
           contentStateRef.current.updateChrome ||
-          contentStateRef.current.noffmpeg ||
+          contentStateRef.current.nativeUnsupported ||
           (contentStateRef.current.duration >
             contentStateRef.current.editLimit &&
             !contentStateRef.current.override)
@@ -917,7 +917,7 @@ const ContentState = (props) => {
             ...prevState,
             webm: blob,
             ready: true,
-            isFfmpegRunning: false,
+            isProcessing: false,
           }));
           chrome.runtime.sendMessage({ type: "recording-complete" });
           return;
@@ -943,7 +943,7 @@ const ContentState = (props) => {
         ...prevState,
         webm: blob,
         ready: true,
-        isFfmpegRunning: false,
+        isProcessing: false,
       }));
       chrome.runtime.sendMessage({ type: "recording-complete" });
     }
@@ -963,8 +963,8 @@ const ContentState = (props) => {
             ...prev,
             webm: prev.webm || prev.rawBlob || withBlob,
             ready: true,
-            noffmpeg: true,
-            isFfmpegRunning: false,
+            nativeUnsupported: true,
+            isProcessing: false,
           };
         });
         chrome.runtime.sendMessage({ type: "recording-complete" });
@@ -1070,7 +1070,7 @@ const ContentState = (props) => {
       setContentState((prevContentState) => ({
         ...prevContentState,
         updateChrome: true,
-        noffmpeg: true,
+        nativeUnsupported: true,
       }));
     }
   }, []);
@@ -1126,8 +1126,8 @@ const ContentState = (props) => {
           setContentState((prev) => ({
             ...prev,
             ready: true,
-            noffmpeg: true,
-            isFfmpegRunning: false,
+            nativeUnsupported: true,
+            isProcessing: false,
           }));
         } else {
           console.warn(
@@ -1137,8 +1137,8 @@ const ContentState = (props) => {
             ...prev,
             webm: prev.rawBlob,
             ready: true,
-            noffmpeg: true,
-            isFfmpegRunning: false,
+            nativeUnsupported: true,
+            isProcessing: false,
           }));
         }
         chrome.runtime.sendMessage({ type: "recording-complete" });
@@ -1228,8 +1228,8 @@ const ContentState = (props) => {
         setContentState((prevContentState) => ({
           ...prevContentState,
           fallback: true,
-          noffmpeg: false, // Pretending FFmpeg is loaded (using Mediabunny)
-          isFfmpegRunning: false,
+          nativeUnsupported: false, // Pretending FFmpeg is loaded (using Mediabunny)
+          isProcessing: false,
           editLimit: 3600, // Set high edit limit (1 hour) for recovery mode
         }));
 
@@ -1250,8 +1250,8 @@ const ContentState = (props) => {
       } else if (message.type === "large-recording") {
         setContentState((prevContentState) => ({
           ...prevContentState,
-          noffmpeg: false,
-          isFfmpegRunning: true,
+          nativeUnsupported: false,
+          isProcessing: true,
           editLimit: 0,
         }));
         const shouldGate =
@@ -1262,9 +1262,9 @@ const ContentState = (props) => {
             if (!result.ok) {
               setContentState((prev) => ({
                 ...prev,
-                isFfmpegRunning: false,
-                noffmpeg: true,
-                ffmpegLoaded: true,
+                isProcessing: false,
+                nativeUnsupported: true,
+                processorLoaded: true,
                 processingProgress: 0,
               }));
               // Try to recover chunks.
@@ -1316,8 +1316,8 @@ const ContentState = (props) => {
         setContentState((prevContentState) => ({
           ...prevContentState,
           fallback: true,
-          noffmpeg: false,
-          isFfmpegRunning: true,
+          nativeUnsupported: false,
+          isProcessing: true,
           editLimit: 3600,
         }));
         const shouldGate =
@@ -1328,9 +1328,9 @@ const ContentState = (props) => {
             if (!result.ok) {
               setContentState((prev) => ({
                 ...prev,
-                isFfmpegRunning: false,
-                noffmpeg: true,
-                ffmpegLoaded: true,
+                isProcessing: false,
+                nativeUnsupported: true,
+                processorLoaded: true,
                 processingProgress: 0,
               }));
               // Try to recover chunks.
@@ -1382,8 +1382,8 @@ const ContentState = (props) => {
         setContentState((prevContentState) => ({
           ...prevContentState,
           fallback: true,
-          noffmpeg: true, // No FFmpeg
-          isFfmpegRunning: true,
+          nativeUnsupported: true, // No FFmpeg
+          isProcessing: true,
           editLimit: 0, // No editing allowed
         }));
         const shouldGate =
@@ -1394,9 +1394,9 @@ const ContentState = (props) => {
             if (!result.ok) {
               setContentState((prev) => ({
                 ...prev,
-                isFfmpegRunning: false,
-                noffmpeg: true,
-                ffmpegLoaded: true,
+                isProcessing: false,
+                nativeUnsupported: true,
+                processorLoaded: true,
                 processingProgress: 0,
               }));
               // Try to recover chunks.
@@ -1564,7 +1564,7 @@ const ContentState = (props) => {
           blob: blob,
           mp4ready: true,
           hasBeenEdited: event.data.edited === false ? prev.hasBeenEdited : true,
-          isFfmpegRunning: false,
+          isProcessing: false,
           reencoding: false,
           trimming: false,
           cutting: false,
@@ -1628,7 +1628,7 @@ const ContentState = (props) => {
       setContentState((prevContentState) => ({
         ...prevContentState,
         saved: true,
-        isFfmpegRunning: false,
+        isProcessing: false,
         downloading: false,
       }));
     } else if (event.data.type === "download-gif") {
@@ -1643,7 +1643,7 @@ const ContentState = (props) => {
       setContentState((prevContentState) => ({
         ...prevContentState,
         saved: true,
-        isFfmpegRunning: false,
+        isProcessing: false,
         downloadingGIF: false,
       }));
     } else if (event.data.type === "new-frame") {
@@ -1651,24 +1651,24 @@ const ContentState = (props) => {
       setContentState((prevContentState) => ({
         ...prevContentState,
         frame: url,
-        isFfmpegRunning: false,
+        isProcessing: false,
       }));
-    } else if (event.data.type === "ffmpeg-loaded") {
+    } else if (event.data.type === "processor-loaded") {
       setContentState((prevContentState) => ({
         ...prevContentState,
-        ffmpeg: true,
-        ffmpegLoaded: true,
-        isFfmpegRunning: false,
+        useProcessor: true,
+        processorLoaded: true,
+        isProcessing: false,
       }));
-    } else if (event.data.type === "ffmpeg-load-error") {
+    } else if (event.data.type === "processor-load-error") {
       setContentState((prevContentState) => ({
         ...prevContentState,
-        ffmpeg: true,
-        noffmpeg: true,
-        ffmpegLoaded: true,
-        isFfmpegRunning: false,
+        useProcessor: true,
+        nativeUnsupported: true,
+        processorLoaded: true,
+        isProcessing: false,
       }));
-      console.log("[AISR][Editor] recording-complete sent from ffmpeg-load-error fallback");
+      console.log("[AISR][Editor] recording-complete sent from processor-load-error fallback");
       chrome.runtime.sendMessage({ type: "recording-complete" });
 
       // if (!navigator.onLine) {
@@ -1686,19 +1686,19 @@ const ContentState = (props) => {
       //     contentState.loadFFmpeg();
       //   });
       // }
-    } else if (event.data.type === "ffmpeg-error") {
+    } else if (event.data.type === "processor-error") {
       console.warn("FFmpeg error:", event.data.error);
       clearEditOp();
 
       // Fallback: allow playback/download using webm/rawBlob even if conversion fails
       setContentState((prev) => {
         // If an edit was actively running, surface the failure to the user
-        const wasEditing = prev.isFfmpegRunning && (prev.cutting || prev.trimming || prev.muting || prev.cropping || prev.reencoding);
+        const wasEditing = prev.isProcessing && (prev.cutting || prev.trimming || prev.muting || prev.cropping || prev.reencoding);
         return {
           ...prev,
-          noffmpeg: true,
-          ffmpegLoaded: true, // treat as "done trying"
-          isFfmpegRunning: false,
+          nativeUnsupported: true,
+          processorLoaded: true, // treat as "done trying"
+          isProcessing: false,
           muting: false,
           cutting: false,
           trimming: false,
@@ -1718,7 +1718,7 @@ const ContentState = (props) => {
       clearEditOp();
       setContentState((prev) => ({
         ...prev,
-        isFfmpegRunning: false,
+        isProcessing: false,
         muting: false,
         cutting: false,
         trimming: false,
@@ -1732,7 +1732,7 @@ const ContentState = (props) => {
         ...prevContentState,
         mode: "crop",
         cropping: false,
-        isFfmpegRunning: false,
+        isProcessing: false,
         processingProgress: 0,
         start: 0,
         end: 1,
@@ -1744,7 +1744,7 @@ const ContentState = (props) => {
           contentState.getFrame();
         }
       }, 100);
-    } else if (event.data.type === "ffmpeg-progress") {
+    } else if (event.data.type === "processor-progress") {
       const pct = Math.min(100, Math.max(0, Math.round(event.data.progress)));
 
       setContentState((prevContentState) => ({
@@ -1764,7 +1764,7 @@ const ContentState = (props) => {
       setContentState((prevState) => ({
         ...prevState,
         saved: true,
-        isFfmpegRunning: false,
+        isProcessing: false,
         downloadingWEBM: false,
       }));
     }
@@ -1783,7 +1783,7 @@ const ContentState = (props) => {
   const getBlob = async () => {
     // Skip conversion only if Chrome is outdated or recording exceeds edit limit
     if (
-      contentState.noffmpeg ||
+      contentState.nativeUnsupported ||
       (contentState.duration > contentState.editLimit && !contentState.override)
     ) {
       return;
@@ -1801,16 +1801,16 @@ const ContentState = (props) => {
       ready: true,
     }));
 
-    if (contentState.offline && contentState.ffmpeg === true) {
+    if (contentState.offline && contentState.useProcessor === true) {
       // Offline (if I need to do anything differently)
     } else if (
       !contentState.updateChrome &&
       (contentState.duration <= contentState.editLimit || contentState.override)
     ) {
-      // Set isFfmpegRunning to true when starting conversion
+      // Set isProcessing to true when starting conversion
       setContentState((prevState) => ({
         ...prevState,
-        isFfmpegRunning: true,
+        isProcessing: true,
       }));
       sendMessage({
         type: "base64-to-blob",
@@ -1824,35 +1824,35 @@ const ContentState = (props) => {
 
   useEffect(() => {
     if (!contentState.base64) return;
-    if (!contentState.ffmpeg) return;
-    if (!contentState.ffmpegLoaded) return;
+    if (!contentState.useProcessor) return;
+    if (!contentState.processorLoaded) return;
 
     getBlob();
-  }, [contentState.base64, contentState.ffmpeg, contentState.ffmpegLoaded]);
+  }, [contentState.base64, contentState.useProcessor, contentState.processorLoaded]);
 
   // 30s fallback: if FFmpeg never loads (blocked CDN, worker crash, etc.),
   // force recovery mode so the user can still download their recording.
   useEffect(() => {
     if (!contentState.base64) return;
-    if (!contentState.ffmpeg) return;
-    if (contentState.ffmpegLoaded) return; // FFmpeg loaded normally — nothing to do
-    if (contentState.noffmpeg) return;     // already in fallback — nothing to do
+    if (!contentState.useProcessor) return;
+    if (contentState.processorLoaded) return; // FFmpeg loaded normally — nothing to do
+    if (contentState.nativeUnsupported) return;     // already in fallback — nothing to do
 
     const timer = setTimeout(() => {
       // Re-check via ref in case state changed since the effect ran.
       const current = contentStateRef.current;
-      if (current.ffmpegLoaded || current.noffmpeg) return;
+      if (current.processorLoaded || current.nativeUnsupported) return;
       chrome.storage.local.set({ editorLoadTimeoutAt: Date.now() });
       setContentState((prev) => {
         // Double-check inside the updater for concurrent state races.
-        if (prev.ffmpegLoaded || prev.noffmpeg) return prev;
+        if (prev.processorLoaded || prev.nativeUnsupported) return prev;
         // Also set ready when falling back — getBlob() early-returns
-        // when noffmpeg is true, so ready would never be set otherwise.
+        // when nativeUnsupported is true, so ready would never be set otherwise.
         const fallbackWebm = prev.webm || prev.rawBlob;
         return {
           ...prev,
-          noffmpeg: true,
-          ffmpegLoaded: true,
+          nativeUnsupported: true,
+          processorLoaded: true,
           fallback: true,
           ...(fallbackWebm && !prev.ready
             ? { webm: fallbackWebm, ready: true }
@@ -1864,20 +1864,20 @@ const ContentState = (props) => {
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, [contentState.base64, contentState.ffmpeg, contentState.ffmpegLoaded, contentState.noffmpeg]);
+  }, [contentState.base64, contentState.useProcessor, contentState.processorLoaded, contentState.nativeUnsupported]);
 
   const getImage = useCallback(async () => {
     if (!contentState.blob) return;
-    if (!contentState.ffmpeg) return;
-    if (contentState.isFfmpegRunning) return;
+    if (!contentState.useProcessor) return;
+    if (contentState.isProcessing) return;
 
     setContentState((prevState) => ({
       ...prevState,
-      isFfmpegRunning: true, // Set isFfmpegRunning to true to indicate that ffmpeg is running
+      isProcessing: true, // Set isProcessing to true to indicate that ffmpeg is running
     }));
 
     sendMessage({ type: "get-frame", time: 0, blob: contentState.blob });
-  }, [contentState.blob, contentState.ffmpeg, contentState.isFfmpegRunning]);
+  }, [contentState.blob, contentState.useProcessor, contentState.isProcessing]);
 
   // Returns the opId to include in outgoing messages for stale-result validation.
   const beginEditOp = () => {
@@ -1891,7 +1891,7 @@ const ContentState = (props) => {
       opIdRef.current += 1; // invalidate any late-arriving result
       setContentState((prev) => ({
         ...prev,
-        isFfmpegRunning: false,
+        isProcessing: false,
         muting: false,
         cutting: false,
         trimming: false,
@@ -1913,7 +1913,7 @@ const ContentState = (props) => {
   };
 
   const addAudio = async (videoBlob, audioBlob, volume) => {
-    if (contentState.isFfmpegRunning) return;
+    if (contentState.isProcessing) return;
     if (
       contentState.duration > contentState.editLimit &&
       !contentState.override
@@ -1925,7 +1925,7 @@ const ContentState = (props) => {
 
     setContentState((prev) => ({
       ...prev,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
       editErrorType: null,
     }));
@@ -1943,7 +1943,7 @@ const ContentState = (props) => {
   };
 
   const handleTrim = async (cut) => {
-    if (contentState.isFfmpegRunning) return;
+    if (contentState.isProcessing) return;
     if (
       contentState.duration > contentState.editLimit &&
       !contentState.override
@@ -1955,7 +1955,7 @@ const ContentState = (props) => {
 
     setContentState((prev) => ({
       ...prev,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
       editErrorType: null,
       [cut ? "cutting" : "trimming"]: true,
@@ -1975,7 +1975,7 @@ const ContentState = (props) => {
   };
 
   const handleMute = async () => {
-    if (contentState.isFfmpegRunning) return;
+    if (contentState.isProcessing) return;
     if (
       contentState.duration > contentState.editLimit &&
       !contentState.override
@@ -1988,7 +1988,7 @@ const ContentState = (props) => {
     setContentState((prev) => ({
       ...prev,
       muting: true,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
       editErrorType: null,
     }));
@@ -2005,7 +2005,7 @@ const ContentState = (props) => {
   };
 
   const handleCrop = async (x, y, width, height) => {
-    if (contentState.isFfmpegRunning || contentState.cropping) return;
+    if (contentState.isProcessing || contentState.cropping) return;
     if (
       contentState.duration > contentState.editLimit &&
       !contentState.override
@@ -2017,7 +2017,7 @@ const ContentState = (props) => {
     setContentState((prevState) => ({
       ...prevState,
       cropping: true,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
       editErrorType: null,
     }));
@@ -2039,14 +2039,14 @@ const ContentState = (props) => {
   };
 
   const handleReencode = async (topLevel = false) => {
-    if (contentState.isFfmpegRunning) return;
+    if (contentState.isProcessing) return;
 
     const sourceBlob = contentState.blob;
     const opId = beginEditOp();
 
     setContentState((prevState) => ({
       ...prevState,
-      isFfmpegRunning: true,
+      isProcessing: true,
       reencoding: true,
       processingProgress: 0,
       editErrorType: null,
@@ -2199,12 +2199,12 @@ const ContentState = (props) => {
   };
 
   const download = async () => {
-    if (contentState.isFfmpegRunning || contentState.downloading) return;
+    if (contentState.isProcessing || contentState.downloading) return;
 
     setContentState((prev) => ({
       ...prev,
       downloading: true,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
     }));
 
@@ -2257,14 +2257,14 @@ const ContentState = (props) => {
       setContentState((prev) => ({
         ...prev,
         downloading: false,
-        isFfmpegRunning: false,
+        isProcessing: false,
         processingProgress: 0,
       }));
     }
   };
 
   const downloadWEBM = async () => {
-    if (contentState.isFfmpegRunning || contentState.downloadingWEBM) return;
+    if (contentState.isProcessing || contentState.downloadingWEBM) return;
 
     const sourceBlob = contentState.blob || contentState.webm;
 
@@ -2272,7 +2272,7 @@ const ContentState = (props) => {
       return;
     }
 
-    const hasFFmpeg = contentState.ffmpegLoaded && !contentState.noffmpeg;
+    const hasFFmpeg = contentState.processorLoaded && !contentState.nativeUnsupported;
     const isAlreadyWebm = sourceBlob.type === "video/webm";
 
     if (!hasFFmpeg || isAlreadyWebm) {
@@ -2282,7 +2282,7 @@ const ContentState = (props) => {
       setContentState((prevState) => ({
         ...prevState,
         downloadingWEBM: false,
-        isFfmpegRunning: false,
+        isProcessing: false,
         saved: true,
       }));
       return;
@@ -2296,7 +2296,7 @@ const ContentState = (props) => {
       setContentState((prev) => ({
         ...prev,
         downloadingWEBM: false,
-        isFfmpegRunning: false,
+        isProcessing: false,
         saved: true,
       }));
       return;
@@ -2305,7 +2305,7 @@ const ContentState = (props) => {
     setContentState((prevState) => ({
       ...prevState,
       downloadingWEBM: true,
-      isFfmpegRunning: true,
+      isProcessing: true,
       processingProgress: 0,
     }));
 
@@ -2320,13 +2320,13 @@ const ContentState = (props) => {
     setContentState((prevState) => ({
       ...prevState,
       downloadingWEBM: false,
-      isFfmpegRunning: false,
+      isProcessing: false,
       saved: true,
     }));
   };
 
   const downloadGIF = async () => {
-    if (contentState.isFfmpegRunning || contentState.downloading) {
+    if (contentState.isProcessing || contentState.downloading) {
       return;
     }
     if (contentState.duration > 30) return;
@@ -2334,7 +2334,7 @@ const ContentState = (props) => {
     setContentState((prevState) => ({
       ...prevState,
       downloadingGIF: true,
-      isFfmpegRunning: true,
+      isProcessing: true,
     }));
 
     sendMessage({

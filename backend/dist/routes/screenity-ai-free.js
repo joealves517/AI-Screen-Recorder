@@ -1,10 +1,11 @@
 /**
- * Screenity AI Routes — Free tier (Gemini API key, no auth required).
+ * Screenity AI Routes — Free tier (Gemini API key, requires auth to prevent abuse).
  * Uses the project's own API key, NOT shared with other extensions.
  * Rate limited aggressively.
  */
 import { Router } from "express";
 import { GoogleGenAI } from "@google/genai";
+import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 // Screenity-specific free tier API key (isolated from BlackNote/Ask This Page)
 const ai = new GoogleGenAI({
@@ -12,7 +13,7 @@ const ai = new GoogleGenAI({
 });
 const MODEL = "gemini-2.5-flash-lite";
 // ─── Transcribe ─────────────────────────────────────────────────────
-router.post("/transcribe", async (req, res) => {
+router.post("/transcribe", requireAuth, async (req, res) => {
     const { audioBase64, mimeType, language } = req.body;
     if (!audioBase64) {
         res.status(400).json({ error: "missing_audio" });
@@ -64,16 +65,29 @@ Return ONLY the raw JSON array. No markdown code blocks, no commentary.`,
     }
 });
 // ─── Summarize ──────────────────────────────────────────────────────
-router.post("/summarize", async (req, res) => {
+router.post("/summarize", requireAuth, async (req, res) => {
     const { transcript, style } = req.body;
     if (!transcript) {
         res.status(400).json({ error: "missing_transcript" });
         return;
     }
     try {
-        const prompt = style === "keypoints"
-            ? `Extract the key points from this video transcript as a bullet-point list. Each point should be a concise, actionable insight:\n\n${transcript}`
-            : `Summarize the following video transcript in 2-3 sentences:\n\n${transcript}`;
+        let prompt = "";
+        if (style === "keypoints") {
+            prompt = `Extract the key points from this video transcript as a bullet-point list. Each point should be a concise, actionable insight:\n\n${transcript}`;
+        }
+        else if (style === "chapters") {
+            prompt = `Generate YouTube-style smart chapters for this video transcript. Format as a bulleted list with clear, catchy titles for each section:\n\n${transcript}`;
+        }
+        else if (style === "social") {
+            prompt = `Repurpose this video transcript into an engaging, professional social media post (e.g., for LinkedIn or Twitter). Include a catchy hook, main takeaways, and relevant hashtags:\n\n${transcript}`;
+        }
+        else if (style === "quiz") {
+            prompt = `Based on this video transcript, generate a short interactive quiz with 3 multiple choice questions to test the viewer's knowledge. Provide the questions first, then list the correct answers at the end:\n\n${transcript}`;
+        }
+        else {
+            prompt = `Summarize the following video transcript in 2-3 sentences:\n\n${transcript}`;
+        }
         const response = await ai.models.generateContent({
             model: MODEL,
             contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -91,7 +105,7 @@ router.post("/summarize", async (req, res) => {
     }
 });
 // ─── Translate ──────────────────────────────────────────────────────
-router.post("/translate", async (req, res) => {
+router.post("/translate", requireAuth, async (req, res) => {
     const { segments, targetLang } = req.body;
     if (!segments || !targetLang) {
         res.status(400).json({ error: "missing_params" });
@@ -147,7 +161,7 @@ ${JSON.stringify(textsPayload)}`,
     }
 });
 // ─── Smart Title ────────────────────────────────────────────────────
-router.post("/title", async (req, res) => {
+router.post("/title", requireAuth, async (req, res) => {
     const { transcript } = req.body;
     if (!transcript) {
         res.status(400).json({ error: "missing_transcript" });

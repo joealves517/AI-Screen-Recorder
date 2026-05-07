@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { contentStateContext } from "../../context/ContentState";
 
@@ -109,7 +109,7 @@ const GuestView = () => {
           color: "#374151",
           margin: "0 0 4px",
           letterSpacing: "-0.01em",
-        }}>AI-Powered Recording</h3>
+        }}>Unlock AI Features</h3>
       </div>
 
       <div style={{
@@ -122,25 +122,25 @@ const GuestView = () => {
           icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="Smart Transcription"
           description="Auto-transcribe recordings with AI"
-          available={true}
+          available={false}
         />
         <AIFeatureItem
           icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="AI Summarization"
           description="Get key points from long videos"
-          available={true}
+          available={false}
         />
         <AIFeatureItem
           icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="Smart Titles"
           description="Auto-generate titles & descriptions"
-          available={true}
+          available={false}
         />
         <AIFeatureItem
           icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="Translation"
           description="Multi-language subtitle support"
-          available={true}
+          available={false}
         />
       </div>
 
@@ -179,21 +179,12 @@ const GuestView = () => {
         {isLoggingIn ? "Signing in..." : "Sign in with Google"}
       </button>
 
-      <p style={{
-        fontSize: "11px",
-        color: "#9CA3AF",
-        textAlign: "center",
-        margin: "10px 0 0",
-        lineHeight: "1.4",
-      }}>
-        Free features available without sign-in
-      </p>
     </div>
   );
 };
 
 // ─── Logged-In View ──────────────────────────────────────────────────
-const LoggedInView = ({ user, isPro, onLogout }) => (
+const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => (
   <div style={{ padding: "16px" }}>
     {/* Profile Card */}
     <div style={{
@@ -213,7 +204,7 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
         style={{
           width: "40px",
           height: "40px",
-          borderRadius: "12px",
+          borderRadius: "50%",
           objectFit: "cover",
           border: "2px solid #E5E7EB",
         }}
@@ -241,19 +232,43 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
         </div>
       </div>
       {/* Tier Badge */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "4px 10px",
-        borderRadius: "99px",
-        background: "#F3F4F6",
-        fontSize: "11px",
-        fontWeight: "700",
-        color: "#6B7280",
-        letterSpacing: "0.02em",
-      }}>
-        {isPro ? "PRO" : "FREE"}
-      </div>
+      {isPro ? (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "4px 10px",
+          borderRadius: "99px",
+          background: "#F3F4F6",
+          fontSize: "11px",
+          fontWeight: "700",
+          color: "#6B7280",
+          letterSpacing: "0.02em",
+        }}>
+          {quotaExhausted ? "LIMIT EXCEEDED" : "PRO"}
+        </div>
+      ) : (
+        <button
+          onClick={() => {
+            chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {});
+          }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "4px 10px",
+            borderRadius: "99px",
+            background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
+            fontSize: "11px",
+            fontWeight: "700",
+            color: "white",
+            letterSpacing: "0.02em",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 2px 4px rgba(245, 158, 11, 0.3)",
+          }}
+        >
+          UPGRADE
+        </button>
+      )}
     </div>
 
     {/* AI Features */}
@@ -274,70 +289,41 @@ const LoggedInView = ({ user, isPro, onLogout }) => (
       <AIFeatureItem
         icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Transcription"
-        description={isPro ? "Vertex AI — high accuracy" : "Limited usage"}
+        description={isPro && !quotaExhausted ? "Vertex AI — high accuracy" : "Limited usage"}
         available={true}
       />
       <AIFeatureItem
         icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="AI Summarization"
-        description={isPro ? "Advanced analysis" : "Limited usage"}
+        description={isPro && !quotaExhausted ? "Advanced analysis" : "Limited usage"}
         available={true}
       />
       <AIFeatureItem
         icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Titles"
-        description={isPro ? "Premium quality" : "Limited usage"}
+        description={isPro && !quotaExhausted ? "Premium quality" : "Limited usage"}
         available={true}
       />
       <AIFeatureItem
         icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Translation"
-        description={isPro ? "Unlimited" : "Limited usage"}
+        description={isPro && !quotaExhausted ? "Unlimited" : "Limited usage"}
         available={true}
       />
     </div>
 
-    {/* Upgrade Button (only for free users) */}
-    {!isPro && (
+
+
+      {/* Logout */}
       <button
-        onClick={() => {
-          chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {});
-        }}
+        onClick={onLogout}
         style={{
           width: "100%",
-          height: "42px",
-          background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
-          color: "white",
-          border: "none",
-          borderRadius: "12px",
-          fontSize: "13px",
-          fontWeight: "700",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "6px",
-          transition: "all 0.2s ease",
-          boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)",
-          marginBottom: "10px",
-          letterSpacing: "0.02em",
-        }}
-      >
-        <AnimatedIcon animation="none"><ZapIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={14} strokeWidth={2} /></AnimatedIcon>
-        UPGRADE TO PRO
-      </button>
-    )}
-
-    {/* Logout */}
-    <button
-      onClick={onLogout}
-      style={{
-        width: "100%",
-        height: "36px",
-        background: "transparent",
-        color: "#6B7280",
-        border: "1px solid #E5E7EB",
-        borderRadius: "10px",
+          height: "36px",
+          background: "transparent",
+          color: "#6B7280",
+          border: "1px solid #E5E7EB",
+          borderRadius: "99px",
         fontSize: "12.5px",
         fontWeight: "500",
         cursor: "pointer",
@@ -362,6 +348,22 @@ const AccountTab = () => {
   const isPro = isLoggedIn && contentState.isSubscribed;
   const user = contentState.aisrUser;
 
+  const [quotaExhausted, setQuotaExhausted] = useState(false);
+
+  useEffect(() => {
+    chrome.storage.local.get(["quotaExhausted"], (res) => {
+      setQuotaExhausted(res.quotaExhausted || false);
+    });
+    
+    const handleStorageChange = (changes, areaName) => {
+      if (areaName === "local" && changes.quotaExhausted) {
+        setQuotaExhausted(changes.quotaExhausted.newValue || false);
+      }
+    };
+    chrome.storage.onChanged.addListener(handleStorageChange);
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
+  }, []);
+
   const handleLogout = () => {
     chrome.runtime.sendMessage({ type: "handle-logout" }).catch(() => {});
     setContentState((prev) => ({
@@ -382,6 +384,7 @@ const AccountTab = () => {
     <LoggedInView
       user={user}
       isPro={isPro}
+      quotaExhausted={quotaExhausted}
       onLogout={handleLogout}
     />
   );
