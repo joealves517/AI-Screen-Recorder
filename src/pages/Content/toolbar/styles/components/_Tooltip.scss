@@ -2,7 +2,8 @@
 
 .TooltipContent {
   border-radius: $container-border-radius;
-  background-color: $color-text-primary;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   padding: 10px 15px;
   font-size: 12px;
   margin-bottom: 10px;
@@ -10,9 +11,8 @@
   line-height: 1;
   font-family: $font-medium;
   z-index: 99999999 !important;
-  color: $color-text-contrast;
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
-    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  color: $color-text-primary;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
   user-select: none;
   transition: opacity 0.3 ease-in-out !important;
   will-change: transform, opacity;

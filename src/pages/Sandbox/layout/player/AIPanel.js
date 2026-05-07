@@ -29,7 +29,8 @@ import {
   MessageSquareMoreIcon as Share2,
   CircleHelpIcon as FileQuestion,
   ActivityIcon as Activity,
-  LoaderPinwheelIcon
+  LoaderPinwheelIcon,
+  GripIcon
 } from "lucide-animated";
 
 import blackNoteIconUrl from "../../../../assets/blacknote-icon.png";
@@ -675,7 +676,7 @@ const AIPanel = () => {
               Please sign in to unlock Smart AI features.
               <div
                 onClick={isLoggingIn ? undefined : handleLogin}
-                style={{ cursor: isLoggingIn ? "default" : "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
+                style={{ cursor: isLoggingIn ? "default" : "pointer", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
               >
                 {isLoggingIn && (
                   <motion.span
@@ -708,7 +709,7 @@ const AIPanel = () => {
               Upgrade to Pro for priority processing and higher limits.
               <div
                 onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
-                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
+                style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
               >
                 {chrome.i18n.getMessage("learnMoreLabel")}
               </div>
@@ -732,7 +733,7 @@ const AIPanel = () => {
               You have been switched to the standard tier. Please try again later or contact support.
               <div
                 onClick={() => setError(null)}
-                style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
+                style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
               >
                 {chrome.i18n.getMessage("permissionsModalDismiss")}
               </div>
@@ -909,33 +910,31 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
 
   // --- Render helpers ---
 
-  const renderButton = ({ Icon, title, description, onClick, taskKey, disabled, showLockText, rightAction }) => (
+  const renderButton = ({ Icon, title, description, onClick, taskKey, disabled, showLockText, rightAction, iconColor, iconClass, isActive, isLooping }) => (
     <div
       role="button"
       className={styles.button}
-      onClick={disabled ? undefined : onClick}
+      onClick={disabled || (isProcessing && activeTask === taskKey) ? undefined : onClick}
       style={{
         opacity: disabled ? 0.45 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
+        cursor: disabled || (isProcessing && activeTask === taskKey) ? "default" : "pointer",
         transition: "opacity 0.2s ease",
       }}
     >
       <div className={styles.buttonLeft}>
-        <AnimatedIcon animation="none">
-          <Icon size={20} strokeWidth={2} color={disabled ? "#94a3b8" : "#6366f1"} />
-        </AnimatedIcon>
+        <div className={iconClass || ""}>
+          <AnimatedIcon animation="none" isActive={isActive} isLooping={isLooping}>
+            <Icon size={20} strokeWidth={2} color={iconColor || (disabled ? "#94a3b8" : "#6366f1")} />
+          </AnimatedIcon>
+        </div>
       </div>
-      <div className={styles.buttonMiddle}>
+      <div className={styles.buttonMiddle} style={{ flex: 1, minWidth: 0 }}>
         <div className={styles.buttonTitle}>
-          {activeTask === taskKey
-            ? taskKey === "transcribe"
-              ? `Generating (${progress}%)`
-              : `${title}...`
-            : title}
+          {title}
         </div>
         <div
           className={styles.buttonDescription}
-          style={{ display: "flex", alignItems: "center", gap: "6px" }}
+          style={{ display: "flex", alignItems: "center", gap: "6px", width: "100%" }}
         >
           {showLockText ? (
             <>
@@ -949,7 +948,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
         </div>
       </div>
       <div className={styles.buttonRight} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        {rightAction || (
+        {rightAction !== undefined ? rightAction : (
           <AnimatedIcon animation="none">
             <ChevronRight size={20} strokeWidth={2} color="#cbd5e1" />
           </AnimatedIcon>
@@ -1086,41 +1085,25 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
       >
         {/* 1. Top Action: Progress Box OR Smart Video Analysis */}
         {!segments && (
-          isProcessing && activeTask === "transcribe" ? (
-            <div style={{
-              padding: "16px",
-              background: "linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%)",
-              border: "1px solid #bfdbfe",
-              borderRadius: "12px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "12px",
-              boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.1)"
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#3b82f6", fontWeight: "600", fontSize: "14px" }}>
-                <div className="animate-loop-wave" style={{ display: "flex" }}>
-                  <AnimatedIcon animation="none">
-                    <AudioLines size={20} color="#60a5fa" />
-                  </AnimatedIcon>
-                </div>
-                {progress < 30 ? "Analyzing video audio..." : progress < 70 ? "Extracting intelligence..." : "Almost there..."}
+          renderButton({
+            Icon: GripIcon,
+            title: isProcessing && activeTask === "transcribe" 
+              ? "Analyzing video audio..." 
+              : "Smart Video Analysis",
+            description: isProcessing && activeTask === "transcribe" ? (
+              <div style={{ width: "100%", height: "4px", background: "#dbeafe", borderRadius: "2px", overflow: "hidden", marginTop: "4px", position: "relative" }}>
+                <div style={{ position: "absolute", height: "100%", width: "50%", background: "#3b82f6", borderRadius: "2px", animation: "indeterminate-progress 1.5s infinite linear" }} />
               </div>
-              <div style={{ width: "100%", height: "6px", background: "#dbeafe", borderRadius: "3px", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${progress}%`, background: "#3b82f6", transition: "width 0.3s ease" }} />
-              </div>
-            </div>
-          ) : (
-            renderButton({
-              Icon: AudioLines,
-              title: "Smart Video Analysis",
-              description: "Extract intelligence, subtitles, and metadata.",
-              onClick: userTier === "guest" ? () => setError("LOGIN_REQUIRED") : handleTranscribe,
-              taskKey: "transcribe",
-              disabled: isProcessing,
-              showLockText: false,
-              rightAction: null,
-            })
-          )
+            ) : "Extract intelligence, subtitles, and metadata.",
+            onClick: userTier === "guest" ? () => setError("LOGIN_REQUIRED") : handleTranscribe,
+            taskKey: "transcribe",
+            disabled: isProcessing && activeTask !== "transcribe",
+            showLockText: false,
+            rightAction: isProcessing && activeTask === "transcribe" ? <div /> : undefined,
+            iconColor: isProcessing && activeTask === "transcribe" ? "#3b82f6" : null,
+            isActive: isProcessing && activeTask === "transcribe",
+            isLooping: isProcessing && activeTask === "transcribe",
+          })
         )}
 
         {/* 2. Translate & Add Subtitles */}

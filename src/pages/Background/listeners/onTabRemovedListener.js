@@ -2,6 +2,7 @@ import { sendMessageTab, clearEditorTabReference } from "../tabManagement";
 import { removeTab } from "../tabManagement/removeTab";
 import { sendMessageRecord } from "../recording/sendMessageRecord";
 import { diagEvent, endDiagSession } from "../../utils/diagnosticLog";
+import { stopBlinkingIcon } from "../recording/iconBlinker";
 
 /**
  * Listener for when a tab is removed.
@@ -123,7 +124,7 @@ export const onTabRemovedListener = () => {
           sendMessageTab(activeTab, { type: "stop-pending" }).catch(() => {});
         }
 
-        chrome.action.setIcon({ path: "assets/icon-34.png" });
+        stopBlinkingIcon();
       }
 
       // If the recorder tab itself was closed
@@ -146,7 +147,7 @@ export const onTabRemovedListener = () => {
           multiProjectId: null,
           multiLastSceneId: null,
         });
-        chrome.action.setIcon({ path: "assets/icon-34.png" });
+        stopBlinkingIcon();
       }
 
       // If the recorder tab (recorder.html) is closed after recording ends,
@@ -166,7 +167,7 @@ export const onTabRemovedListener = () => {
           tabRecordedID: null,
           recordingUiTabId: null,
         });
-        chrome.action.setIcon({ path: "assets/icon-34.png" });
+        stopBlinkingIcon();
 
         const candidateTabs = [activeTab, recordingUiTabId, tabRecordedID].filter(
           (id, idx, arr) => Number.isInteger(id) && arr.indexOf(id) === idx,

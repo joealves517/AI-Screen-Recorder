@@ -38,7 +38,7 @@ function extractTokenCost(response) {
 // ─── Transcribe (audio → timestamped segments) ─────────────────────
 router.post("/transcribe", requireAuth, async (req, res) => {
     const authReq = req;
-    const { audioBase64, mimeType, language } = req.body;
+    const { audioBase64, mimeType, language, audioDurationSec } = req.body;
     if (!audioBase64) {
         res.status(400).json({ error: "missing_audio" });
         return;
@@ -52,6 +52,9 @@ router.post("/transcribe", requireAuth, async (req, res) => {
     const { client, model } = pickAIClient(usePremium);
     try {
         const languageHint = language ? `The audio is in ${language}. ` : "";
+        const durationHint = audioDurationSec
+            ? `The audio is ${Number(audioDurationSec).toFixed(1)} seconds long. Timestamps MUST span from 0.0 up to ${Number(audioDurationSec).toFixed(1)}. `
+            : "";
         const response = await client.models.generateContent({
             model,
             contents: [
@@ -59,12 +62,14 @@ router.post("/transcribe", requireAuth, async (req, res) => {
                     role: "user",
                     parts: [
                         {
-                            text: `${languageHint}Transcribe all spoken words in this recording with accurate timestamps.
+                            text: `${languageHint}${durationHint}Transcribe all spoken words in this recording with accurate timestamps.
 
 Return the result as a JSON array of segments. Each segment has:
 - "start": start time in seconds (float, e.g. 0.0, 2.5)
 - "end": end time in seconds (float)
 - "text": the spoken text for that time range
+
+IMPORTANT: The timestamps must reflect the REAL elapsed time in the audio. If the audio is 120 seconds long, the last segment's "end" should be near 120.0, not compressed into the first few seconds.
 
 Keep each segment short (1-2 sentences max) so subtitles are readable.
 If there is no speech, return an empty array: []

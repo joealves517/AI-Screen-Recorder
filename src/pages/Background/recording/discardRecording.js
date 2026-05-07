@@ -2,10 +2,11 @@ import { sendMessageRecord } from "./sendMessageRecord";
 import { removeTab } from "../tabManagement/removeTab";
 import { discardOffscreenDocuments } from "../offscreen/discardOffscreenDocuments";
 import { resetWatchdogState } from "./resetWatchdogState";
+import { stopBlinkingIcon } from "./iconBlinker";
 
 export const discardRecording = async () => {
   sendMessageRecord({ type: "dismiss-recording" });
-  chrome.action.setIcon({ path: "assets/icon-34.png" });
+  stopBlinkingIcon();
 
   // Await teardown before flipping recording:false - otherwise handleAlarm fires against a torn-down offscreen.
   try {

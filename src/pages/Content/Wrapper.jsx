@@ -162,26 +162,52 @@ const Wrapper = () => {
   }, [regionCaptureRef.current]);
 
   useEffect(() => {
-    if (contentState.permissionsChecked) return;
     if (!permissionsRef.current) return;
+    if (!permissionsRef.current.contentWindow) return; // Fix null contentWindow crash
     if (!contentState.showExtension) return;
     if (!contentState.permissionsLoaded) return;
 
-    permissionsRef.current.contentWindow.postMessage(
-      {
-        type: "aisr-get-permissions",
-      },
-      "*"
-    );
+    const checkPerms = () => {
+      if (permissionsRef.current?.contentWindow) {
+        permissionsRef.current.contentWindow.postMessage(
+          { type: "aisr-get-permissions" },
+          "*"
+        );
+      }
+    };
 
-    setContentState((prevContentState) => ({
-      ...prevContentState,
-      permissionsChecked: true,
-    }));
+    if (!contentState.permissionsChecked) {
+      checkPerms();
+      setContentState((prevContentState) => ({
+        ...prevContentState,
+        permissionsChecked: true,
+      }));
+    }
+
+    // Re-check permissions when the user comes back to the tab
+    // (e.g., after granting permissions in Chrome settings)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkPerms();
+      }
+    };
+    
+    const handleFocus = () => {
+      checkPerms();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [
     permissionsRef.current,
     contentState.showExtension,
     contentState.permissionsLoaded,
+    contentState.permissionsChecked,
   ]);
 
   useEffect(() => {

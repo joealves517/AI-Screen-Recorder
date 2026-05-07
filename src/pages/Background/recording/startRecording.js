@@ -2,6 +2,7 @@ import { sendMessageRecord } from "./sendMessageRecord";
 import { sendMessageTab } from "../tabManagement";
 import { initDiagSession, diagEvent } from "../../utils/diagnosticLog";
 import { makeRecordingAttemptId } from "../../utils/errorCodes";
+import { startBlinkingIcon, stopBlinkingIcon } from "./iconBlinker";
 
 export const startRecording = async () => {
   // Clear any existing AI data for the new recording
@@ -138,9 +139,9 @@ export const startRecording = async () => {
         }).catch(() => {});
       }
     });
-    chrome.action.setIcon({ path: "assets/icon-34.png" });
+    stopBlinkingIcon();
   });
-  chrome.action.setIcon({ path: "assets/recording-logo.png" });
+  startBlinkingIcon();
   // Set up alarm if set in storage
   if (alarm) {
     const seconds = parseFloat(alarmTime);

@@ -1,6 +1,7 @@
 import { sendMessageTab, focusTab } from "../tabManagement";
 import { discardOffscreenDocuments } from "../offscreen/discardOffscreenDocuments";
 import { resetWatchdogState } from "./resetWatchdogState";
+import { stopBlinkingIcon } from "./iconBlinker";
 
 export const handleDismiss = async () => {
   try {
@@ -15,7 +16,7 @@ export const handleDismiss = async () => {
       await chrome.storage.local.set({ wasRegion: false, region: true });
     }
 
-    chrome.action.setIcon({ path: "assets/icon-34.png" });
+    stopBlinkingIcon();
     chrome.runtime.sendMessage({ type: "turn-off-pip" }).catch(() => {});
     chrome.storage.local.set({ pipForceClose: Date.now() });
     chrome.storage.local.set({
@@ -34,7 +35,7 @@ export const handleDismiss = async () => {
 export const cancelRecording = async () => {
   try {
     // Reset the icon to its default state
-    chrome.action.setIcon({ path: "assets/icon-34.png" });
+    stopBlinkingIcon();
 
     // Get the active tab from storage
     const { activeTab, recordingUiTabId, tabRecordedID } =

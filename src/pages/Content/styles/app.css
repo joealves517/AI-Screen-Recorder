@@ -828,7 +828,8 @@ body.driver-active .OnboardingArrow {
 
 .TooltipContent {
   border-radius: 30px;
-  background-color: #29292f;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   padding: 10px 15px;
   font-size: 12px;
   margin-bottom: 10px;
@@ -836,8 +837,8 @@ body.driver-active .OnboardingArrow {
   line-height: 1;
   font-family: "Satoshi-Medium", sans-serif;
   z-index: 99999999 !important;
-  color: #fff;
-  box-shadow: hsla(206, 22%, 7%, 0.35) 0px 10px 38px -10px, hsla(206, 22%, 7%, 0.2) 0px 10px 20px -15px;
+  color: #29292f;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
   user-select: none;
   transition: opacity 0.3 ease-in-out !important;
   will-change: transform, opacity;
@@ -1452,10 +1453,11 @@ body.driver-active .OnboardingArrow {
 }
 
 .ToastRoot {
-  background-color: #29292f;
-  color: #fff;
+  background-color: #ffffff;
+  color: #29292f;
   border-radius: 30px;
-  box-shadow: hsla(206, 22%, 7%, 0.35) 0px 10px 38px -10px, hsla(206, 22%, 7%, 0.2) 0px 10px 20px -15px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 10px 14px;
   display: flex;
   flex-direction: row;
@@ -1514,20 +1516,21 @@ body.driver-active .OnboardingArrow {
   }
 }
 .ToastTitle {
-  color: #fff;
+  color: #29292f;
   font-family: "Satoshi-Medium", sans-serif;
 }
 
 .ToastDescription {
-  color: var(--slate-11);
+  color: #29292f;
   font-family: "Satoshi-Medium", sans-serif;
 }
 
 .ToastAction {
-  color: #fff;
+  color: #29292f;
   font-family: "Satoshi-Medium", sans-serif;
   text-align: right;
-  background-color: #51515F;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
   padding: 0px 12px !important;
   height: 24px !important;
   cursor: pointer;
@@ -1566,27 +1569,37 @@ body.driver-active .OnboardingArrow {
   box-sizing: border-box;
   border-radius: 30px;
   border: 1px solid #e8e8e8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   z-index: 999999999;
   background: rgb(240, 238, 238);
   backdrop-filter: blur(10px);
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 0;
-  padding-bottom: 0;
-  height: 32px;
   transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 10px !important;
+  height: auto !important;
+  min-height: 32px !important;
+  gap: 8px !important;
 }
 .popup-controls .popup-control, .popup-controls .IconButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  box-sizing: border-box !important;
 }
 .popup-controls .popup-control svg, .popup-controls .IconButton svg {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
   color: #9797a4;
 }
 .popup-controls .popup-grab {
@@ -3531,14 +3544,15 @@ button {
 
 .TooltipContent {
   border-radius: 30px;
-  background-color: #29292f;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   padding: 10px 15px;
   font-size: 12px;
   line-height: 1;
   font-family: "Satoshi-Medium", sans-serif;
   z-index: 99999999 !important;
-  color: #fff;
-  box-shadow: hsla(206, 22%, 7%, 0.35) 0px 10px 38px -10px, hsla(206, 22%, 7%, 0.2) 0px 10px 20px -15px;
+  color: #29292f;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
   user-select: none;
   transition: opacity 0.3 ease-in-out !important;
   will-change: transform, opacity;
@@ -3788,164 +3802,84 @@ button {
 .countdown {
   width: 100%;
   height: 100%;
-  position: absolute;
+  position: fixed;
   top: 0px;
   left: 0px;
   z-index: 99999999999;
-}
-
-.countdown-circle {
-  width: 200px;
-  height: 200px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 999;
-  text-align: center;
-}
-
-.countdown-overlay {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  z-index: 99;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.countdown-number {
-  position: absolute;
-  width: 20px;
-  height: 60px;
-  z-index: 9999999;
-  left: 0px;
-  right: 0px;
-  top: 0px;
-  bottom: 0px;
-  margin: auto;
-  font-weight: 300 !important;
-  font-family: "Satoshi-Light", sans-serif !important;
-  font-size: 48px !important;
-  line-height: 60px !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  word-spacing: normal !important;
-  color: #fff;
-  text-align: center;
-  display: block;
-  transition: all 0.6s ease-in-out;
-}
-
-.background {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  filter: url("#goo");
-  transform: rotate(0deg);
-  transition: all 3s ease-in-out;
-}
-
-.circle {
-  z-index: 9;
-  position: absolute;
-  transform: scale(0.8);
-  top: 0px;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  margin: auto;
-  border-radius: 50%;
-  background: radial-gradient(118.3% 119.01% at 35.44% 0%, #2baef8 23.13%, #3582f6 46.35%, #486def 74.48%, #7b9aea 100%);
-  width: 200px;
-  height: 200px;
-  transition: all 1.5s ease-in-out;
-}
-
-.c {
-  width: 50px;
-  height: 50px;
-  z-index: 999;
-  border-radius: 50%;
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  left: 0px;
-  bottom: 0px;
-  margin: auto;
-  transition: cubic-bezier(0.82, 0.1, 0.24, 0.99) 1.5s;
-  opacity: 1;
-}
-
-.c2 {
-  background: radial-gradient(118.3% 119.01% at 35.44% 0%, #2b96f8 23.13%, #356bf6 64.58%);
-  transform: translate(20px, 20px);
-}
-
-.c3 {
-  background: radial-gradient(118.3% 119.01% at 35.44% 0%, #4884ca 15.3%, #2b89f8 78.83%);
-  transform: translate(-30px, -40px);
-}
-
-.c3:after {
-  content: "";
-  position: absolute;
-  width: 150px;
-  height: 150px;
-  filter: blur(50px);
-  border-radius: 50%;
-  top: 0px;
-  right: 0px;
-  left: 0px;
-  bottom: 0px;
-  margin: auto;
-  transition: cubic-bezier(0.82, 0.1, 0.24, 0.99) 1.5s;
-  background: #cbe8f7;
-  z-index: -1;
+  pointer-events: none;
 }
 
 .recording-countdown {
   pointer-events: all;
+  background: transparent;
 }
 
-.recording-countdown .c2 {
-  transform: translate(-15px, 15px);
+.camera-ui-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
 }
 
-.recording-countdown .c3 {
-  transform: translate(-10px, -5px);
+.camera-number {
+  font-size: 160px;
+  font-weight: 700;
+  font-family: "Inter", sans-serif;
+  color: #ffffff;
+  text-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  animation: popInOut 1s ease-in-out forwards;
+  will-change: transform, opacity;
 }
 
-.countdown-info {
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  margin: auto;
-  bottom: 20px;
-  border-radius: 30px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  text-align: center;
-  display: block;
-  padding: 10px 20px;
-  font-family: "Satoshi-Medium", sans-serif;
-  font-size: 14px;
-  line-height: 1.4;
-  letter-spacing: normal;
-  text-transform: none;
-  color: #fff;
-  z-index: 99999999999;
-  width: fit-content;
+@keyframes popInOut {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  85% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.camera-flash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #ffffff;
+  z-index: 999999999;
+  opacity: 0;
+  pointer-events: none;
+  animation: flashAnim 0.3s ease-out forwards;
 }
 
+@keyframes flashAnim {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 /* reset */
 button {
   all: unset;
@@ -4202,10 +4136,11 @@ button {
 }
 
 .warning-root {
-  background-color: #29292f;
-  color: #fff;
+  background-color: #ffffff;
+  color: #29292f;
   border-radius: 30px;
-  box-shadow: hsla(206, 22%, 7%, 0.35) 0px 10px 38px -10px, hsla(206, 22%, 7%, 0.2) 0px 10px 20px -15px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 12px 16px;
   display: flex;
   flex-direction: row;
@@ -4285,7 +4220,7 @@ button {
   }
 }
 .warning-title {
-  color: #fff;
+  color: #29292f;
   font-family: "Satoshi-Medium", sans-serif;
   line-height: 1;
   margin: 0;
@@ -4295,17 +4230,18 @@ button {
 }
 
 .warning-description {
-  color: #fff;
+  color: #29292f;
   opacity: 0.8;
   font-family: "Satoshi-Medium", sans-serif;
   line-height: 1.5;
 }
 
 .ToastAction {
-  color: #fff;
+  color: #29292f;
   font-family: "Satoshi-Medium", sans-serif;
   text-align: right;
-  background-color: #51515f;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
   padding: 0px 12px !important;
   height: 24px !important;
   cursor: pointer;

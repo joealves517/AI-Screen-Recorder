@@ -91,12 +91,12 @@ const Modal = (props) => {
           </AlertDialog.Title>
           {description ? (
             <AlertDialog.Description className="AlertDialogDescription">
-              {typeof description === 'string' && description.split("\n").map((line, idx) => (
+              {typeof description === 'string' ? description.split("\n").map((line, idx) => (
                 <React.Fragment key={idx}>
                   {line}
                   <br />
                 </React.Fragment>
-              ))}
+              )) : description}
               {learnmore && (
                 <>
                   {" "}
@@ -107,9 +107,9 @@ const Modal = (props) => {
               )}
             </AlertDialog.Description>
           ) : (
-             <AlertDialog.Description className="AlertDialogDescription" style={{ display: "none" }}>
-               Hộp thoại xác nhận
-             </AlertDialog.Description>
+            <AlertDialog.Description style={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
+              {title || "Dialog"}
+            </AlertDialog.Description>
           )}
           {image && (
             <img

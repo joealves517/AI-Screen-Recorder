@@ -52,6 +52,36 @@ const getCloudRunConfig = async () => {
 };
 
 /**
+ * Helper to fetch with auto auth retry on 401
+ */
+const fetchWithAuthRetry = async (path, options = {}, retries = 1) => {
+  for (let i = 0; i <= retries; i++) {
+    const { endpoint, headers } = await getCloudRunConfig();
+    const response = await fetch(`${endpoint}${path}`, {
+      ...options,
+      headers: { ...headers, ...(options.headers || {}) },
+    });
+    
+    if (response.status === 401 && i < retries) {
+      // Try to refresh auth via background script
+      const refreshResult = await new Promise((resolve) => {
+        chrome.runtime.sendMessage({ type: "refresh-auth" }, resolve);
+      });
+      if (refreshResult && refreshResult.authenticated) {
+        continue; // Retry with new token
+      }
+    }
+    
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `API ${response.status}`);
+    }
+    
+    return response;
+  }
+};
+
+/**
  * Convert a Blob to base64 string (without data URL prefix).
  */
 const blobToBase64 = (blob) =>
@@ -382,8 +412,6 @@ const Sandbox = () => {
               throw new Error("No audio found in recording");
             }
 
-            const { endpoint, headers } = await getCloudRunConfig();
-            
             let allSegments = [];
             let allTranscript = "";
 
@@ -395,25 +423,21 @@ const Sandbox = () => {
 
               const base64Data = await blobToBase64(chunk.blob);
 
-              const response = await fetch(`${endpoint}/transcribe`, {
+              const response = await fetchWithAuthRetry("/transcribe", {
                 method: "POST",
-                headers,
                 body: JSON.stringify({
                   audioBase64: base64Data,
                   mimeType: "audio/wav",
                   language: message.language || "",
+                  audioDurationSec: chunk.duration,
                 }),
               });
 
-              if (!response.ok) {
-                const err = await response.json().catch(() => ({}));
-                throw new Error(err.error || `API ${response.status}`);
-              }
-
               const { segments } = await response.json();
-              
-              // Adjust timestamps using chunk offset
+              // Adjust timestamps: API returns seconds relative to chunk start,
+              // add chunk.offset to convert to absolute video time.
               if (Array.isArray(segments)) {
+                console.log("[AISR] Raw API segments for chunk", i, "offset", chunk.offset, "duration", chunk.duration, ":", JSON.stringify(segments));
                 segments.forEach((seg) => {
                   allSegments.push({
                     start: seg.start + chunk.offset,
@@ -444,16 +468,10 @@ const Sandbox = () => {
 
         case "ai-summarize": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/summarize`, {
+            const response = await fetchWithAuthRetry("/summarize", {
               method: "POST",
-              headers,
               body: JSON.stringify({ transcript: message.transcript, style: "summary" }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const { summary } = await response.json();
             sendMessage({ type: "ai-summarize-result", summary });
           } catch (err) {
@@ -464,16 +482,10 @@ const Sandbox = () => {
 
         case "ai-action-items": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/summarize`, {
+            const response = await fetchWithAuthRetry("/summarize", {
               method: "POST",
-              headers,
               body: JSON.stringify({ transcript: message.transcript, style: "keypoints" }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const { summary } = await response.json();
             sendMessage({ type: "ai-action-items-result", summary });
           } catch (err) {
@@ -484,16 +496,10 @@ const Sandbox = () => {
 
         case "ai-chapters": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/summarize`, {
+            const response = await fetchWithAuthRetry("/summarize", {
               method: "POST",
-              headers,
               body: JSON.stringify({ transcript: message.transcript, style: "chapters" }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const { summary } = await response.json();
             sendMessage({ type: "ai-chapters-result", summary });
           } catch (err) {
@@ -504,16 +510,10 @@ const Sandbox = () => {
 
         case "ai-social": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/summarize`, {
+            const response = await fetchWithAuthRetry("/summarize", {
               method: "POST",
-              headers,
               body: JSON.stringify({ transcript: message.transcript, style: "social" }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const { summary } = await response.json();
             sendMessage({ type: "ai-social-result", summary });
           } catch (err) {
@@ -524,16 +524,10 @@ const Sandbox = () => {
 
         case "ai-quiz": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/summarize`, {
+            const response = await fetchWithAuthRetry("/summarize", {
               method: "POST",
-              headers,
               body: JSON.stringify({ transcript: message.transcript, style: "quiz" }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const { summary } = await response.json();
             sendMessage({ type: "ai-quiz-result", summary });
           } catch (err) {
@@ -544,16 +538,10 @@ const Sandbox = () => {
 
         case "ai-title": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/title`, {
+            const response = await fetchWithAuthRetry("/title", {
               method: "POST",
-              headers,
               body: JSON.stringify({ transcript: message.transcript }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const result = await response.json();
             sendMessage({ type: "ai-title-result", result });
           } catch (err) {
@@ -564,19 +552,13 @@ const Sandbox = () => {
 
         case "ai-translate": {
           try {
-            const { endpoint, headers } = await getCloudRunConfig();
-            const response = await fetch(`${endpoint}/translate`, {
+            const response = await fetchWithAuthRetry("/translate", {
               method: "POST",
-              headers,
               body: JSON.stringify({
                 segments: message.segments,
                 targetLang: message.targetLang,
               }),
             });
-            if (!response.ok) {
-              const err = await response.json().catch(() => ({}));
-              throw new Error(err.error || `API ${response.status}`);
-            }
             const { translatedSegments } = await response.json();
             sendMessage({ type: "ai-translate-result", translatedSegments });
           } catch (err) {

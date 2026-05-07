@@ -1,18 +1,17 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import { useCameraContext } from "../context/CameraContext";
-import { resizeCanvases } from "../utils/canvasUtils";
+import { segmentFromVideo } from "../utils/backgroundUtils";
 import {
-  segmentFromVideo,
-  renderBlurFromVideo,
-  renderPersonCutoutFromVideo,
-  renderEffectBackground,
-} from "../utils/backgroundUtils";
+  isWebGPUSupported,
+  initWebGPUPipeline,
+  configureCanvasContext,
+  renderWebGPU,
+} from "../utils/webgpuUtils";
 
 const Background = () => {
   const canvasRef = useRef(null);
   const canvasContextRef = useRef(null);
-  const bottomCanvasRef = useRef(null);
-  const bottomCanvasContextRef = useRef(null);
+  const webgpuReadyRef = useRef(false);
 
   const {
     videoRef,
@@ -23,66 +22,27 @@ const Background = () => {
     effectRef,
   } = useCameraContext();
 
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
+  // Initialize WebGPU once on mount
   useEffect(() => {
-    if (!canvasRef.current || !bottomCanvasRef.current) return;
+    const init = async () => {
+      if (!canvasRef.current) return;
 
-    canvasContextRef.current = canvasRef.current.getContext("2d", {
-      alpha: true,
-      willReadFrequently: true,
-      preserveDrawingBuffer: true,
-    });
-    bottomCanvasContextRef.current = bottomCanvasRef.current.getContext("2d", {
-      alpha: true,
-      willReadFrequently: true,
-      preserveDrawingBuffer: true,
-    });
-  }, []);
+      const supported = await isWebGPUSupported();
+      if (!supported) {
+        console.error("WebGPU is not supported on this device. Background effects disabled.");
+        setBackgroundEffects(false);
+        return;
+      }
 
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      canvasContextRef.current = canvasRef.current.getContext("webgpu");
+      const format = configureCanvasContext(canvasContextRef.current);
+      await initWebGPUPipeline(format);
+      webgpuReadyRef.current = true;
     };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    init();
   }, []);
 
-  // Re-render background image on resize or effect change
-  useEffect(() => {
-    if (!effectRef.current || blurRef.current) return;
-
-    if (
-      bottomCanvasRef.current &&
-      bottomCanvasContextRef.current &&
-      canvasRef.current
-    ) {
-      renderEffectBackground(
-        effectRef.current,
-        bottomCanvasRef,
-        bottomCanvasContextRef,
-      );
-
-      resizeCanvases(
-        effectRef.current.width,
-        effectRef.current.height,
-        true,
-        effectRef.current,
-        canvasRef,
-        bottomCanvasRef,
-        bottomCanvasContextRef,
-      );
-    }
-  }, [windowSize, effectRef.current, blurRef.current]);
-
-  // Self-contained render loop — segments video directly, no React state per frame
+  // Render loop: segment video + render via WebGPU
   useEffect(() => {
     if (!backgroundEffects) return;
 
@@ -97,26 +57,29 @@ const Background = () => {
         const video = videoRef.current;
         const segmenter = segmenterRef.current;
 
-        if (video && video.readyState >= 2 && segmenter && video.videoWidth > 0) {
+        if (
+          video &&
+          video.readyState >= 2 &&
+          segmenter &&
+          video.videoWidth > 0 &&
+          webgpuReadyRef.current &&
+          canvasContextRef.current
+        ) {
           const result = segmentFromVideo(video, segmenter);
 
           if (result && result.categoryMask) {
             consecutiveErrors = 0;
-            if (blurRef.current) {
-              renderBlurFromVideo(video, result, canvasRef);
-            } else if (effectRef.current) {
-              renderEffectBackground(
-                effectRef.current,
-                bottomCanvasRef,
-                bottomCanvasContextRef,
-              );
-              renderPersonCutoutFromVideo(
-                video,
-                result,
-                canvasRef,
-                canvasContextRef,
-              );
-            }
+
+            const effectType = blurRef.current ? "blur" : "image";
+            const effectImage = blurRef.current ? null : effectRef.current;
+
+            renderWebGPU(
+              canvasContextRef.current,
+              video,
+              result,
+              effectType,
+              effectImage,
+            );
           }
         }
       } catch (error) {
@@ -166,37 +129,20 @@ const Background = () => {
         overflow: "hidden",
       }}
     >
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <canvas
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "100%",
-            height: "100%",
-            zIndex: 999999,
-            opacity: backgroundEffects ? 1 : 0,
-            backgroundColor: "transparent",
-          }}
-          ref={canvasRef}
-        ></canvas>
-
-        <canvas
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "100%",
-            height: "100%",
-            zIndex: 999998,
-            opacity: backgroundEffects && !blurRef.current ? 1 : 0,
-            backgroundColor: "transparent",
-          }}
-          ref={bottomCanvasRef}
-        ></canvas>
-      </div>
+      <canvas
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "100%",
+          height: "100%",
+          zIndex: 999999,
+          opacity: backgroundEffects ? 1 : 0,
+          backgroundColor: "transparent",
+        }}
+        ref={canvasRef}
+      ></canvas>
     </div>
   );
 };

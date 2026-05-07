@@ -31,35 +31,46 @@ const Settings = () => {
   useEffect(() => {
     setContentState((prevContentState) => ({
       ...prevContentState,
-      settingsOpen: true, // Always open now
+      settingsOpen: open,
     }));
-  }, []);
+  }, [open]);
 
   return (
-    <div className="SettingsRoot" style={{ marginTop: "16px" }}>
-      <Switch
-        label={chrome.i18n.getMessage("hideToolbarLabel")}
-        name="hideUI"
-        value="hideUI"
-        anchorId="pro-onboarding-toolbar-toggle"
-      />
-      <Switch
-        label={chrome.i18n.getMessage("countdownLabel")}
-        name="countdown"
-        value="countdown"
-      />
-      <Switch
-        label={chrome.i18n.getMessage("alarmLabel")}
-        name="alarm"
-        value="alarm"
-      />
-      {contentState.alarm && <TimeSetter />}
-      <Switch
-        label={chrome.i18n.getMessage("micReminderPopup")}
-        name="askMicrophone"
-        value="askMicrophone"
-      />
-      {contentState.recordingType != "camera" && (
+    <Collapsible.Root
+      className="CollapsibleRoot"
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <Collapsible.Trigger className="CollapsibleTrigger">
+        <div className="CollapsibleLabel">
+          ✨ {chrome.i18n.getMessage("showMoreOptionsLabel")}{" "}
+          <img src={DropdownIcon} />
+        </div>
+      </Collapsible.Trigger>
+      <Collapsible.Content>
+        <Switch
+          label={chrome.i18n.getMessage("hideToolbarLabel")}
+          name="hideUI"
+          value="hideUI"
+          anchorId="pro-onboarding-toolbar-toggle"
+        />
+        <Switch
+          label={chrome.i18n.getMessage("countdownLabel")}
+          name="countdown"
+          value="countdown"
+        />
+        <Switch
+          label={chrome.i18n.getMessage("alarmLabel")}
+          name="alarm"
+          value="alarm"
+        />
+        {contentState.alarm && <TimeSetter />}
+        <Switch
+          label={chrome.i18n.getMessage("micReminderPopup")}
+          name="askMicrophone"
+          value="askMicrophone"
+        />
+        {contentState.recordingType != "camera" && (
           <Switch
             label={
               chrome.i18n.getMessage("zoomToPointPopup") +
@@ -72,7 +83,8 @@ const Settings = () => {
             experimental={true}
           />
         )}
-    </div>
+      </Collapsible.Content>
+    </Collapsible.Root>
   );
 };
 

@@ -27,46 +27,38 @@ const Recorder = () => {
   }, []);
 
   const checkPermissions = async () => {
-    // Individually check the camera and microphone permissions using the Permissions API. Then enumerate devices respectively.
+    let micGranted = false;
+    let camGranted = false;
+
+    // 1. Try to get microphone
     try {
-      const cameraPermission = await navigator.permissions.query({
-        name: "camera",
-      });
-      const microphonePermission = await navigator.permissions.query({
-        name: "microphone",
-      });
-
-      cameraPermission.onchange = () => {
-        checkPermissions();
-      };
-
-      microphonePermission.onchange = () => {
-        checkPermissions();
-      };
-
-      // If the permissions are granted, enumerate devices
-      if (
-        cameraPermission.state === "granted" ||
-        microphonePermission.state === "granted"
-      ) {
-        enumerateDevices(
-          cameraPermission.state === "granted",
-          microphonePermission.state === "granted"
-        );
-      } else {
-        // Post message to parent window
-        window.parent.postMessage(
-          {
-            type: "aisr-permissions",
-            success: false,
-            error: err.name,
-          },
-          "*"
-        );
-        // sendResponse({ success: false, error: err.name });
-      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop());
+      micGranted = true;
     } catch (err) {
-      enumerateDevices();
+      console.log("Mic check failed:", err);
+    }
+
+    // 2. Try to get camera
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(t => t.stop());
+      camGranted = true;
+    } catch (err) {
+      console.log("Cam check failed:", err);
+    }
+
+    if (micGranted || camGranted) {
+      enumerateDevices(camGranted, micGranted);
+    } else {
+      window.parent.postMessage(
+        {
+          type: "aisr-permissions",
+          success: false,
+          error: "Not granted",
+        },
+        "*"
+      );
     }
   };
 

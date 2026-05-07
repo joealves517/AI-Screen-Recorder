@@ -274,21 +274,45 @@ const PopupContainer = (props) => {
             className="popup-cutout drag-area"
             {...popupDragHandleProps}
           >
-            <img
-              src={TempLogo}
-              crossOrigin="anonymous"
-              style={{
-                width: "46px",
-                height: "46px",
-                borderRadius: "0",
-                filter: "none",
-                userSelect: "none",
-                pointerEvents: "none",
-                objectFit: "cover",
-              }}
-              draggable={false}
-              referrerPolicy="no-referrer"
-            />
+            {contentState.isLoggedIn && (contentState.aisrUser?.avatar || contentState.aisrUser?.picture) ? (
+              <img
+                src={contentState.aisrUser.avatar || contentState.aisrUser.picture}
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                }}
+                draggable={false}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = TempLogo;
+                  e.target.style.borderRadius = "0";
+                  e.target.style.border = "none";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+            ) : (
+              <img
+                src={TempLogo}
+                crossOrigin="anonymous"
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  borderRadius: "0",
+                  filter: "none",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                  objectFit: "cover",
+                }}
+                draggable={false}
+                referrerPolicy="no-referrer"
+              />
+            )}
           </div>
           <div className="popup-nav"></div>
           <div className="popup-content">
@@ -339,7 +363,7 @@ const PopupContainer = (props) => {
                     tabIndex={0}
                   >
                     <div className="TabsTriggerIcon">
-                      <AnimatedIcon animation="none"><AirplayIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color="currentColor" strokeWidth={2.5} /></AnimatedIcon>
+                      <AnimatedIcon animation="none" isActive={tab === "record"}><AirplayIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color="currentColor" strokeWidth={2.5} /></AnimatedIcon>
                     </div>
                     {chrome.i18n.getMessage("recordTab")}
                   </Tabs.Trigger>
@@ -350,7 +374,7 @@ const PopupContainer = (props) => {
                     tabIndex={0}
                   >
                     <div className="TabsTriggerIcon">
-                      <AnimatedIcon animation="none"><UserIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color="currentColor" strokeWidth={2.5} /></AnimatedIcon>
+                      <AnimatedIcon animation="none" isActive={tab === "dashboard"}><UserIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color="currentColor" strokeWidth={2.5} /></AnimatedIcon>
                     </div>
                     {chrome.i18n.getMessage("videosTab")}
                   </Tabs.Trigger>

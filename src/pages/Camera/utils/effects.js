@@ -1,4 +1,3 @@
-import { renderEffectBackground } from "./backgroundUtils";
 import { getContextRefs } from "../context/CameraContext";
 
 export const loadEffect = (effectUrl) => {
@@ -9,7 +8,7 @@ export const loadEffect = (effectUrl) => {
       return;
     }
 
-    const { effectRef, blurRef, bottomCanvasRef, bottomCanvasContextRef } =
+    const { effectRef, blurRef } =
       getContextRefs();
 
     const img = new Image();
@@ -19,7 +18,7 @@ export const loadEffect = (effectUrl) => {
       effectRef.current = img;
       blurRef.current = false;
 
-      renderEffectBackground(img, bottomCanvasRef, bottomCanvasContextRef);
+      // WebGPU render loop in Background.js picks up effectRef automatically
 
       chrome.storage.local.set({ backgroundEffect: effectUrl });
 

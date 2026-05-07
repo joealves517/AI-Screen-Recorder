@@ -4,6 +4,7 @@ import { sendMessageRecord } from "./sendMessageRecord";
 import { sendChunks } from "./sendChunks";
 import { waitForContentScript } from "../utils/waitForContentScript";
 import { diagEvent, endDiagSession } from "../../utils/diagnosticLog";
+import { stopBlinkingIcon } from "./iconBlinker";
 
 const acquirePostStopEditorLock = async (recordingId = null) => {
   const { postStopEditorOpening } = await chrome.storage.local.get([
@@ -54,7 +55,7 @@ const handleEditorOpenFailed = async (editorUrl, lastError) => {
 };
 
 export const stopRecording = async () => {
-  chrome.action.setIcon({ path: "assets/icon-34.png" });
+  stopBlinkingIcon();
   chrome.storage.local.set({ restarting: false });
   const { recordingStartTime, paused, pausedAt, totalPausedMs, recordingDuration: storedDuration } =
     await chrome.storage.local.get([
@@ -241,7 +242,7 @@ export const stopRecording = async () => {
 };
 
 export const handleStopRecordingTab = async (request) => {
-  chrome.action.setIcon({ path: "assets/icon-34.png" });
+  stopBlinkingIcon();
   if (request.memoryError) {
     diagEvent("error", {
       type: "memory-error",

@@ -34,48 +34,86 @@ const GeminiIcon = ({ size = 40 }) => {
   );
 };
 
-// ─── AI Feature Item (no background, bigger icon) ───────────────────
-const AIFeatureItem = ({ icon, title, description, available }) => (
-  <div 
-    role="button"
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      padding: "12px 14px",
-      borderRadius: "20px",
-      border: "none",
-      transition: "background 0.15s ease",
-      cursor: "pointer",
-    }}
-    onMouseOver={(e) => e.currentTarget.style.background = "#F6F7FB"}
-    onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
-  >
-    <div style={{
-      flexShrink: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-    }}>
-      {icon}
-    </div>
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{
-        fontSize: "13px",
-        fontWeight: "500",
-        color: "#374151",
-        lineHeight: "1.3",
-      }}>{title}</div>
-      <div style={{
-        fontSize: "11.5px",
-        color: "#6B7280",
-        lineHeight: "1.4",
-        marginTop: "1px",
-      }}>{description}</div>
-    </div>
-    <AnimatedIcon animation="none"><CircleCheckIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} color={available ? "#4B5563" : "#D1D5DB"} strokeWidth={1.5} /></AnimatedIcon>
-  </div>
-);
+// ─── AI Feature Item with gradient background ─────────────────────────
+const AIFeatureItem = ({ icon, title, description, available, colorRgb = "59, 130, 246", isLast = false }) => {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <>
+      <div 
+        role="button"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          padding: "12px 14px",
+          borderRadius: "14px",
+          // Gradient background matching icon color, fading on both sides
+          background: hovered
+            ? `linear-gradient(90deg, rgba(${colorRgb}, 0) 0%, rgba(${colorRgb}, 0.08) 30%, rgba(${colorRgb}, 0.08) 70%, rgba(${colorRgb}, 0) 100%)`
+            : `linear-gradient(90deg, rgba(${colorRgb}, 0) 0%, rgba(${colorRgb}, 0.04) 30%, rgba(${colorRgb}, 0.04) 70%, rgba(${colorRgb}, 0) 100%)`,
+          transition: "all 0.25s ease",
+          cursor: "pointer",
+          transform: hovered ? "scale(1.01)" : "scale(1)",
+        }}
+        onMouseOver={() => setHovered(true)}
+        onMouseOut={() => setHovered(false)}
+      >
+        <div style={{
+          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "38px",
+          height: "38px",
+          borderRadius: "10px",
+          background: `linear-gradient(135deg, rgba(${colorRgb}, 0.14) 0%, rgba(${colorRgb}, 0.05) 100%)`,
+          border: `1px solid rgba(${colorRgb}, 0.1)`,
+          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.5)",
+        }}>
+          {icon}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            fontSize: "13px",
+            fontWeight: "600",
+            color: "#1F2937",
+            lineHeight: "1.3",
+          }}>{title}</div>
+          <div style={{
+            fontSize: "11.5px",
+            color: "#6B7280",
+            lineHeight: "1.4",
+            marginTop: "2px",
+          }}>{description}</div>
+        </div>
+        {available && (
+          <div style={{
+            width: "20px",
+            height: "20px",
+            borderRadius: "50%",
+            background: "rgba(52, 211, 153, 0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <AnimatedIcon animation="none">
+              <CircleCheckIcon size={14} color="#10B981" strokeWidth={2.5} style={{ display: "flex", alignItems: "center", justifyContent: "center" }} />
+            </AnimatedIcon>
+          </div>
+        )}
+      </div>
+      {/* Gradient divider fading on both edges */}
+      {!isLast && (
+        <div style={{
+          height: "1px",
+          width: "85%",
+          margin: "0 auto",
+          background: `linear-gradient(90deg, rgba(${colorRgb}, 0) 0%, rgba(${colorRgb}, 0.15) 50%, rgba(${colorRgb}, 0) 100%)`,
+        }} />
+      )}
+    </>
+  );
+};
 
 // ─── Guest View (Not logged in) ─────────────────────────────────────
 const GuestView = () => {
@@ -84,7 +122,6 @@ const GuestView = () => {
   const handleLoginClick = () => {
     setIsLoggingIn(true);
     chrome.runtime.sendMessage({ type: "handle-login" }).catch(() => {});
-    // Reset after 10s in case the auth window is closed without completing
     setTimeout(() => setIsLoggingIn(false), 10000);
   };
 
@@ -115,7 +152,7 @@ const GuestView = () => {
       <div style={{
         display: "flex",
         flexDirection: "column",
-        gap: "2px",
+        gap: "0px",
         marginBottom: "14px",
       }}>
         <AIFeatureItem
@@ -123,38 +160,43 @@ const GuestView = () => {
           title="Smart Transcription"
           description="Auto-transcribe recordings with AI"
           available={false}
+          colorRgb="59, 130, 246"
         />
         <AIFeatureItem
-          icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="AI Summarization"
           description="Get key points from long videos"
           available={false}
+          colorRgb="139, 92, 246"
         />
         <AIFeatureItem
-          icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#F59E0B" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="Smart Titles"
           description="Auto-generate titles & descriptions"
           available={false}
+          colorRgb="245, 158, 11"
         />
         <AIFeatureItem
-          icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+          icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#10B981" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
           title="Translation"
           description="Multi-language subtitle support"
           available={false}
+          colorRgb="16, 185, 129"
+          isLast={true}
         />
       </div>
 
-      {/* Login CTA */}
+      {/* Login CTA — Apple-style pill button */}
       <button
         onClick={handleLoginClick}
         disabled={isLoggingIn}
         style={{
           width: "100%",
           height: "44px",
-          background: "#F3F4F6",
-          color: isLoggingIn ? "#9CA3AF" : "#374151",
+          background: "#FFFFFF",
+          color: isLoggingIn ? "#9CA3AF" : "#111827",
           border: "1px solid #E5E7EB",
-          borderRadius: "99px",
+          borderRadius: "22px",
           fontSize: "14px",
           fontWeight: "600",
           cursor: isLoggingIn ? "default" : "pointer",
@@ -163,7 +205,12 @@ const GuestView = () => {
           justifyContent: "center",
           gap: "8px",
           transition: "all 0.2s ease",
+          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05), inset 0 -2px 0 rgba(0,0,0,0.02)",
         }}
+        onMouseOver={(e) => !isLoggingIn && (e.currentTarget.style.background = "#F9FAFB")}
+        onMouseOut={(e) => !isLoggingIn && (e.currentTarget.style.background = "#FFFFFF")}
+        onMouseDown={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(0.98)")}
+        onMouseUp={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(1)")}
       >
         {isLoggingIn ? (
           <motion.span
@@ -183,162 +230,198 @@ const GuestView = () => {
   );
 };
 
+// ─── Greeting message based on user tier ─────────────────────────────
+const getGreetingMessage = (isPro, quotaExhausted) => {
+  if (isPro && quotaExhausted) {
+    return "AI quota exceeded, renews next month";
+  }
+  if (isPro) {
+    return "Thank you for supporting us! 💜";
+  }
+  return "Upgrade to unlock unlimited AI features";
+};
+
 // ─── Logged-In View ──────────────────────────────────────────────────
-const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => (
+const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => {
+  const [logoutHovered, setLogoutHovered] = useState(false);
+  const firstName = (user?.name || user?.displayName || "User").split(" ")[0];
+
+  return (
   <div style={{ padding: "16px" }}>
-    {/* Profile Card */}
+    {/* Greeting Section — replaces the old profile card */}
     <div style={{
       display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      padding: "14px",
-      background: "linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%)",
-      borderRadius: "14px",
-      marginBottom: "14px",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      padding: "4px 14px 14px",
     }}>
-      <img
-        src={user?.avatar || user?.picture || ""}
-        alt=""
-        referrerPolicy="no-referrer"
-        crossOrigin="anonymous"
-        style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          objectFit: "cover",
-          border: "2px solid #E5E7EB",
-        }}
-        onError={(e) => { e.target.style.display = "none"; }}
-      />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
-          fontSize: "14px",
-          fontWeight: "600",
+          fontSize: "18px",
+          fontWeight: "700",
           color: "#111827",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          letterSpacing: "-0.02em",
+          lineHeight: "1.3",
         }}>
-          {user?.name || user?.displayName || "User"}
+          Hello, {firstName} 👋
         </div>
         <div style={{
-          fontSize: "12px",
+          fontSize: "12.5px",
           color: "#6B7280",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
+          marginTop: "4px",
+          lineHeight: "1.4",
         }}>
-          {user?.email || ""}
+          {getGreetingMessage(isPro, quotaExhausted)}
         </div>
       </div>
-      {/* Tier Badge */}
-      {isPro ? (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "4px 10px",
-          borderRadius: "99px",
-          background: "#F3F4F6",
-          fontSize: "11px",
-          fontWeight: "700",
-          color: "#6B7280",
-          letterSpacing: "0.02em",
-        }}>
-          {quotaExhausted ? "LIMIT EXCEEDED" : "PRO"}
-        </div>
-      ) : (
-        <button
-          onClick={() => {
-            chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {});
-          }}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            padding: "4px 10px",
-            borderRadius: "99px",
-            background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)",
-            fontSize: "11px",
-            fontWeight: "700",
-            color: "white",
-            letterSpacing: "0.02em",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 2px 4px rgba(245, 158, 11, 0.3)",
-          }}
-        >
-          UPGRADE
-        </button>
-      )}
+      {/* Tier badge / Upgrade CTA */}
+      <div style={{ flexShrink: 0, marginLeft: "12px", marginTop: "2px" }}>
+        {isPro ? (
+          quotaExhausted ? (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              padding: "4px 10px",
+              borderRadius: "22px",
+              background: "#FEF2F2",
+              border: "1px solid #FECACA",
+              fontSize: "11px",
+              fontWeight: "700",
+              color: "#DC2626",
+              letterSpacing: "0.03em",
+            }}>
+              LIMIT
+            </div>
+          ) : (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "3px",
+              padding: "4px 12px",
+              borderRadius: "22px",
+              background: "rgba(124, 58, 237, 0.08)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: "1px solid rgba(124, 58, 237, 0.2)",
+              fontSize: "11px",
+              fontWeight: "700",
+              color: "#7C3AED",
+              letterSpacing: "0.03em",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+            }}>
+              ✨ PRO
+            </div>
+          )
+        ) : (
+          <button
+            onClick={() => {
+              chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {});
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "5px 14px",
+              borderRadius: "22px",
+              background: "rgba(139, 92, 246, 0.08)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              fontSize: "11.5px",
+              fontWeight: "700",
+              color: "#8B5CF6",
+              letterSpacing: "0.03em",
+              border: "1px solid rgba(139, 92, 246, 0.2)",
+              cursor: "pointer",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+              transition: "all 0.15s ease",
+            }}
+            onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
+            onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(139, 92, 246, 0.12)";
+              e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.3)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "rgba(139, 92, 246, 0.08)";
+              e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.2)";
+            }}
+          >
+            <ZapIcon size={12} color="#8B5CF6" strokeWidth={2.5} style={{ display: "flex" }} />
+            UPGRADE
+          </button>
+        )}
+      </div>
     </div>
 
-    {/* AI Features */}
+    {/* AI Features with gradient backgrounds */}
     <div style={{
       display: "flex",
       flexDirection: "column",
-      gap: "2px",
+      gap: "0px",
       marginBottom: "14px",
     }}>
-      <div style={{
-        fontSize: "12px",
-        fontWeight: "600",
-        color: "#9CA3AF",
-        textTransform: "uppercase",
-        letterSpacing: "0.05em",
-        padding: "0 4px 4px",
-      }}>AI Features</div>
       <AIFeatureItem
         icon={<AnimatedIcon animation="none"><MicIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Transcription"
         description={isPro && !quotaExhausted ? "Vertex AI — high accuracy" : "Limited usage"}
         available={true}
+        colorRgb="59, 130, 246"
       />
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><FileTextIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="AI Summarization"
         description={isPro && !quotaExhausted ? "Advanced analysis" : "Limited usage"}
         available={true}
+        colorRgb="139, 92, 246"
       />
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><SparklesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#F59E0B" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Smart Titles"
         description={isPro && !quotaExhausted ? "Premium quality" : "Limited usage"}
         available={true}
+        colorRgb="245, 158, 11"
       />
       <AIFeatureItem
-        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#3B82F6" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
+        icon={<AnimatedIcon animation="none"><LanguagesIcon style={{ display: "flex", alignItems: "center", justifyContent: "center", color: "#10B981" }} size={20} strokeWidth={1.5} /></AnimatedIcon>}
         title="Translation"
         description={isPro && !quotaExhausted ? "Unlimited" : "Limited usage"}
         available={true}
+        colorRgb="16, 185, 129"
+        isLast={true}
       />
     </div>
 
-
-
-      {/* Logout */}
-      <button
-        onClick={onLogout}
-        style={{
-          width: "100%",
-          height: "36px",
-          background: "transparent",
-          color: "#6B7280",
-          border: "1px solid #E5E7EB",
-          borderRadius: "99px",
-        fontSize: "12.5px",
-        fontWeight: "500",
+    {/* Logout — Apple-style pill button */}
+    <button
+      onClick={onLogout}
+      style={{
+        width: "100%",
+        height: "40px",
+        background: logoutHovered ? "#FEF2F2" : "transparent",
+        color: logoutHovered ? "#DC2626" : "#6B7280",
+        border: logoutHovered ? "1px solid #FECACA" : "1px solid #E5E7EB",
+        borderRadius: "22px",
+        fontSize: "13px",
+        fontWeight: "600",
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: "6px",
-        transition: "all 0.15s ease",
+        gap: "8px",
+        transition: "all 0.2s ease",
+        marginTop: "4px",
       }}
+      onMouseOver={() => setLogoutHovered(true)}
+      onMouseOut={() => setLogoutHovered(false)}
+      onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
+      onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
     >
-      <AnimatedIcon animation="none"><LogoutIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={13} strokeWidth={2} /></AnimatedIcon>
+      <AnimatedIcon animation="none"><LogoutIcon style={{ display: "flex", alignItems: "center", justifyContent: "center" }} size={16} strokeWidth={2} /></AnimatedIcon>
       Sign out
     </button>
   </div>
-);
+  );
+};
 
 // ─── Main Component ──────────────────────────────────────────────────
 const AccountTab = () => {

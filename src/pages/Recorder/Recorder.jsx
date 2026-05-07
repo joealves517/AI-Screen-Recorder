@@ -325,7 +325,7 @@ const Recorder = () => {
         const oscillator = ctx.createOscillator();
         const gainNode = ctx.createGain();
         oscillator.type = "sine";
-        oscillator.frequency.value = 20000;
+        oscillator.frequency.value = 8000;
         gainNode.gain.value = 0.0001;
         oscillator.connect(gainNode);
         gainNode.connect(ctx.destination);

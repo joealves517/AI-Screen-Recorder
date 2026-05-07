@@ -8,9 +8,6 @@ localforage.config({
   version: 1,
 });
 
-const chunksStore = localforage.createInstance({
-  name: "chunks",
-});
 const localDirectoryStore = localforage.createInstance({
   name: "localDirectory",
 });
@@ -202,36 +199,19 @@ const Backup = () => {
     }
   };
 
-  const writeFile = async (index) => {
+  const writeFile = async (chunkBuffer) => {
     if (!writable.current) return;
     if (!writingFile.current) return;
     waitWrite.current = true;
     try {
-      const chunks = [];
-      chunksStore
-        .iterate((value, key, iterationNumber) => {
-          chunks.push(value);
-        })
-        .then(async () => {
-          if (chunks && chunks.length > 0) {
-            const chunk = chunks.find((chunk) => chunk.index === index);
-
-            if (chunk) {
-              await writable.current.write(chunk.chunk);
-              waitWrite.current = false;
-              if (closeRequest.current) {
-                closeRequest.current = false;
-                writable.current.close();
-              }
-            } else {
-              waitWrite.current = false;
-              if (closeRequest.current) {
-                closeRequest.current = false;
-                writable.current.close();
-              }
-            }
-          }
-        });
+      if (chunkBuffer) {
+        await writable.current.write(chunkBuffer);
+      }
+      waitWrite.current = false;
+      if (closeRequest.current) {
+        closeRequest.current = false;
+        writable.current.close();
+      }
     } catch {
       waitWrite.current = false;
       if (closeRequest.current) {
@@ -310,7 +290,7 @@ const Backup = () => {
       tabId.current = message.tabId;
       localSaving(true);
     } else if (message.type === "write-file") {
-      writeFile(message.index);
+      writeFile(message.chunkBuffer);
     } else if (message.type === "close-writable") {
       if (!waitWrite.current) {
         writable.current.close();

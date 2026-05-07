@@ -36,7 +36,8 @@ const Content = () => {
 			}
 			.aisr-shadow-dom .TooltipContent {
   border-radius: 30px!important;
-	background-color: #29292F!important;
+	background-color: #ffffff!important;
+  border: 1px solid rgba(0, 0, 0, 0.08)!important;
   padding: 10px 15px!important;
   font-size: 12px;
 	margin-bottom: 10px!important;
@@ -44,8 +45,8 @@ const Content = () => {
   line-height: 1;
 	font-family: 'Satoshi-Medium', sans-serif;
 	z-index: 99999999!important;
-  color: #FFF;
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px!important;
+  color: #1f2937!important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06)!important;
   user-select: none;
 	transition: opacity 0.3 ease-in-out;
   will-change: transform, opacity;

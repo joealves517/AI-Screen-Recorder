@@ -163,7 +163,6 @@ const Sandbox = () => {
       {contentState.mode != "edit" && contentState.ready && <Player />}
       {!contentState.ready && (
         <div className="wrap">
-          <img className="logo" src="/assets/logo-text.svg" />
           <div className="middle-area">
             <img src="/assets/record-tab-active.svg" />
             <div className="title">
@@ -176,45 +175,6 @@ const Sandbox = () => {
             <div className="subtitle">
               {chrome.i18n.getMessage("sandboxProgressDescription")}
             </div>
-            {typeof contentState.openModal === "function" && (
-              <div
-                className="button-stop"
-                onClick={() => {
-                  diagForward("sandbox-user-clicked-help", {
-                    chunkCount: contentState?.chunkCount ?? 0,
-                    chunkIndex: contentState?.chunkIndex ?? 0,
-                    hasRawBlob: Boolean(contentState?.rawBlob),
-                    hasBlob: Boolean(contentState?.blob),
-                    ready: Boolean(contentState?.ready),
-                  });
-                  contentState.openModal(
-                    chrome.i18n.getMessage("havingIssuesModalTitle"),
-                    chrome.i18n.getMessage("havingIssuesModalDescription"),
-                    chrome.i18n.getMessage("restoreRecording"),
-                    chrome.i18n.getMessage("havingIssuesModalButton2"),
-                    () => {
-                      chrome.runtime.sendMessage({ type: "restore-recording" });
-                    },
-                    () => {
-                      chrome.runtime.sendMessage({ type: "report-bug" });
-                    },
-                    null, // image
-                    null, // learnMore
-                    null, // learnMoreLink
-                    false, // colorSafe
-                    chrome.i18n.getMessage("getHelpButton"),
-                    () => {
-                      chrome.runtime.sendMessage({
-                        type: "report-error",
-                        source: "processing-stuck",
-                      });
-                    },
-                  );
-                }}
-              >
-                {chrome.i18n.getMessage("havingIssuesButton")}
-              </div>
-            )}
           </div>
 
           <div className="setupBackgroundSVG"></div>
