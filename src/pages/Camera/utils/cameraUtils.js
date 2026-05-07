@@ -171,15 +171,27 @@ export const stopCameraStream = (streamRef, videoRef) => {
   }
 };
 
-export const togglePip = (videoRef) => {
+export const togglePip = async (videoRef) => {
+  const { backgroundEffectsRef, pipVideoRef, offScreenCanvasRef } = getContextRefs();
+
   if (document.pictureInPictureElement) {
     document.exitPictureInPicture();
   } else {
     try {
-      videoRef.current.requestPictureInPicture().catch(() => {
-        setPipMode(false);
-        chrome.runtime.sendMessage({ type: "pip-ended" });
-      });
+      if (
+        backgroundEffectsRef?.current &&
+        offScreenCanvasRef?.current &&
+        pipVideoRef?.current
+      ) {
+        if (!pipVideoRef.current.srcObject) {
+          const stream = offScreenCanvasRef.current.captureStream(30);
+          pipVideoRef.current.srcObject = stream;
+        }
+        await pipVideoRef.current.play().catch(() => {});
+        await pipVideoRef.current.requestPictureInPicture();
+      } else if (videoRef?.current) {
+        await videoRef.current.requestPictureInPicture();
+      }
     } catch (error) {
       setPipMode(false);
       chrome.runtime.sendMessage({ type: "pip-ended" });
@@ -198,11 +210,30 @@ export const surfaceHandler = async (request, videoRef) => {
     return;
   }
 
+  const { backgroundEffectsRef, pipVideoRef, offScreenCanvasRef } = getContextRefs();
+
+  const handlePipRequest = async () => {
+    if (
+      backgroundEffectsRef?.current &&
+      offScreenCanvasRef?.current &&
+      pipVideoRef?.current
+    ) {
+      if (!pipVideoRef.current.srcObject) {
+        const stream = offScreenCanvasRef.current.captureStream(30);
+        pipVideoRef.current.srcObject = stream;
+      }
+      await pipVideoRef.current.play().catch(() => {});
+      await pipVideoRef.current.requestPictureInPicture();
+    } else if (videoRef?.current) {
+      await videoRef.current.requestPictureInPicture();
+    }
+  };
+
   if (!CLOUD_FEATURES_ENABLED) {
     const shouldEnterPip = request.surface === "monitor";
-    if (shouldEnterPip && videoRef.current) {
+    if (shouldEnterPip) {
       try {
-        await videoRef.current.requestPictureInPicture();
+        await handlePipRequest();
       } catch (err) {
         console.error("❌ Failed to enter PiP:", err);
         setPipMode(false);
@@ -223,8 +254,8 @@ export const surfaceHandler = async (request, videoRef) => {
       (request.surface === "monitor" && (!isSubscribed || instantMode)) ||
       (request.surface !== "monitor" && isSubscribed && !instantMode);
 
-    if (shouldEnterPip && videoRef.current) {
-      await videoRef.current.requestPictureInPicture();
+    if (shouldEnterPip) {
+      await handlePipRequest();
     }
   } catch (error) {
     console.error("❌ Failed to enter Picture in Picture:", error);

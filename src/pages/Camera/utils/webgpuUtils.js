@@ -66,8 +66,8 @@ fn vs_main(@builtin(vertex_index) VertexIndex : u32) -> VertexOutput {
 @group(0) @binding(2) var maskTexture: texture_2d<f32>;
 
 struct Uniforms {
-  blurRadius: f32,
   resolution: vec2<f32>,
+  blurRadius: f32,
   isVirtualBackground: f32,
 }
 @group(0) @binding(3) var<uniform> uniforms: Uniforms;
@@ -101,7 +101,8 @@ fn getMask(uv: vec2<f32>) -> f32 {
   for(var x = -1; x <= 1; x++) {
     for(var y = -1; y <= 1; y++) {
       let o = vec2<f32>(f32(x), f32(y)) * offset;
-      m += textureSampleLevel(maskTexture, mySampler, clamp(uv + o, vec2<f32>(0.0), vec2<f32>(1.0)), 0.0).r * 255.0;
+      let sample = textureSampleLevel(maskTexture, mySampler, clamp(uv + o, vec2<f32>(0.0), vec2<f32>(1.0)), 0.0).r;
+      m += clamp(sample * 255.0, 0.0, 1.0);
       total += 1.0;
     }
   }
@@ -110,7 +111,8 @@ fn getMask(uv: vec2<f32>) -> f32 {
 
 @fragment
 fn fs_main(@location(0) uv : vec2<f32>) -> @location(0) vec4<f32> {
-  let maskVal = getMask(uv);
+  let rawMask = getMask(uv);
+  let maskVal = 1.0 - rawMask;
   let sharpColor = textureSampleLevel(frameTexture, mySampler, uv, 0.0);
 
   if (maskVal >= 0.95) {
@@ -215,7 +217,8 @@ export const renderWebGPU = (
   }
   device.queue.copyExternalImageToTexture(
     { source: videoElement },
-    { texture: frameTexture }
+    { texture: frameTexture },
+    [vw, vh]
   );
 
   // 2. Upload segmentation mask
@@ -255,7 +258,8 @@ export const renderWebGPU = (
     }
     device.queue.copyExternalImageToTexture(
       { source: effectImageElement },
-      { texture: bgTexture }
+      { texture: bgTexture },
+      [effectImageElement.width, effectImageElement.height]
     );
     activeBgTexture = bgTexture;
   }
@@ -265,7 +269,7 @@ export const renderWebGPU = (
   device.queue.writeBuffer(
     uniformBuffer,
     0,
-    new Float32Array([16.0, vw, vh, isVirtualBg])
+    new Float32Array([vw, vh, 16.0, isVirtualBg])
   );
 
   // 5. Render pass

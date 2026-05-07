@@ -56,6 +56,7 @@ export const loadEffect = (effectUrl) => {
     }
 
     const img = new Image();
+    img.crossOrigin = "anonymous";
     img.src = effectUrl;
     img.onload = () => resolve(img);
     img.onerror = (error) => {

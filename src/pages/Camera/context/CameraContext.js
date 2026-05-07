@@ -71,6 +71,7 @@ export const getContextRefs = () => {
     segmenterRef: globalRefs.segmenterRef ?? { current: null },
     blurRef: globalRefs.blurRef ?? { current: false },
     effectRef: globalRefs.effectRef ?? { current: null },
+    pipVideoRef: globalRefs.pipVideoRef ?? { current: null },
     setWidth:
       globalRefs.setWidth ??
       ((width) => console.warn("⚠️ setWidth not initialized")),
@@ -93,6 +94,7 @@ export const CameraProvider = ({ children }) => {
   const backgroundEffectsRef = useRef(false);
   const recordingTypeRef = useRef("screen");
   const videoRef = useRef(null);
+  const pipVideoRef = useRef(null);
   const streamRef = useRef(new MediaStream());
 
   const offScreenCanvasRef = useRef(null);
@@ -116,6 +118,7 @@ export const CameraProvider = ({ children }) => {
     globalRefs.segmenterRef = segmenterRef;
     globalRefs.blurRef = blurRef;
     globalRefs.effectRef = effectRef;
+    globalRefs.pipVideoRef = pipVideoRef;
     globalRefs.setWidth = handleSetWidth;
     globalRefs.setHeight = handleSetHeight;
     globalRefs.setBackgroundEffects = handleSetBackgroundEffects;
@@ -164,7 +167,8 @@ export const CameraProvider = ({ children }) => {
       setBackgroundEffects(active);
       backgroundEffectsRef.current = active;
       if (videoRef.current) {
-        videoRef.current.style.display = !active ? "block" : "none";
+        videoRef.current.style.opacity = !active ? "1" : "0";
+        videoRef.current.style.pointerEvents = !active ? "auto" : "none";
       }
       chrome.storage.local.set({ backgroundEffectsActive: active });
     },

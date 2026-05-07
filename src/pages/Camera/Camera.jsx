@@ -32,6 +32,7 @@ const Camera = () => {
     isModelLoaded,
     isCameraMode,
     setIsCameraMode,
+    pipVideoRef,
   } = useCameraContext();
 
   // Helper function to update loading states
@@ -162,8 +163,6 @@ const Camera = () => {
       {backgroundEffects && <Background />}
       <video
         style={{
-          // height: height,
-          // width: width,
           height: "100%",
           width: "100%",
           position: "absolute",
@@ -171,13 +170,20 @@ const Camera = () => {
           left: "50%",
           transform: "translate(-50%, -50%)",
           zIndex: 99,
-          display: !backgroundEffects ? "block" : "none",
+          opacity: !backgroundEffects ? 1 : 0,
+          pointerEvents: !backgroundEffects ? "auto" : "none",
           objectFit: isCameraMode ? "contain" : "cover",
           objectPosition: "50% 50%",
         }}
         ref={videoRef}
         playsInline
+      ></video>
+      <video
+        style={{ display: "none" }}
+        ref={pipVideoRef}
+        playsInline
         muted
+        autoPlay
       ></video>
 
       {isLoading && (
