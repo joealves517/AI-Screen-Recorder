@@ -1,3 +1,9 @@
+/**
+ * Auth Middleware
+ *
+ * Only supports Google OAuth token (chrome.identity)
+ * Supabase login is no longer supported.
+ */
 import { Request, Response, NextFunction } from "express";
 export interface AuthenticatedRequest extends Request {
     userId: string;
@@ -6,7 +12,7 @@ export interface AuthenticatedRequest extends Request {
     userPicture: string;
 }
 /**
- * Middleware: verify Google Access Token or Supabase Access Token.
+ * Authenticate requests using Google OAuth token.
  */
 export declare function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=auth.d.ts.map

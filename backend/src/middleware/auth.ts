@@ -1,4 +1,12 @@
+/**
+ * Auth Middleware
+ * 
+ * Only supports Google OAuth token (chrome.identity)
+ * Supabase login is no longer supported.
+ */
+
 import { Request, Response, NextFunction } from "express";
+import { logUsage } from "../services/firestore.js";
 
 export interface AuthenticatedRequest extends Request {
   userId: string;
@@ -7,13 +15,7 @@ export interface AuthenticatedRequest extends Request {
   userPicture: string;
 }
 
-import { createClient } from "@supabase/supabase-js";
-
-const SUPABASE_URL = "https://xloruyavtuvcoqrvjolp.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsb3J1eWF2dHV2Y29xcnZqb2xwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjA5OTUsImV4cCI6MjA5MjUzNjk5NX0.ssnDrw4mldgIoDfFa4SpUIMNzcenv_hrctePwtOcSEA";
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ─── Google OAuth Token Verification ────────────────────────────────
 
 interface GoogleTokenInfo {
   email: string;
@@ -24,13 +26,19 @@ interface GoogleTokenInfo {
   aud: string;
 }
 
-async function verifyGoogleToken(token: string): Promise<GoogleTokenInfo | null> {
+async function verifyGoogleToken(
+  token: string
+): Promise<GoogleTokenInfo | null> {
   try {
-    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${token}`);
+    const res = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?access_token=${token}`
+    );
     if (!res.ok) return null;
 
     const info = (await res.json()) as GoogleTokenInfo;
-    if (info.email && info.email_verified === "true") {
+
+    // Verify the token belongs to our OAuth client
+    if (info.email && String(info.email_verified) === "true") {
       return info;
     }
     return null;
@@ -39,18 +47,26 @@ async function verifyGoogleToken(token: string): Promise<GoogleTokenInfo | null>
   }
 }
 
-async function getGoogleUserInfo(token: string): Promise<{ email: string; name: string; picture: string; sub: string } | null> {
+async function getGoogleUserInfo(
+  token: string
+): Promise<{ email: string; name: string; picture: string; sub: string } | null> {
   try {
-    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
     if (!res.ok) return null;
-    return await res.json() as any;
+    const data = await res.json() as { email: string; name: string; picture: string; sub: string };
+    return data;
   } catch {
     return null;
   }
 }
 
+// ─── Middleware ─────────────────────────────────────────────────────
+
 /**
- * Middleware: verify Google Access Token or Supabase Access Token.
+ * Authenticate requests using Google OAuth token.
  */
 export async function requireAuth(
   req: Request,
@@ -66,37 +82,31 @@ export async function requireAuth(
 
   const token = authHeader.slice(7);
 
-  // Strategy 1: Google OAuth Token
   const googleInfo = await verifyGoogleToken(token);
   if (googleInfo) {
+    // Fetch full profile for display name and picture
     const userInfo = await getGoogleUserInfo(token);
-    
+
     const authReq = req as AuthenticatedRequest;
     authReq.userId = googleInfo.sub;
     authReq.userEmail = googleInfo.email;
     authReq.userName = userInfo?.name || googleInfo.email.split("@")[0];
     authReq.userPicture = userInfo?.picture || "";
+    
+    // Log User Action
+    logUsage({
+      userId: googleInfo.sub,
+      app: "ai screen recorder",
+      action: req.path,
+      method: req.method,
+      model: "action_log",
+      creditsUsed: 0,
+      timestamp: new Date()
+    }).catch((e) => console.error("[Action Log Error]", e));
+
     return next();
   }
 
-  // Strategy 2: Fallback to Supabase JWT (legacy extensions)
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-
-    if (error || !user) {
-      throw new Error(error?.message || "Invalid token");
-    }
-
-    // Attach user info to request
-    const authReq = req as AuthenticatedRequest;
-    authReq.userId = user.id;
-    authReq.userEmail = user.email || "";
-    authReq.userName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "";
-    authReq.userPicture = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
-
-    return next();
-  } catch (error) {
-    console.error("[Auth] Both Google and Supabase token verification failed:", error);
-    res.status(401).json({ error: "invalid_token" });
-  }
+  console.error("[Auth] Google token verification failed");
+  res.status(401).json({ error: "invalid_token" });
 }
