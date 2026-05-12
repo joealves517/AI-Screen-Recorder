@@ -1,6 +1,9 @@
 import React, { useContext, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { contentStateContext } from "../../context/ContentState";
+import { DotLottieReact, setWasmUrl } from "@lottiefiles/dotlottie-react";
+
+setWasmUrl(chrome.runtime.getURL("assets/dotlottie-player.wasm"));
 
 /**
  * Lucide-style SVG icons — each feature gets a unique icon.
@@ -277,77 +280,30 @@ const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => {
       {/* Tier badge / Upgrade CTA */}
       <div style={{ flexShrink: 0, marginLeft: "12px", marginTop: "2px" }}>
         {isPro ? (
-          quotaExhausted ? (
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "4px 10px",
-              borderRadius: "22px",
-              background: "#FEF2F2",
-              border: "1px solid #FECACA",
-              fontSize: "11px",
-              fontWeight: "700",
-              color: "#DC2626",
-              letterSpacing: "0.03em",
-            }}>
-              LIMIT
-            </div>
-          ) : (
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "3px",
-              padding: "4px 12px",
-              borderRadius: "22px",
-              background: "rgba(124, 58, 237, 0.08)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              border: "1px solid rgba(124, 58, 237, 0.2)",
-              fontSize: "11px",
-              fontWeight: "700",
-              color: "#7C3AED",
-              letterSpacing: "0.03em",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
-            }}>
-              ✨ PRO
-            </div>
-          )
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "64px", height: "64px", marginTop: "-16px", marginRight: "-8px" }}>
+            <DotLottieReact src={chrome.runtime.getURL("assets/crown.json")} autoplay loop backgroundColor="transparent" style={{ width: "100%", height: "100%" }} />
+          </div>
         ) : (
           <button
             onClick={() => {
               chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {});
             }}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              padding: "5px 14px",
-              borderRadius: "22px",
-              background: "rgba(139, 92, 246, 0.08)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              fontSize: "11.5px",
-              fontWeight: "700",
-              color: "#8B5CF6",
-              letterSpacing: "0.03em",
-              border: "1px solid rgba(139, 92, 246, 0.2)",
+              padding: 0,
+              border: "none",
+              background: "transparent",
               cursor: "pointer",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
               transition: "all 0.15s ease",
+              width: "100px",
+              height: "32px",
+              marginTop: "-4px"
             }}
             onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
             onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(139, 92, 246, 0.12)";
-              e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.3)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = "rgba(139, 92, 246, 0.08)";
-              e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.2)";
-            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
           >
-            <ZapIcon size={12} color="#8B5CF6" strokeWidth={2.5} style={{ display: "flex" }} />
-            UPGRADE
+            <DotLottieReact src={chrome.runtime.getURL("assets/go-premium.json")} autoplay loop backgroundColor="transparent" style={{ width: "100%", height: "100%", pointerEvents: "none" }} />
           </button>
         )}
       </div>

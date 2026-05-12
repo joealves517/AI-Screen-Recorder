@@ -15,6 +15,19 @@ const ResizableBox = () => {
     recordingRef.current = contentState.recording;
   }, [contentState.recording]);
 
+  // Auto-hide the region when recording finishes
+  const previousRecordingRef = useRef(false);
+  useEffect(() => {
+    if (previousRecordingRef.current === true && contentState.recording === false) {
+      setContentState((prev) => ({
+        ...prev,
+        customRegion: false,
+      }));
+      chrome.storage.local.set({ customRegion: false });
+    }
+    previousRecordingRef.current = contentState.recording;
+  }, [contentState.recording, setContentState]);
+
   // Check for contentState.regionDimensions to update the Rnd component width and height
   useEffect(() => {
     if (contentState.recordingType != "region") return;
@@ -190,7 +203,7 @@ const ResizableBox = () => {
             ? "none"
             : "auto",
       }}
-      className={recordingRef.current ? "region-recording" : ""}
+      className={(recordingRef.current || contentState.countdownActive || contentState.preparingRecording || contentState.pendingRecording) ? "region-recording" : ""}
       onClick={(e) => {
         // showExtension false, as long as not clicking on the region
         if (
@@ -276,10 +289,10 @@ const ResizableBox = () => {
           style={{
             width: "100%",
             height: "100%",
-            outline: recordingRef.current ? "none" : "2px dashed #D9D9D9",
-            outlineOffset: "2px", // Pushes it inside the box to avoid it being visible in recordings
-            boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.2)",
-            borderRadius: "5px",
+            outline: (recordingRef.current || contentState.countdownActive || contentState.preparingRecording || contentState.pendingRecording) ? "none" : "2px solid #3080F8",
+            outlineOffset: "-2px", // Pushes it inside the box to avoid it being visible in recordings
+            boxShadow: (recordingRef.current || contentState.countdownActive || contentState.preparingRecording || contentState.pendingRecording) ? "none" : "0 0 0 9999px rgba(0, 0, 0, 0.4), 0 0 20px rgba(48, 128, 248, 0.3)",
+            borderRadius: "6px",
             zIndex: 2,
             boxSizing: "border-box",
             pointerEvents:

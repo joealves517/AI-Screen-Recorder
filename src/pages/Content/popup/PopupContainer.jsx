@@ -32,6 +32,8 @@ import AccountTab from "./layout/AccountTab";
 // Layouts
 import SettingsMenu from "./layout/SettingsMenu";
 import InactiveSubscription from "./layout/InactiveSubscription";
+import { SupportActionSheet } from "./components/SupportActionSheet";
+import { HelpCircle } from "lucide-react";
 
 import Welcome from "./layout/Welcome";
 import {
@@ -54,6 +56,7 @@ const PopupContainer = (props) => {
   const [onboarding, setOnboarding] = useState(false);
   const [showProSplash, setShowProSplash] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showSupportSheet, setShowSupportSheet] = useState(false);
   const recordTabRef = useRef(null);
   const videoTabRef = useRef(null);
   const pillRef = useRef(null);
@@ -236,7 +239,9 @@ const PopupContainer = (props) => {
             setPopupDragRef(node);
           }}
           style={{
-            pointerEvents: "auto",
+            pointerEvents: showSupportSheet ? "none" : "auto",
+            opacity: showSupportSheet ? 0 : 1,
+            transition: "opacity 0.2s",
             ...popupContainerStyle,
           }}
         >
@@ -280,8 +285,8 @@ const PopupContainer = (props) => {
                 crossOrigin="anonymous"
                 referrerPolicy="no-referrer"
                 style={{
-                  width: "50px",
-                  height: "50px",
+                  width: "54px",
+                  height: "54px",
                   borderRadius: "50%",
                   objectFit: "cover",
                   userSelect: "none",
@@ -301,8 +306,8 @@ const PopupContainer = (props) => {
                 src={TempLogo}
                 crossOrigin="anonymous"
                 style={{
-                  width: "50px",
-                  height: "50px",
+                  width: "54px",
+                  height: "54px",
                   borderRadius: "0",
                   filter: "none",
                   userSelect: "none",
@@ -389,8 +394,47 @@ const PopupContainer = (props) => {
             )}
           </div>
 
+          {/* Floating Help Button (Attached to bottom of popup) */}
+          {contentState.isLoggedIn && !showWelcomeSplash && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-44px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 16px",
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+                backdropFilter: "blur(4px)",
+                WebkitBackdropFilter: "blur(4px)",
+                borderRadius: "20px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                cursor: "pointer",
+                color: "#4B5563",
+                fontSize: "13px",
+                fontWeight: 500,
+                zIndex: 10,
+                transition: "transform 0.2s"
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = "translateX(-50%) scale(1.05)"}
+              onMouseOut={(e) => e.currentTarget.style.transform = "translateX(-50%) scale(1)"}
+              onClick={() => setShowSupportSheet(true)}
+            >
+              <HelpCircle size={15} /> Help & Support
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Support Action Sheet Overlay */}
+      {showSupportSheet && (
+        <SupportActionSheet 
+          onClose={() => setShowSupportSheet(false)} 
+          user={contentState.aisrUser} 
+        />
+      )}
     </div>
   );
 };

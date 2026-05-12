@@ -77,14 +77,13 @@ const Modal = (props) => {
         <AlertDialog.Overlay className="AlertDialogOverlay" />
         <AlertDialog.Content 
           className="AlertDialogContent"
-          aria-describedby={undefined}
-          aria-labelledby={undefined}
-          aria-label={title || "Alert"}
+          aria-describedby="sandbox-dialog-desc"
+          aria-labelledby="sandbox-dialog-title"
         >
-          <AlertDialog.Title className="AlertDialogTitle">
+          <AlertDialog.Title id="sandbox-dialog-title" className="AlertDialogTitle">
             {title}
           </AlertDialog.Title>
-          <AlertDialog.Description className="AlertDialogDescription">
+          <AlertDialog.Description id="sandbox-dialog-desc" className="AlertDialogDescription">
             {description}
             {learnmore && " "}
             {learnmore && (

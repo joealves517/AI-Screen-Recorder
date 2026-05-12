@@ -1,90 +1,95 @@
 /**
- * Screenity AI Routes — Free tier (Gemini API key, requires auth to prevent abuse).
- * Uses the project's own API key, NOT shared with other extensions.
- * Rate limited aggressively.
+ * Screenity AI Routes — Free tier (Groq Whisper + Gemini API key).
+ * Requires auth to prevent abuse. Rate limited aggressively.
+ *
+ * Transcription: Groq Whisper (free, fast, accurate timestamps).
+ * Analysis: Gemini flash-lite (free tier API key).
+ * Duration limit: 20 minutes max per transcription request.
  */
 
 import { Router, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { requireAuth } from "../middleware/auth.js";
+import { transcribeWithGroq } from "../services/groq-queue.js";
+import Groq from "groq-sdk";
+import { config } from "../config/index.js";
+
+const groqClient = new Groq({ apiKey: config.groq.apiKey || process.env.GROQ_API_KEY });
+
+// Free tier: only 'autumn' voice is available
+const FREE_VOICE = "autumn";
 
 const router = Router();
 
-// Screenity-specific free tier API key (isolated from BlackNote/Ask This Page)
+// Shared free tier API key (synced with BlackNote production)
 const ai = new GoogleGenAI({
-  apiKey: "AIzaSyB9Idi7DYIkSWnl1urpImbCIhNMztPVFSU",
+  apiKey: "AIzaSyCO3F6Znpad9_cZo6nQyVq18kSeXjjti8Y",
 });
 
 const MODEL = "gemini-2.5-flash-lite";
+const FREE_MAX_DURATION_SEC = 1200; // 20 minutes
 
-// ─── Transcribe ─────────────────────────────────────────────────────
+// ─── Transcribe (Groq Whisper) ──────────────────────────────────────
 
 router.post(
   "/transcribe",
   requireAuth,
   async (req: Request, res: Response): Promise<void> => {
-    const { audioBase64, mimeType, language, audioDurationSec } = req.body;
+    const { audioBase64, mimeType, audioDurationSec } = req.body;
 
     if (!audioBase64) {
       res.status(400).json({ error: "missing_audio" });
       return;
     }
 
-    try {
-      const languageHint = language ? `The audio is in ${language}. ` : "";
-      const durationHint = audioDurationSec
-        ? `The audio is ${Number(audioDurationSec).toFixed(1)} seconds long. Timestamps MUST span from 0.0 up to ${Number(audioDurationSec).toFixed(1)}. `
-        : "";
-
-      const response = await ai.models.generateContent({
-        model: MODEL,
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: `${languageHint}${durationHint}Transcribe all spoken words in this recording with accurate timestamps.
-
-Return the result as a JSON array of segments. Each segment has:
-- "start": start time in seconds (float, e.g. 0.0, 2.5)
-- "end": end time in seconds (float)
-- "text": the spoken text for that time range
-
-IMPORTANT: The timestamps must reflect the REAL elapsed time in the audio. If the audio is 120 seconds long, the last segment's "end" should be near 120.0, not compressed into the first few seconds.
-
-Keep each segment short (1-2 sentences max) so subtitles are readable.
-If there is no speech, return an empty array: []
-
-Return ONLY the raw JSON array. No markdown code blocks, no commentary.`,
-              },
-              {
-                inlineData: {
-                  mimeType: mimeType || "audio/webm",
-                  data: audioBase64,
-                },
-              },
-            ],
-          },
-        ],
-        config: {
-          temperature: 0.1,
-          maxOutputTokens: 8192,
-        },
+    // Free tier: enforce 20-minute limit
+    if (audioDurationSec && audioDurationSec > FREE_MAX_DURATION_SEC) {
+      res.status(403).json({
+        error: "recording_too_long",
+        maxMinutes: 20,
+        message: "Free users can only transcribe recordings up to 20 minutes. Upgrade to PRO for unlimited.",
       });
+      return;
+    }
 
-      const rawText = response.text || "[]";
-      const segments = parseSegments(rawText);
-      const transcript = segments.map((s: any) => s.text).join(" ");
+    try {
+      const result = await transcribeWithGroq(
+        audioBase64,
+        mimeType || "audio/mpeg"
+      );
 
-      res.json({ segments, transcript });
-    } catch (error) {
-      console.error("[Screenity Free] Transcribe error:", error);
-      res.status(500).json({ error: "transcription_failed" });
+      res.json({
+        segments: result.segments,
+        transcript: result.transcript,
+      });
+    } catch (error: any) {
+      console.error("[Screenity Free] Transcribe error:", error?.message);
+      const isRateLimit = error?.status === 429;
+      res.status(isRateLimit ? 429 : 500).json({
+        error: isRateLimit ? "rate_limited" : "transcription_failed",
+      });
     }
   }
 );
 
 // ─── Summarize ──────────────────────────────────────────────────────
+
+const SUMMARIZE_PROMPTS: Record<string, (transcript: string) => string> = {
+  meeting_minutes: (t) =>
+    `Generate professional Meeting Minutes from this recording transcript. Include:\n- Meeting Goal / Context\n- Key Discussion Points\n- Decisions Made\n- Action Items (as Markdown checkboxes "- [ ]")\n\n${t}`,
+  summary: (t) =>
+    `Summarize the following video transcript concisely in 2-3 sentences:\n\n${t}`,
+  keypoints: (t) =>
+    `Extract the key points from this video transcript as a bullet-point list. Each point should be a concise, actionable insight:\n\n${t}`,
+  action_items: (t) =>
+    `Extract all action items, tasks, and to-dos from this video transcript. Format as a Markdown checklist using "- [ ] task". Group by topic if applicable:\n\n${t}`,
+  chapters: (t) =>
+    `Generate YouTube-style smart chapters for this video transcript. Format as a bulleted list with clear, catchy titles for each section:\n\n${t}`,
+  social: (t) =>
+    `Repurpose this video transcript into an engaging, professional social media post (e.g., for LinkedIn or Twitter). Include a catchy hook, main takeaways, and relevant hashtags:\n\n${t}`,
+  quiz: (t) =>
+    `Based on this video transcript, generate a short interactive quiz with 3 multiple choice questions to test the viewer's knowledge. Provide the questions first, then list the correct answers at the end:\n\n${t}`,
+};
 
 router.post(
   "/summarize",
@@ -98,25 +103,16 @@ router.post(
     }
 
     try {
-      let prompt = "";
-      if (style === "keypoints") {
-        prompt = `Extract the key points from this video transcript as a bullet-point list. Each point should be a concise, actionable insight:\n\n${transcript}`;
-      } else if (style === "chapters") {
-        prompt = `Generate YouTube-style smart chapters for this video transcript. Format as a bulleted list with clear, catchy titles for each section:\n\n${transcript}`;
-      } else if (style === "social") {
-        prompt = `Repurpose this video transcript into an engaging, professional social media post (e.g., for LinkedIn or Twitter). Include a catchy hook, main takeaways, and relevant hashtags:\n\n${transcript}`;
-      } else if (style === "quiz") {
-        prompt = `Based on this video transcript, generate a short interactive quiz with 3 multiple choice questions to test the viewer's knowledge. Provide the questions first, then list the correct answers at the end:\n\n${transcript}`;
-      } else {
-        prompt = `Summarize the following video transcript in 2-3 sentences:\n\n${transcript}`;
-      }
+      const promptFn =
+        SUMMARIZE_PROMPTS[style || "summary"] || SUMMARIZE_PROMPTS.summary;
+      const prompt = promptFn(transcript);
 
       const response = await ai.models.generateContent({
         model: MODEL,
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
           systemInstruction:
-            "You are a concise content summarizer. Create clear, accurate summaries.",
+            "You are a concise content summarizer. Create clear, accurate summaries. Respond in the same language as the transcript.",
           temperature: 0.5,
           maxOutputTokens: 1024,
         },
@@ -238,7 +234,7 @@ Respond in this exact JSON format:
         ],
         config: {
           systemInstruction:
-            "You are a content metadata specialist. Generate clear, SEO-friendly titles. Always respond in valid JSON format.",
+            "You are a content metadata specialist. Generate clear, SEO-friendly titles. Always respond in valid JSON format. Respond in the same language as the transcript.",
           temperature: 0.6,
           maxOutputTokens: 256,
         },
@@ -259,23 +255,107 @@ Respond in this exact JSON format:
   }
 );
 
+// ─── Voiceover (Groq Orpheus TTS — Free tier: locked to 'autumn' voice) ───
+
+router.post(
+  "/voiceover",
+  requireAuth,
+  async (req: Request, res: Response): Promise<void> => {
+    const { transcript } = req.body;
+
+    if (!transcript) {
+      res.status(400).json({ error: "missing_transcript" });
+      return;
+    }
+
+    try {
+      const chunks = chunkTranscriptBySentence(transcript, 190);
+      const wavBuffers: Buffer[] = [];
+
+      for (const chunk of chunks) {
+        const response = await groqClient.audio.speech.create({
+          model: "canopylabs/orpheus-v1-english",
+          voice: FREE_VOICE as any,
+          input: chunk,
+          response_format: "wav",
+        });
+        const buffer = Buffer.from(await response.arrayBuffer());
+        wavBuffers.push(buffer);
+      }
+
+      const combined = concatenateWavBuffers(wavBuffers);
+      const base64 = combined.toString("base64");
+
+      res.json({ audioBase64: base64, mimeType: "audio/wav" });
+    } catch (error: any) {
+      console.error("[Screenity Free] Voiceover error:", error?.message);
+      const isRateLimit = error?.status === 429;
+      res.status(isRateLimit ? 429 : 500).json({
+        error: isRateLimit ? "rate_limited" : "voiceover_failed",
+      });
+    }
+  }
+);
+
 // ─── Helpers ────────────────────────────────────────────────────────
 
-function parseSegments(rawText: string): Array<{ start: number; end: number; text: string }> {
-  const cleaned = stripMarkdownFences(rawText);
-  try {
-    const parsed = JSON.parse(cleaned);
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((s: any) => s && typeof s.text === "string" && s.text.trim().length > 0)
-      .map((s: any) => ({
-        start: typeof s.start === "number" ? Math.max(0, s.start) : 0,
-        end: typeof s.end === "number" ? Math.max(0, s.end) : 0,
-        text: s.text.trim(),
-      }));
-  } catch {
-    return [];
+function chunkTranscriptBySentence(text: string, maxLen: number): string[] {
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+  const chunks: string[] = [];
+  let current = "";
+
+  for (const sentence of sentences) {
+    const trimmed = sentence.trim();
+    if (!trimmed) continue;
+
+    if (current.length + trimmed.length + 1 <= maxLen) {
+      current += (current ? " " : "") + trimmed;
+    } else {
+      if (current) chunks.push(current);
+      if (trimmed.length > maxLen) {
+        const words = trimmed.split(/\s+/);
+        let wordBuf = "";
+        for (const word of words) {
+          if (wordBuf.length + word.length + 1 <= maxLen) {
+            wordBuf += (wordBuf ? " " : "") + word;
+          } else {
+            if (wordBuf) chunks.push(wordBuf);
+            wordBuf = word;
+          }
+        }
+        current = wordBuf;
+      } else {
+        current = trimmed;
+      }
+    }
   }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
+function concatenateWavBuffers(buffers: Buffer[]): Buffer {
+  if (buffers.length === 0) return Buffer.alloc(0);
+  if (buffers.length === 1) return buffers[0];
+
+  const headerSize = 44;
+  let totalDataSize = 0;
+  for (const buf of buffers) {
+    totalDataSize += buf.length - headerSize;
+  }
+
+  const header = Buffer.from(buffers[0].subarray(0, headerSize));
+  header.writeUInt32LE(totalDataSize + headerSize - 8, 4);
+  header.writeUInt32LE(totalDataSize, 40);
+
+  const result = Buffer.alloc(headerSize + totalDataSize);
+  header.copy(result, 0);
+
+  let offset = headerSize;
+  for (const buf of buffers) {
+    buf.copy(result, offset, headerSize);
+    offset += buf.length - headerSize;
+  }
+  return result;
 }
 
 function parseJSON(rawText: string): any {

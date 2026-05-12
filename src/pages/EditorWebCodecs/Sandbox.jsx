@@ -101,6 +101,7 @@ const Sandbox = () => {
   const triggerLoad = useRef(false);
   const ffmpegInstance = useRef(null);
   const mediabunnyLoaded = useRef(false);
+  const cachedVoiceoverRef = useRef(null); // { base64, mimeType }
 
   const sendMessage = (message) => {
     iframeRef.current?.contentWindow?.postMessage(message, "*");
@@ -402,12 +403,31 @@ const Sandbox = () => {
               break;
             }
 
+            sendMessage({ type: "ai-transcribe-progress", progress: 2 });
+
+            // Import MP3 compression utilities (replaces old WAV pipeline)
+            const { prepareAudioChunks, getAudioDuration } = await import("./utils/audioCompress");
+
+            // Free tier: client-side 20-minute duration check
+            const { isSubscribed } = await chrome.storage.local.get("isSubscribed");
+            const duration = await getAudioDuration(videoBlob);
+
+            if (!isSubscribed && duration > 1200) {
+              sendMessage({
+                type: "ai-transcribe-error",
+                error: "FREE_LIMIT_EXCEEDED",
+                maxMinutes: 20,
+              });
+              break;
+            }
+
             sendMessage({ type: "ai-transcribe-progress", progress: 5 });
 
-            // 1. Extract audio and split into 10-minute chunks
-            const { extractAndChunkAudio } = await import("./utils/extractAudioToChunks");
-            const chunks = await extractAndChunkAudio(videoBlob, 600); // 10 min
-            
+            // 1. Extract audio → compress to MP3 64kbps chunks (20-min each)
+            const chunks = await prepareAudioChunks(videoBlob, (msg) => {
+              sendMessage({ type: "ai-transcribe-progress", progress: 10, statusMessage: msg });
+            });
+
             if (chunks.length === 0) {
               throw new Error("No audio found in recording");
             }
@@ -415,34 +435,52 @@ const Sandbox = () => {
             let allSegments = [];
             let allTranscript = "";
 
-            // 2. Process each chunk
+            // 2. Process each chunk with auto-retry (3 attempts, exponential backoff)
             for (let i = 0; i < chunks.length; i++) {
               const chunk = chunks[i];
-              const progressBase = 10 + Math.floor((i / chunks.length) * 80);
+              const progressBase = 15 + Math.floor((i / chunks.length) * 80);
               sendMessage({ type: "ai-transcribe-progress", progress: progressBase });
 
-              const base64Data = await blobToBase64(chunk.blob);
+              let success = false;
+              let attempt = 1;
+              let data = null;
 
-              const response = await fetchWithAuthRetry("/transcribe", {
-                method: "POST",
-                body: JSON.stringify({
-                  audioBase64: base64Data,
-                  mimeType: "audio/wav",
-                  language: message.language || "",
-                  audioDurationSec: chunk.duration,
-                }),
-              });
+              while (!success && attempt <= 3) {
+                try {
+                  const response = await fetchWithAuthRetry("/transcribe", {
+                    method: "POST",
+                    body: JSON.stringify({
+                      audioBase64: chunk.base64,
+                      mimeType: chunk.mimeType,
+                      language: message.language || "",
+                      audioDurationSec: chunk.durationSec,
+                    }),
+                  });
 
-              const { segments } = await response.json();
-              // Adjust timestamps: API returns seconds relative to chunk start,
-              // add chunk.offset to convert to absolute video time.
-              if (Array.isArray(segments)) {
-                console.log("[AISR] Raw API segments for chunk", i, "offset", chunk.offset, "duration", chunk.duration, ":", JSON.stringify(segments));
-                segments.forEach((seg) => {
+                  data = await response.json();
+                  success = true;
+                } catch (err) {
+                  if (attempt >= 3) throw err;
+
+                  console.warn(`[AISR] Transcribe retry ${attempt}/3:`, err?.message);
+                  sendMessage({
+                    type: "ai-transcribe-progress",
+                    progress: progressBase,
+                    statusMessage: `Retrying (${attempt}/3)...`,
+                  });
+                  await new Promise((r) => setTimeout(r, attempt * 3000));
+                  attempt++;
+                }
+              }
+
+              // Adjust timestamps: add chunk offset for multi-chunk recordings
+              if (data?.segments && Array.isArray(data.segments)) {
+                console.log("[AISR] API segments for chunk", i, "offset", chunk.startSec, ":", JSON.stringify(data.segments.slice(0, 3)));
+                data.segments.forEach((seg) => {
                   allSegments.push({
-                    start: seg.start + chunk.offset,
-                    end: seg.end + chunk.offset,
-                    text: seg.text
+                    start: seg.start + chunk.startSec,
+                    end: seg.end + chunk.startSec,
+                    text: seg.text,
                   });
                   allTranscript += seg.text + " ";
                 });
@@ -522,16 +560,84 @@ const Sandbox = () => {
           break;
         }
 
-        case "ai-quiz": {
+        case "ai-quiz":
+        case "ai-meeting-minutes": {
           try {
             const response = await fetchWithAuthRetry("/summarize", {
               method: "POST",
-              body: JSON.stringify({ transcript: message.transcript, style: "quiz" }),
+              body: JSON.stringify({ transcript: message.transcript, style: "meeting_minutes" }),
             });
             const { summary } = await response.json();
-            sendMessage({ type: "ai-quiz-result", summary });
+            sendMessage({ type: "ai-meeting-minutes-result", summary });
           } catch (err) {
-            sendMessage({ type: "ai-quiz-error", error: err.message });
+            sendMessage({ type: "ai-meeting-minutes-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-voiceover": {
+          try {
+            sendMessage({ type: "ai-voiceover-progress", status: "generating" });
+            const response = await fetchWithAuthRetry("/voiceover", {
+              method: "POST",
+              body: JSON.stringify({
+                transcript: message.transcript,
+                voice: message.voice || "autumn",
+              }),
+            });
+            const { audioBase64, mimeType } = await response.json();
+
+            // Cache the audio for later apply
+            cachedVoiceoverRef.current = { base64: audioBase64, mimeType };
+
+            // Send base64 string (NOT Blob) back — Blob can't cross postMessage boundary
+            sendMessage({
+              type: "ai-voiceover-result",
+              audioBase64,
+              mimeType,
+            });
+          } catch (err) {
+            sendMessage({ type: "ai-voiceover-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-apply-voiceover": {
+          try {
+            const cached = cachedVoiceoverRef.current;
+            if (!cached) {
+              sendMessage({ type: "ai-apply-voiceover-error", error: "No voiceover audio cached" });
+              break;
+            }
+
+            // Convert cached base64 → Blob
+            const byteChars = atob(cached.base64);
+            const byteArr = new Uint8Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+            const audioBlob = new Blob([byteArr], { type: cached.mimeType });
+
+            // Use addAudioToVideo to replace audio track
+            const resultBlob = await addAudioToVideo(
+              ffmpegInstance.current,
+              message.videoBlob,
+              audioBlob,
+              message.duration,
+              1.0,
+              true, // replaceAudio
+              (progress) =>
+                sendMessage({ type: "processor-progress", progress: Math.round(progress * 100) })
+            );
+
+            const base64 = await toBase64(resultBlob);
+            sendMessage({
+              type: "updated-blob",
+              base64,
+              topLevel: false,
+              fromAudio: true,
+              _opId: message._opId,
+            });
+          } catch (err) {
+            sendMessage({ type: "ai-apply-voiceover-error", error: err.message });
           }
           break;
         }

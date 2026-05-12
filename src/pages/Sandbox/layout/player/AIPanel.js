@@ -11,7 +11,6 @@ import {
   AudioLinesIcon as AudioLines,
   LanguagesIcon as Languages,
   FileTextIcon as FileText,
-  ListIcon as ListChecks,
   UnderlineIcon as TextSelect,
   LockIcon as Lock,
   DownloadIcon as Download,
@@ -25,12 +24,19 @@ import {
   BadgeAlertIcon as AlertTriangle,
   MessageCircleIcon as MessageCircle,
   BookmarkIcon as Bookmark,
-  ListIcon as LayoutList,
   MessageSquareMoreIcon as Share2,
   CircleHelpIcon as FileQuestion,
   ActivityIcon as Activity,
   LoaderPinwheelIcon,
-  GripIcon
+  GripIcon,
+  PlayIcon,
+  PauseIcon,
+  CheckIcon,
+  Volume2Icon,
+  XIcon,
+  UsersIcon as Users,
+  ClipboardCheckIcon,
+  LayersIcon
 } from "lucide-animated";
 
 import blackNoteIconUrl from "../../../../assets/blacknote-icon.png";
@@ -38,6 +44,8 @@ import sparkAiIconUrl from "../../../../assets/spark-ai-icon.svg";
 
 const BlackNoteIcon = React.forwardRef(({ size = 20 }, ref) => <img ref={ref} src={blackNoteIconUrl} width={size} height={size} alt="BlackNote" style={{ objectFit: 'contain' }} />);
 const SparkAIIcon = React.forwardRef(({ size = 20 }, ref) => <img ref={ref} src={sparkAiIconUrl} width={size} height={size} alt="Spark AI" style={{ objectFit: 'contain' }} />);
+
+
 
 // ─── Cross-Extension Ecosystem ──────────────────────────────────────
 const ECOSYSTEM = {
@@ -131,39 +139,49 @@ const statusStyle = {
 
 const selectStyle = {
   flex: 1,
-  padding: "9px 12px",
-  borderRadius: "8px",
-  border: "1px solid #cbd5e1",
+  padding: "10px 14px",
+  borderRadius: "12px",
+  border: "1px solid rgba(255, 255, 255, 0.9)",
+  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.02), inset 0 1px 1px rgba(255,255,255,0.8)",
   fontSize: "14px",
   color: "#334155",
-  backgroundColor: "#f8fafc",
   outline: "none",
   cursor: "pointer",
+  transition: "all 0.2s"
 };
 
 const applyButtonStyle = (disabled) => ({
-  padding: "9px 16px",
-  background: "#3b82f6",
-  color: "white",
-  borderRadius: "8px",
-  border: "none",
+  padding: "10px 18px",
+  background: disabled ? "rgba(241, 245, 249, 0.6)" : "linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 1) 100%)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  color: disabled ? "#94a3b8" : "white",
+  borderRadius: "12px",
+  border: disabled ? "1px solid rgba(255, 255, 255, 0.8)" : "1px solid rgba(255, 255, 255, 0.2)",
+  boxShadow: disabled ? "none" : "0 4px 12px rgba(37, 99, 235, 0.2), inset 0 1px 1px rgba(255,255,255,0.3)",
   fontSize: "14px",
   fontWeight: "600",
   cursor: disabled ? "not-allowed" : "pointer",
   whiteSpace: "nowrap",
   boxSizing: "border-box",
-  transition: "background 0.2s",
+  transition: "all 0.2s",
 });
 
 const downloadButtonStyle = {
-  padding: "8px 10px",
-  background: "#f1f5f9",
-  borderRadius: "8px",
-  border: "1px solid #cbd5e1",
+  padding: "10px",
+  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  borderRadius: "12px",
+  border: "1px solid rgba(255, 255, 255, 0.9)",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.02), inset 0 1px 1px rgba(255,255,255,0.8)",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
-  transition: "background 0.2s",
+  transition: "all 0.2s",
 };
 
 
@@ -324,6 +342,9 @@ const AIPanel = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTask, setActiveTask] = useState("");
   const [progress, setProgress] = useState(0);
+  const [panelOpenState, setPanelOpenState] = useState({});
+  const isPanelOpen = (key) => panelOpenState[key] !== false;
+  const togglePanel = (key) => setPanelOpenState(prev => ({ ...prev, [key]: !prev[key] }));
 
   // Core data — segments carry timestamps for accurate subtitles
   const [segments, setSegments] = useState(null);
@@ -333,8 +354,36 @@ const AIPanel = () => {
   const [titleData, setTitleData] = useState(null);
   const [chapters, setChapters] = useState(null);
   const [social, setSocial] = useState(null);
-  const [quiz, setQuiz] = useState(null);
+  const [meetingMinutes, setMeetingMinutes] = useState(null);
   const [error, setError] = useState(null);
+
+  // Auto-transcribe state
+  const [autoTranscribeStatus, setAutoTranscribeStatus] = useState("idle");
+  // "idle" | "processing" | "done" | "limit_exceeded" | "error"
+  const [transcribeFinishing, setTranscribeFinishing] = useState(false);
+  const [fakeProgressWidth, setFakeProgressWidth] = useState("0%");
+
+  useEffect(() => {
+    if (isProcessing && activeTask === "transcribe" && !transcribeFinishing) {
+      setTimeout(() => setFakeProgressWidth("95%"), 100);
+    } else if (transcribeFinishing) {
+      setFakeProgressWidth("100%");
+    } else {
+      setFakeProgressWidth("0%");
+    }
+  }, [isProcessing, activeTask, transcribeFinishing]);
+
+  /*
+  // Voice Narrator state
+  const [selectedVoice, setSelectedVoice] = useState("autumn");
+  const [selectedTone, setSelectedTone] = useState("none");
+  const [voiceoverProcessing, setVoiceoverProcessing] = useState(false);
+  const [voiceoverAudioBase64, setVoiceoverAudioBase64] = useState(null);
+  const [voiceoverMimeType, setVoiceoverMimeType] = useState(null);
+  const [voiceoverApplied, setVoiceoverApplied] = useState(false);
+  const [voiceoverPreviewing, setVoiceoverPreviewing] = useState(false);
+  const voiceoverAudioRef = React.useRef(null);
+  */
 
   // Translation state
   const [targetLang, setTargetLang] = useState("original");
@@ -430,6 +479,28 @@ const AIPanel = () => {
     return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
+  // ─── Auto-transcribe on mount (2s delay for smooth editor load) ───
+  useEffect(() => {
+    if (segments || autoTranscribeStatus !== "idle") return;
+    if (userTier === "guest") return;
+    if (!contentState.blob && !contentState.rawBlob) return;
+
+    const timer = setTimeout(() => {
+      setAutoTranscribeStatus("processing");
+      setIsProcessing(true);
+      setActiveTask("transcribe");
+      setProgress(0);
+      setError(null);
+
+      window.parent.postMessage(
+        { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
+        "*"
+      );
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [contentState.blob, contentState.rawBlob, segments, userTier, autoTranscribeStatus]);
+
   // Restore AI data from cache on mount
   useEffect(() => {
     chrome.storage.local.get(["aiCache"], (result) => {
@@ -443,8 +514,9 @@ const AIPanel = () => {
       if (cache.titleData) setTitleData(cache.titleData);
       if (cache.chapters) setChapters(cache.chapters);
       if (cache.social) setSocial(cache.social);
-      if (cache.quiz) setQuiz(cache.quiz);
+      if (cache.meetingMinutes) setMeetingMinutes(cache.meetingMinutes);
       if (cache.targetLang) setTargetLang(cache.targetLang);
+      if (cache.segments) setAutoTranscribeStatus("done");
 
       // Restore subtitles to video player
       if (cache.translatedSegments && cache.subtitlesApplied) {
@@ -469,13 +541,13 @@ const AIPanel = () => {
         titleData,
         chapters,
         social,
-        quiz,
+        meetingMinutes,
         targetLang,
         translatedSegments,
         subtitlesApplied,
       },
     });
-  }, [segments, transcript, summary, actionItems, titleData, chapters, social, quiz, targetLang, translatedSegments, subtitlesApplied]);
+  }, [segments, transcript, summary, actionItems, titleData, chapters, social, meetingMinutes, targetLang, translatedSegments, subtitlesApplied]);
 
   /**
    * Apply segments to the video player as VTT subtitles.
@@ -524,16 +596,24 @@ const AIPanel = () => {
         case "ai-transcribe-result": {
           const newSegments = event.data.segments || [];
           const newTranscript = event.data.transcript || "";
-          setSegments(newSegments);
-          setTranscript(newTranscript);
-          setIsProcessing(false);
-          setActiveTask("");
-          setError(null);
+          
+          setTranscribeFinishing(true);
+          setFakeProgressWidth("100%");
+          
+          setTimeout(() => {
+            setTranscribeFinishing(false);
+            setSegments(newSegments);
+            setTranscript(newTranscript);
+            setIsProcessing(false);
+            setActiveTask("");
+            setError(null);
+            setAutoTranscribeStatus("done");
 
-          // Auto-apply original subtitles to video
-          if (newSegments.length > 0) {
-            applySegmentsToPlayer(newSegments, true, "en");
-          }
+            // Auto-apply original subtitles to video
+            if (newSegments.length > 0) {
+              applySegmentsToPlayer(newSegments, true, "en");
+            }
+          }, 800);
           break;
         }
 
@@ -568,10 +648,38 @@ const AIPanel = () => {
           break;
 
         case "ai-quiz-result":
-          setQuiz(event.data.summary);
+          setMeetingMinutes(event.data.summary);
           setIsProcessing(false);
           setActiveTask("");
           break;
+
+        case "ai-meeting-minutes-result":
+          setMeetingMinutes(event.data.summary);
+          setIsProcessing(false);
+          setActiveTask("");
+          break;
+
+        // For UI Testing via Console
+        case "ai-test-processing":
+          setSegments(null);
+          setTranscript("");
+          setAutoTranscribeStatus("processing");
+          setIsProcessing(true);
+          setActiveTask("transcribe");
+          break;
+          
+        case "ai-test-reset":
+          setSegments(null);
+          setTranscript("");
+          setAutoTranscribeStatus("idle");
+          setSummary(null);
+          setActionItems(null);
+          setTitleData(null);
+          setChapters(null);
+          setSocial(null);
+          setMeetingMinutes(null);
+          break;
+
 
         case "ai-translate-result": {
           const translatedRaw = event.data.translatedSegments || [];
@@ -595,9 +703,17 @@ const AIPanel = () => {
 
         default:
           if (type && type.endsWith("-error")) {
+            // Handle FREE_LIMIT_EXCEEDED and recording_too_long specially
+            if (event.data.error === "FREE_LIMIT_EXCEEDED" || event.data.error === "recording_too_long") {
+              setAutoTranscribeStatus("limit_exceeded");
+              setIsProcessing(false);
+              setActiveTask("");
+              return;
+            }
             handleAIError(event.data.error);
             setIsProcessing(false);
             setActiveTask("");
+            // setVoiceoverProcessing(false);
           }
           break;
       }
@@ -679,13 +795,13 @@ const AIPanel = () => {
                 style={{ cursor: isLoggingIn ? "default" : "pointer", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
               >
                 {isLoggingIn && (
-                  <motion.span
+                  <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    style={{ display: "flex" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, transformOrigin: "center" }}
                   >
                     <LoaderPinwheelIcon size={14} color="currentColor" />
-                  </motion.span>
+                  </motion.div>
                 )}
                 {isLoggingIn ? "Signing in..." : "Sign in with Google"}
               </div>
@@ -707,17 +823,37 @@ const AIPanel = () => {
             </div>
             <div className={styles.buttonDescription}>
               Upgrade to Pro for priority processing and higher limits.
-              <div
-                onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
-                style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
-              >
-                {chrome.i18n.getMessage("learnMoreLabel")}
+              <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "10px" }}>
+                <div
+                  onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
+                  style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", color: "#387ef7", fontWeight: 600 }}
+                >
+                  {chrome.i18n.getMessage("learnMoreLabel")}
+                </div>
+                <div
+                  onClick={() => {
+                    setError(null);
+                    if (autoTranscribeStatus === "error" && (contentState.blob || contentState.rawBlob)) {
+                      setAutoTranscribeStatus("processing");
+                      setIsProcessing(true);
+                      setActiveTask("transcribe");
+                      window.parent.postMessage(
+                        { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
+                        "*"
+                      );
+                    }
+                  }}
+                  style={{ cursor: "pointer", color: "#64748b", fontWeight: 600 }}
+                >
+                  Try Again
+                </div>
               </div>
             </div>
           </div>
         </div>
       );
     } else {
+      // PRO user: friendly error with retry
       content = (
         <div className={styles.alert}>
           <div className={styles.buttonLeft}>
@@ -727,15 +863,27 @@ const AIPanel = () => {
           </div>
           <div className={styles.buttonMiddle}>
             <div className={styles.buttonTitle}>
-              Your priority quota has been used up
+              Something went wrong
             </div>
             <div className={styles.buttonDescription}>
-              You have been switched to the standard tier. Please try again later or contact support.
+              We encountered a temporary issue. Your credits were not charged.
               <div
-                onClick={() => setError(null)}
+                onClick={() => {
+                  setError(null);
+                  // Retry last transcription if it was auto-transcribe
+                  if (autoTranscribeStatus === "error" && (contentState.blob || contentState.rawBlob)) {
+                    setAutoTranscribeStatus("processing");
+                    setIsProcessing(true);
+                    setActiveTask("transcribe");
+                    window.parent.postMessage(
+                      { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
+                      "*"
+                    );
+                  }
+                }}
                 style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", marginTop: "10px", color: "#387ef7", fontWeight: 600 }}
               >
-                {chrome.i18n.getMessage("permissionsModalDismiss")}
+                Try Again
               </div>
             </div>
           </div>
@@ -901,40 +1049,167 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
   };
 
   const handleQuiz = () => {
-    if (locked || isProcessing || quiz) return;
+    if (locked || isProcessing || meetingMinutes) return;
     setError(null);
     setIsProcessing(true);
-    setActiveTask("quiz");
-    window.parent.postMessage({ type: "ai-quiz", transcript }, "*");
+    setActiveTask("meeting-minutes");
+    window.parent.postMessage({ type: "ai-meeting-minutes", transcript }, "*");
   };
+
+  const handleMeetingMinutes = () => {
+    if (locked || isProcessing || meetingMinutes) return;
+    setError(null);
+    setIsProcessing(true);
+    setActiveTask("meeting-minutes");
+    window.parent.postMessage({ type: "ai-meeting-minutes", transcript }, "*");
+  };
+
+  /*
+  const handleVoiceover = () => {
+    if (locked || isProcessing || voiceoverProcessing) return;
+    setError(null);
+    setVoiceoverProcessing(true);
+    setIsProcessing(true);
+    setActiveTask("voiceover");
+    setVoiceoverAudioBase64(null);
+    setVoiceoverApplied(false);
+    setVoiceoverPreviewing(false);
+    const toneMap = { professional: "[professionally] ", cheerful: "[cheerful] ", dramatic: "[dramatic] ", none: "" };
+    const prefix = toneMap[selectedTone] || "";
+    window.parent.postMessage({
+      type: "ai-voiceover",
+      transcript: prefix + transcript,
+      voice: selectedVoice,
+    }, "*");
+  };
+
+  const handlePreviewVoiceover = () => {
+    if (!voiceoverAudioBase64) return;
+    if (voiceoverPreviewing) {
+      if (voiceoverAudioRef.current) {
+        voiceoverAudioRef.current.pause();
+        voiceoverAudioRef.current.currentTime = 0;
+      }
+      setVoiceoverPreviewing(false);
+    } else {
+      const dataUrl = `data:${voiceoverMimeType || "audio/wav"};base64,${voiceoverAudioBase64}`;
+      if (!voiceoverAudioRef.current) {
+        voiceoverAudioRef.current = new Audio();
+      }
+      voiceoverAudioRef.current.src = dataUrl;
+      voiceoverAudioRef.current.onended = () => setVoiceoverPreviewing(false);
+      voiceoverAudioRef.current.play().catch(() => {});
+      setVoiceoverPreviewing(true);
+    }
+  };
+
+  const handleApplyVoiceover = () => {
+    if (!voiceoverAudioBase64 || voiceoverApplied || isProcessing) return;
+    setIsProcessing(true);
+    setActiveTask("apply-voiceover");
+    if (voiceoverAudioRef.current) {
+      voiceoverAudioRef.current.pause();
+      voiceoverAudioRef.current.currentTime = 0;
+    }
+    setVoiceoverPreviewing(false);
+    window.parent.postMessage({
+      type: "ai-apply-voiceover",
+      videoBlob: contentState.blob || contentState.rawBlob,
+      duration: contentState.duration,
+    }, "*");
+    setVoiceoverApplied(true);
+    setIsProcessing(false);
+    setActiveTask("");
+  };
+
+  const handleRemoveVoiceover = () => {
+    setVoiceoverAudioBase64(null);
+    setVoiceoverApplied(false);
+    setVoiceoverPreviewing(false);
+    if (voiceoverAudioRef.current) {
+      voiceoverAudioRef.current.pause();
+      voiceoverAudioRef.current = null;
+    }
+  };
+  */
 
   // --- Render helpers ---
 
-  const renderButton = ({ Icon, title, description, onClick, taskKey, disabled, showLockText, rightAction, iconColor, iconClass, isActive, isLooping }) => (
+  const hexToRgba = (hex, alpha) => {
+    if (!hex || !hex.startsWith("#")) return `rgba(99, 102, 241, ${alpha})`;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const renderButton = ({ Icon, title, description, onClick, taskKey, disabled, showLockText, rightAction, iconColor, textGradient, iconClass, isActive, isLooping, bgGradient }) => (
     <div
       role="button"
       className={styles.button}
       onClick={disabled || (isProcessing && activeTask === taskKey) ? undefined : onClick}
       style={{
-        opacity: disabled ? 0.45 : 1,
+        "--button-bg": disabled ? "rgba(241, 245, 249, 0.6)" : `linear-gradient(135deg, ${hexToRgba(iconColor, 0.08)} 0%, rgba(255,255,255, 0.8) 100%)`,
+        "--button-hover-bg": disabled ? "rgba(241, 245, 249, 0.6)" : `linear-gradient(135deg, ${hexToRgba(iconColor, 0.15)} 0%, rgba(255,255,255, 0.9) 100%)`,
+        "--button-border": disabled ? "1px solid rgba(255, 255, 255, 0.8)" : "1px solid rgba(255,255,255, 0.9)",
+        "--button-shadow": disabled ? "none" : `0 8px 32px -8px ${hexToRgba(iconColor, 0.2)}, inset 0 1px 1px rgba(255,255,255, 1)`,
+        opacity: disabled ? 0.7 : 1,
         cursor: disabled || (isProcessing && activeTask === taskKey) ? "default" : "pointer",
-        transition: "opacity 0.2s ease",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderRadius: "20px",
+        overflow: "visible",
+        ...(isActive ? { transform: "scale(0.98)" } : {}),
       }}
     >
-      <div className={styles.buttonLeft}>
-        <div className={iconClass || ""}>
+      <div className={styles.buttonLeft} style={{ width: "70px" }}>
+        <div 
+          className={`icon-color-override-${taskKey} ${iconClass || ""}`}
+          style={{
+            width: "42px", height: "42px",
+            borderRadius: "16px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: disabled ? "rgba(241, 245, 249, 0.8)" : `linear-gradient(135deg, ${hexToRgba(iconColor, 0.15)} 0%, rgba(255,255,255, 0.9) 100%)`,
+            boxShadow: disabled ? "inset 0 1px 1px rgba(255,255,255,0.9)" : `0 4px 12px ${hexToRgba(iconColor, 0.15)}, inset 0 1px 2px rgba(255,255,255, 1)`,
+            border: disabled ? "1px solid rgba(255, 255, 255, 0.8)" : "1px solid rgba(255,255,255,0.8)",
+          }}
+        >
+          <style>{`
+            .icon-color-override-${taskKey} svg {
+              color: ${disabled ? "#94a3b8" : (iconColor || "#6366f1")} !important;
+              stroke: ${disabled ? "#94a3b8" : (iconColor || "#6366f1")} !important;
+            }
+          `}</style>
           <AnimatedIcon animation="none" isActive={isActive} isLooping={isLooping}>
-            <Icon size={20} strokeWidth={2} color={iconColor || (disabled ? "#94a3b8" : "#6366f1")} />
+            <Icon 
+              size={20} 
+              strokeWidth={2.5} 
+            />
           </AnimatedIcon>
         </div>
       </div>
       <div className={styles.buttonMiddle} style={{ flex: 1, minWidth: 0 }}>
-        <div className={styles.buttonTitle}>
+        <div 
+          className={styles.buttonTitle} 
+          style={{ 
+            color: disabled ? "#94a3b8" : "#0f172a",
+            fontWeight: 700,
+            fontSize: "14px",
+            letterSpacing: "-0.2px"
+          }}
+        >
           {title}
         </div>
         <div
           className={styles.buttonDescription}
-          style={{ display: "flex", alignItems: "center", gap: "6px", width: "100%" }}
+          style={{ 
+            display: "flex", alignItems: "center", gap: "6px", width: "100%", 
+            color: disabled ? "#94a3b8" : "#475569",
+            fontWeight: 500,
+            fontSize: "12px",
+            marginTop: "2px"
+          }}
         >
           {showLockText ? (
             <>
@@ -957,7 +1232,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
     </div>
   );
 
-  const renderResultOrSkeleton = (content, taskKey, rawText, titleForBlackNote) => {
+  const renderResultOrSkeleton = (content, taskKey, rawText, titleForBlackNote, isOpen = true) => {
     if (activeTask === taskKey && !content) {
       return (
         <div
@@ -977,14 +1252,31 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
         </div>
       );
     }
-    if (!content) return null;
+    if (!content || !isOpen) return null;
+    const getTaskColor = (key) => {
+      switch(key) {
+        case "chat": return "#4f46e5";
+        case "meeting-minutes": return "#059669";
+        case "summarize": return "#ea580c";
+        case "action-items": return "#2563eb";
+        case "title": return "#db2777";
+        case "chapters": return "#7c3aed";
+        case "social": return "#0284c7";
+        default: return "#3b82f6";
+      }
+    };
+    const color = getTaskColor(taskKey);
+
     return (
       <div
         style={{
           padding: "16px",
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: "10px",
+          background: `linear-gradient(135deg, ${hexToRgba(color, 0.05)} 0%, rgba(255,255,255, 0.8) 100%)`,
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderRadius: "20px",
+          border: "1px solid rgba(255,255,255, 0.9)",
+          boxShadow: `0 8px 32px -8px ${hexToRgba(color, 0.15)}, inset 0 1px 1px rgba(255,255,255, 1)`,
           fontSize: "13px",
           color: "#334155",
           marginTop: "2px",
@@ -994,36 +1286,51 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
         }}
       >
         <div style={{
-          maxHeight: "65px",
+          maxHeight: "200px",
           overflow: "hidden",
           lineHeight: "1.5",
-          maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
-          WebkitMaskImage: "-webkit-linear-gradient(top, black 40%, transparent 100%)"
+          maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+          WebkitMaskImage: "-webkit-linear-gradient(top, black 60%, transparent 100%)"
         }}>
           {content}
         </div>
         <button
           onClick={() => sendToBlackNote(titleForBlackNote, rawText)}
           style={{
-            marginTop: "12px",
-            padding: "8px 14px",
-            background: "#0f172a",
-            color: "white",
-            borderRadius: "6px",
-            border: "none",
-            fontSize: "12px",
-            fontWeight: "500",
+            marginTop: "16px",
+            background: "rgba(255, 255, 255, 0.7)",
+            color: "#0f172a",
+            border: "1px solid rgba(255, 255, 255, 0.8)",
+            borderRadius: "12px",
+            padding: "8px 16px 8px 10px",
+            fontSize: "13px",
+            fontWeight: "600",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: "8px",
+            gap: "10px",
             width: "fit-content",
-            transition: "background 0.2s ease"
+            boxShadow: "0 2px 10px rgba(0,0,0,0.03), inset 0 1px 1px rgba(255,255,255,0.9)",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
           }}
-          onMouseOver={(e) => e.currentTarget.style.background = "#1e293b"}
-          onMouseOut={(e) => e.currentTarget.style.background = "#0f172a"}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.9)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,1)";
+            e.currentTarget.style.transform = "translateY(-1px)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.7)";
+            e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.03), inset 0 1px 1px rgba(255,255,255,0.9)";
+            e.currentTarget.style.transform = "translateY(0)";
+          }}
         >
-          <BlackNoteIcon size={14} /> Read More in BlackNote
+          <div style={{
+            width: "24px", height: "24px", borderRadius: "8px",
+            background: "rgba(15, 23, 42, 0.04)", display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <BlackNoteIcon size={14} />
+          </div>
+          Read More in BlackNote
         </button>
       </div>
     );
@@ -1083,16 +1390,80 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
         className={styles.buttonWrap}
         style={{ display: "flex", flexDirection: "column", gap: "12px" }}
       >
-        {/* 1. Top Action: Progress Box OR Smart Video Analysis */}
-        {!segments && (
+        {/* 1. Auto-transcribe status / Smart Video Analysis */}
+        {!segments && autoTranscribeStatus === "limit_exceeded" && (
+          <div style={{
+            padding: "20px", background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+            borderRadius: "12px", border: "1px solid #f59e0b33",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+              <AnimatedIcon animation="none"><Crown size={22} color="#d97706" /></AnimatedIcon>
+              <span style={{ fontWeight: 700, fontSize: "14px", color: "#92400e" }}>
+                AI Not Available for This Recording
+              </span>
+            </div>
+            <div style={{ fontSize: "13px", color: "#78350f", lineHeight: 1.5 }}>
+              This recording exceeds the 20-minute limit for free accounts. Upgrade to PRO to unlock AI features for longer recordings.
+            </div>
+            <button
+              onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
+              style={{
+                marginTop: "14px", padding: "10px 20px", background: "#d97706", color: "white",
+                borderRadius: "8px", border: "none", fontSize: "13px", fontWeight: 700,
+                cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                transition: "background 0.2s",
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = "#b45309"}
+              onMouseOut={(e) => e.currentTarget.style.background = "#d97706"}
+            >
+              <Crown size={14} /> Upgrade to PRO
+            </button>
+          </div>
+        )}
+
+        {!segments && autoTranscribeStatus !== "limit_exceeded" && (
           renderButton({
-            Icon: GripIcon,
-            title: isProcessing && activeTask === "transcribe" 
-              ? "Analyzing video audio..." 
-              : "Smart Video Analysis",
+            Icon: isProcessing && activeTask === "transcribe" ? AudioLines : GripIcon,
+            title: isProcessing && activeTask === "transcribe"
+              ? "AI features will be available shortly..."
+              : autoTranscribeStatus === "error"
+                ? "Analysis Failed"
+                : autoTranscribeStatus === "idle"
+                  ? "Smart Video Analysis"
+                  : "Preparing AI analysis...",
             description: isProcessing && activeTask === "transcribe" ? (
-              <div style={{ width: "100%", height: "4px", background: "#dbeafe", borderRadius: "2px", overflow: "hidden", marginTop: "4px", position: "relative" }}>
-                <div style={{ position: "absolute", height: "100%", width: "50%", background: "#3b82f6", borderRadius: "2px", animation: "indeterminate-progress 1.5s infinite linear" }} />
+              <div style={{ flex: 1, paddingRight: "16px" }}>
+                <div style={{
+                  width: "100%",
+                  height: "8px",
+                  background: "#e2e8f0",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  position: "relative",
+                  border: "none"
+                }}>
+                  <div style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    height: "100%",
+                    width: fakeProgressWidth,
+                    background: "linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%)",
+                    borderRadius: "12px",
+                    transition: transcribeFinishing ? "width 0.4s ease-out" : "width 20s cubic-bezier(0.1, 0.9, 0.2, 1)",
+                  }} />
+                  {/* Highlight shimmer effect over the progress bar */}
+                  <div style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    height: "100%",
+                    width: "100%",
+                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
+                    backgroundSize: "200% 100%",
+                    animation: "aiShimmer 2s infinite linear"
+                  }} />
+                </div>
               </div>
             ) : "Extract intelligence, subtitles, and metadata.",
             onClick: userTier === "guest" ? () => setError("LOGIN_REQUIRED") : handleTranscribe,
@@ -1102,7 +1473,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
             rightAction: isProcessing && activeTask === "transcribe" ? <div /> : undefined,
             iconColor: isProcessing && activeTask === "transcribe" ? "#3b82f6" : null,
             isActive: isProcessing && activeTask === "transcribe",
-            isLooping: isProcessing && activeTask === "transcribe",
+            isLooping: false, // The lottie handles the looping now
           })
         )}
 
@@ -1110,35 +1481,46 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
         <div
           style={{
             padding: "16px",
-            background: "#fff",
-            borderRadius: "12px",
-            opacity: locked ? 0.45 : 1,
+            background: locked ? "rgba(241, 245, 249, 0.6)" : `linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(255,255,255, 0.8) 100%)`,
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+            borderRadius: "20px",
+            opacity: locked ? 0.7 : 1,
             pointerEvents: locked ? "none" : "auto",
-            border: "1px solid #e2e8f0",
-            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.02)",
-            transition: "opacity 0.2s ease",
+            border: locked ? "1px solid rgba(255, 255, 255, 0.8)" : "1px solid rgba(255,255,255, 0.9)",
+            boxShadow: locked ? "none" : `0 8px 32px -8px rgba(59, 130, 246, 0.2), inset 0 1px 1px rgba(255,255,255, 1)`,
+            marginBottom: "16px",
+            position: "relative",
+            zIndex: 50,
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
           <div
             style={{
-              fontWeight: "600",
-              fontSize: "14px",
+              fontWeight: "700",
               color: "#0f172a",
-              marginBottom: "12px",
+              marginBottom: "16px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "12px",
+              fontSize: "14px",
+              letterSpacing: "-0.2px"
             }}
           >
-            {locked ? (
-              <AnimatedIcon animation="none">
-                <Lock size={16} color="#94a3b8" />
-              </AnimatedIcon>
-            ) : (
-              <AnimatedIcon animation="none">
-                <Languages size={18} color="#3b82f6" />
-              </AnimatedIcon>
-            )}
+            <div style={{
+              width: "42px", height: "42px",
+              borderRadius: "16px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: locked ? "rgba(241, 245, 249, 0.8)" : `linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(255,255,255, 0.9) 100%)`,
+              boxShadow: locked ? "inset 0 1px 1px rgba(255,255,255,0.9)" : `0 4px 12px rgba(59, 130, 246, 0.15), inset 0 1px 2px rgba(255,255,255, 1)`,
+              border: locked ? "1px solid rgba(255, 255, 255, 0.8)" : "1px solid rgba(255,255,255,0.8)",
+            }}>
+              {locked ? (
+                <Lock size={20} color="#94a3b8" strokeWidth={2.5} />
+              ) : (
+                <Languages size={20} color="#3b82f6" strokeWidth={2.5} />
+              )}
+            </div>
             Translate & Add Subtitles
           </div>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -1158,22 +1540,33 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
               style={applyButtonStyle(isProcessing || locked || subtitlesApplied)}
               onMouseOver={(e) => {
                 if (!locked && !isProcessing && !subtitlesApplied)
-                  e.currentTarget.style.background = "#2563eb";
+                  e.currentTarget.style.background = "linear-gradient(135deg, rgba(37, 99, 235, 0.9) 0%, rgba(29, 78, 216, 1) 100%)";
               }}
               onMouseOut={(e) => {
                 if (!locked && !isProcessing && !subtitlesApplied)
-                  e.currentTarget.style.background = "#3b82f6";
+                  e.currentTarget.style.background = "linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 1) 100%)";
               }}
             >
-              {activeTask === "translate" ? "Translating..." : subtitlesApplied ? "Applied" : "Apply"}
+              {activeTask === "translate" ? (
+                <div style={{ display: "flex", gap: "4px", alignItems: "center", justifyContent: "center", height: 16 }}>
+                  {[0, 1, 2].map((i) => (
+                    <motion.div
+                      key={i}
+                      animate={{ y: [0, -4, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                      style={{ width: 4, height: 4, backgroundColor: "rgba(0, 0, 0, 0.7)", borderRadius: "50%" }}
+                    />
+                  ))}
+                </div>
+              ) : subtitlesApplied ? "Applied" : "Apply"}
             </button>
             <button
               onClick={() => handleDownloadSubtitles(translatedSegments || segments)}
               title="Download .SRT"
               style={downloadButtonStyle}
               disabled={locked}
-              onMouseOver={(e) => { if (!locked) e.currentTarget.style.background = "#e2e8f0"; }}
-              onMouseOut={(e) => { if (!locked) e.currentTarget.style.background = "#f1f5f9"; }}
+              onMouseOver={(e) => { if (!locked) e.currentTarget.style.background = "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 100%)"; }}
+              onMouseOut={(e) => { if (!locked) e.currentTarget.style.background = "linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%)"; }}
             >
               <AnimatedIcon animation="none">
                 <Download size={18} color={locked ? "#cbd5e1" : "#475569"} />
@@ -1187,8 +1580,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
               onClick={() => setSubSettingsOpen(!subSettingsOpen)}
               style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
             >
-              <div style={{ fontSize: "13px", fontWeight: "600", color: "#475569", display: "flex", alignItems: "center", gap: "6px" }}>
-                <Settings size={14} /> Subtitle Styling
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#475569", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Settings size={16} color="#64748b" /> Subtitle Styling
               </div>
               <AnimatedIcon animation="none">
                 <ChevronDown size={16} color="#64748b" style={{ transform: subSettingsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
@@ -1196,7 +1589,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
             </div>
 
             {subSettingsOpen && (
-              <div style={{ marginTop: "16px", padding: "16px", background: "#f8fafc", borderRadius: "12px", border: "1px solid #f1f5f9", display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "#475569" }}>
+              <div style={{ marginTop: "16px", padding: "16px", background: "rgba(255,255,255,0.5)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.8)", boxShadow: "inset 0 1px 2px rgba(255,255,255,0.9)", display: "flex", flexDirection: "column", gap: "14px", fontSize: "13px", color: "#475569" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontWeight: 500 }}>Font Color</span>
                   <div style={{ display: "flex", gap: "6px" }}>
@@ -1284,9 +1677,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
                     </div>
                     Hardcode subtitles on download
                   </div>
-                  <div style={{ fontSize: "11px", color: "#64748b", marginTop: "12px", fontStyle: "italic", lineHeight: 1.4 }}>
-                    * The live preview is shown on the video player above. These styles will be hardcoded into the video when downloading.
-                  </div>
+
                 </div>
 
               </div>
@@ -1305,7 +1696,41 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           taskKey: "chat",
           disabled: locked || isProcessing,
           showLockText: locked,
+          bgGradient: "rgba(99, 102, 241, 0.06)",
+          iconColor: "#4f46e5",
+          textGradient: "linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)",
         })}
+
+        {/* 8. Meeting Minutes (replaces Quiz) */}
+        {renderButton({
+          Icon: Users,
+          title: "Meeting Minutes",
+          description: activeTask === "meeting-minutes"
+            ? "Generating meeting notes..."
+            : "Generate key decisions and action items.",
+          onClick: meetingMinutes ? () => togglePanel("meeting-minutes") : handleMeetingMinutes,
+          taskKey: "meeting-minutes",
+          disabled: locked,
+          rightAction: meetingMinutes ? (
+            <AnimatedIcon animation="none">
+              {isPanelOpen("meeting-minutes") ? <ChevronDown size={16} color="currentColor" /> : <ChevronRight size={16} color="currentColor" />}
+            </AnimatedIcon>
+          ) : undefined,
+          iconColor: "#059669",
+          textGradient: "linear-gradient(90deg, #059669 0%, #10b981 100%)",
+        })}
+        {renderResultOrSkeleton(
+          meetingMinutes && (
+            <div
+              style={{ lineHeight: "1.5" }}
+              dangerouslySetInnerHTML={{ __html: marked.parse(meetingMinutes) }}
+            />
+          ),
+          "meeting-minutes",
+          meetingMinutes,
+          "Meeting Minutes",
+          isPanelOpen("meeting-minutes")
+        )}
 
         {/* 3. Summarize — result appears inline below */}
         {renderButton({
@@ -1314,51 +1739,59 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           description: activeTask === "summarize"
             ? "Reading transcript..."
             : "Get a quick summary of the video.",
-          onClick: handleSummarize,
+          onClick: summary ? () => togglePanel("summarize") : handleSummarize,
           taskKey: "summarize",
-          disabled: locked || (isProcessing && activeTask !== "summarize") || summary,
-          showLockText: locked,
+          disabled: locked,
+          rightAction: summary ? (
+            <AnimatedIcon animation="none">
+              {isPanelOpen("summarize") ? <ChevronDown size={16} color="currentColor" /> : <ChevronRight size={16} color="currentColor" />}
+            </AnimatedIcon>
+          ) : undefined,
+          iconColor: "#ea580c",
+          textGradient: "linear-gradient(90deg, #ea580c 0%, #f97316 100%)",
         })}
         {renderResultOrSkeleton(
           summary && (
-            <>
-              <strong>Summary:</strong>
-              <div
-                style={{ marginTop: "4px", lineHeight: "1.5" }}
-                dangerouslySetInnerHTML={{ __html: marked.parse(summary) }}
-              />
-            </>
+            <div
+              style={{ lineHeight: "1.5" }}
+              dangerouslySetInnerHTML={{ __html: marked.parse(summary) }}
+            />
           ),
           "summarize",
           summary,
-          "Video Summary"
+          "Video Summary",
+          isPanelOpen("summarize")
         )}
 
         {/* 4. Key Takeaways — result appears inline below */}
         {renderButton({
-          Icon: ListChecks,
+          Icon: ClipboardCheckIcon,
           title: "Key Takeaways",
           description: activeTask === "action-items"
             ? "Analyzing transcript..."
             : "Extract bullet points & to-dos.",
-          onClick: handleActionItems,
+          onClick: actionItems ? () => togglePanel("action-items") : handleActionItems,
           taskKey: "action-items",
-          disabled: locked || (isProcessing && activeTask !== "action-items") || actionItems,
-          showLockText: locked,
+          disabled: locked,
+          rightAction: actionItems ? (
+            <AnimatedIcon animation="none">
+              {isPanelOpen("action-items") ? <ChevronDown size={16} color="currentColor" /> : <ChevronRight size={16} color="currentColor" />}
+            </AnimatedIcon>
+          ) : undefined,
+          iconColor: "#3b82f6",
+          textGradient: "linear-gradient(90deg, #2563eb 0%, #3b82f6 100%)",
         })}
         {renderResultOrSkeleton(
           actionItems && (
-            <>
-              <strong>Key Takeaways:</strong>
-              <div
-                style={{ marginTop: "4px", lineHeight: "1.5" }}
-                dangerouslySetInnerHTML={{ __html: marked.parse(actionItems) }}
-              />
-            </>
+            <div
+              style={{ lineHeight: "1.5" }}
+              dangerouslySetInnerHTML={{ __html: marked.parse(actionItems) }}
+            />
           ),
           "action-items",
           actionItems,
-          "Video Key Takeaways"
+          "Video Key Takeaways",
+          isPanelOpen("action-items")
         )}
 
         {/* 5. Smart Title — result appears inline below */}
@@ -1368,52 +1801,62 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           description: activeTask === "title"
             ? "Crafting metadata..."
             : "Generate YouTube-ready title.",
-          onClick: handleGenerateTitle,
+          onClick: titleData ? () => togglePanel("title") : handleGenerateTitle,
           taskKey: "title",
-          disabled: locked || (isProcessing && activeTask !== "title") || titleData,
-          showLockText: locked,
+          disabled: locked,
+          rightAction: titleData ? (
+            <AnimatedIcon animation="none">
+              {isPanelOpen("title") ? <ChevronDown size={16} color="currentColor" /> : <ChevronRight size={16} color="currentColor" />}
+            </AnimatedIcon>
+          ) : undefined,
+          iconColor: "#db2777",
+          textGradient: "linear-gradient(90deg, #db2777 0%, #f43f5e 100%)",
         })}
         {renderResultOrSkeleton(
           titleData && (
             <>
-              <strong>Title:</strong>
-              <p style={{ marginTop: "4px", fontSize: "15px", fontWeight: "bold" }}>
-                {titleData.title}
-              </p>
-              <strong style={{ display: "block", marginTop: "8px" }}>Description:</strong>
-              <p style={{ marginTop: "4px", lineHeight: "1.5" }}>{titleData.description}</p>
+              <strong>{titleData.title}</strong>
+              <div
+                style={{ marginTop: "4px", lineHeight: "1.5" }}
+                dangerouslySetInnerHTML={{ __html: marked.parse(titleData.description || "") }}
+              />
             </>
           ),
           "title",
           titleData ? `**${titleData.title}**\n\n${titleData.description}` : "",
-          titleData ? titleData.title : ""
+          titleData ? titleData.title : "",
+          isPanelOpen("title")
         )}
 
         {/* 6. Smart Chapters */}
         {renderButton({
-          Icon: LayoutList,
+          Icon: LayersIcon,
           title: "Smart Chapters",
           description: activeTask === "chapters"
             ? "Structuring video..."
             : "Auto-generate YouTube timestamps.",
-          onClick: handleChapters,
+          onClick: chapters ? () => togglePanel("chapters") : handleChapters,
           taskKey: "chapters",
-          disabled: locked || (isProcessing && activeTask !== "chapters") || chapters,
-          showLockText: locked,
+          disabled: locked,
+          rightAction: chapters ? (
+            <AnimatedIcon animation="none">
+              {isPanelOpen("chapters") ? <ChevronDown size={16} color="currentColor" /> : <ChevronRight size={16} color="currentColor" />}
+            </AnimatedIcon>
+          ) : undefined,
+          iconColor: "#7c3aed",
+          textGradient: "linear-gradient(90deg, #7c3aed 0%, #8b5cf6 100%)",
         })}
         {renderResultOrSkeleton(
           chapters && (
-            <>
-              <strong>Smart Chapters:</strong>
-              <div
-                style={{ marginTop: "4px", lineHeight: "1.5" }}
-                dangerouslySetInnerHTML={{ __html: marked.parse(chapters) }}
-              />
-            </>
+            <div
+              style={{ lineHeight: "1.5" }}
+              dangerouslySetInnerHTML={{ __html: marked.parse(chapters) }}
+            />
           ),
           "chapters",
           chapters,
-          "Video Chapters"
+          "Video Chapters",
+          isPanelOpen("chapters")
         )}
 
         {/* 7. Social Media Post */}
@@ -1423,52 +1866,263 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           description: activeTask === "social"
             ? "Drafting post..."
             : "Repurpose video for LinkedIn/Twitter.",
-          onClick: handleSocial,
+          onClick: social ? () => togglePanel("social") : handleSocial,
           taskKey: "social",
-          disabled: locked || (isProcessing && activeTask !== "social") || social,
-          showLockText: locked,
+          disabled: locked,
+          rightAction: social ? (
+            <AnimatedIcon animation="none">
+              {isPanelOpen("social") ? <ChevronDown size={16} color="currentColor" /> : <ChevronRight size={16} color="currentColor" />}
+            </AnimatedIcon>
+          ) : undefined,
+          iconColor: "#0284c7",
+          textGradient: "linear-gradient(90deg, #0284c7 0%, #0ea5e9 100%)",
         })}
         {renderResultOrSkeleton(
           social && (
-            <>
-              <strong>Social Media Post:</strong>
-              <div
-                style={{ marginTop: "4px", lineHeight: "1.5" }}
-                dangerouslySetInnerHTML={{ __html: marked.parse(social) }}
-              />
-            </>
+            <div
+              style={{ lineHeight: "1.5" }}
+              dangerouslySetInnerHTML={{ __html: marked.parse(social) }}
+            />
           ),
           "social",
           social,
-          "Social Media Post"
+          "Social Media Post",
+          isPanelOpen("social")
         )}
 
-        {/* 8. Quiz Generation */}
-        {renderButton({
-          Icon: FileQuestion,
-          title: "Quiz Generation",
-          description: activeTask === "quiz"
-            ? "Generating questions..."
-            : "Create interactive questions.",
-          onClick: handleQuiz,
-          taskKey: "quiz",
-          disabled: locked || (isProcessing && activeTask !== "quiz") || quiz,
-          showLockText: locked,
-        })}
-        {renderResultOrSkeleton(
-          quiz && (
+
+
+        {/* 9. AI Voice Narrator (Temporarily Disabled due to Groq API token limits) */}
+        {/*
+        <div
+          style={{
+            padding: "16px",
+            background: voiceoverApplied ? "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)" : "#fff",
+            borderRadius: "12px",
+            opacity: locked ? 0.45 : 1,
+            pointerEvents: locked ? "none" : "auto",
+            border: voiceoverApplied ? "1px solid #86efac" : "1px solid #e2e8f0",
+            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.02)",
+            transition: "all 0.3s ease",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: "600", fontSize: "14px", color: "#0f172a",
+              marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px",
+            }}
+          >
+            {locked ? (
+              <AnimatedIcon animation="none"><Lock size={16} color="#94a3b8" /></AnimatedIcon>
+            ) : voiceoverApplied ? (
+              <AnimatedIcon animation="none"><CheckIcon size={18} color="#16a34a" /></AnimatedIcon>
+            ) : (
+              <AnimatedIcon animation="none"><AudioLines size={18} color="#8b5cf6" /></AnimatedIcon>
+            )}
+            AI Voice Narrator
+            {voiceoverApplied && (
+              <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: 500, marginLeft: "auto" }}>
+                ✓ Applied
+              </span>
+            )}
+          </div>
+
+          <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "12px", lineHeight: 1.4 }}>
+            {voiceoverApplied
+              ? "AI voice has been applied to your video. Download to save."
+              : "Replace video narration with an AI-generated voice."}
+          </div>
+
+          {!voiceoverApplied && (
             <>
-              <strong>Quiz:</strong>
-              <div
-                style={{ marginTop: "4px", lineHeight: "1.5" }}
-                dangerouslySetInnerHTML={{ __html: marked.parse(quiz) }}
-              />
+              <div style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "#475569", marginBottom: "4px" }}>Voice</div>
+                  <select
+                    value={selectedVoice}
+                    onChange={(e) => setSelectedVoice(e.target.value)}
+                    disabled={isProcessing || locked || voiceoverProcessing}
+                    style={{
+                      ...selectStyle,
+                      width: "100%",
+                      fontSize: "13px",
+                      padding: "8px 10px",
+                    }}
+                  >
+                    <option value="autumn">🎙️ Autumn (Female)</option>
+                    {userTier === "pro" && (
+                      <>
+                        <option value="diana">🎙️ Diana (Female)</option>
+                        <option value="hannah">🎙️ Hannah (Female)</option>
+                        <option value="austin">🎤 Austin (Male)</option>
+                        <option value="daniel">🎤 Daniel (Male)</option>
+                        <option value="troy">🎤 Troy (Male)</option>
+                      </>
+                    )}
+                  </select>
+                  {userTier !== "pro" && (
+                    <div style={{ fontSize: "10px", color: "#94a3b8", marginTop: "4px", fontStyle: "italic" }}>
+                      Upgrade to PRO for more voices
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "11px", fontWeight: 600, color: "#475569", marginBottom: "4px" }}>Tone</div>
+                  <select
+                    value={selectedTone}
+                    onChange={(e) => setSelectedTone(e.target.value)}
+                    disabled={isProcessing || locked || voiceoverProcessing}
+                    style={{
+                      ...selectStyle,
+                      width: "100%",
+                      fontSize: "13px",
+                      padding: "8px 10px",
+                    }}
+                  >
+                    <option value="none">Casual</option>
+                    <option value="professional">Professional</option>
+                    <option value="cheerful">Cheerful</option>
+                    <option value="dramatic">Dramatic</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                onClick={handleVoiceover}
+                disabled={locked || isProcessing || voiceoverProcessing || !transcript}
+                style={{
+                  width: "100%", padding: "10px",
+                  background: voiceoverProcessing ? "#94a3b8" : !transcript ? "#cbd5e1" : "#8b5cf6",
+                  color: "white", borderRadius: "8px", border: "none",
+                  fontSize: "13px", fontWeight: 600,
+                  cursor: locked || isProcessing || !transcript ? "not-allowed" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                  transition: "background 0.2s",
+                }}
+                onMouseOver={(e) => { if (!locked && !isProcessing && transcript) e.currentTarget.style.background = "#7c3aed"; }}
+                onMouseOut={(e) => { if (!locked && !isProcessing && transcript) e.currentTarget.style.background = "#8b5cf6"; }}
+              >
+                {voiceoverProcessing ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, transformOrigin: "center" }}
+                    >
+                      <LoaderPinwheelIcon size={14} color="white" />
+                    </motion.div>
+                    Generating voiceover...
+                  </>
+                ) : (
+                  <>
+                    <AudioLines size={14} /> {voiceoverAudioBase64 ? "Regenerate" : "Generate Voiceover"}
+                  </>
+                )}
+              </button>
             </>
-          ),
-          "quiz",
-          quiz,
-          "Video Quiz"
-        )}
+          )}
+
+          {voiceoverAudioBase64 && !voiceoverProcessing && (
+            <div style={{ marginTop: voiceoverApplied ? "0" : "12px" }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "10px 12px",
+                background: voiceoverApplied ? "#ffffff80" : "#f8fafc",
+                borderRadius: "8px",
+                border: "1px solid #e2e8f0",
+                marginBottom: "10px",
+              }}>
+                <button
+                  onClick={handlePreviewVoiceover}
+                  style={{
+                    width: "32px", height: "32px", borderRadius: "50%",
+                    background: voiceoverPreviewing ? "#ef4444" : "#8b5cf6",
+                    border: "none", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "background 0.2s",
+                    flexShrink: 0,
+                  }}
+                >
+                  {voiceoverPreviewing
+                    ? <PauseIcon size={14} color="white" />
+                    : <PlayIcon size={14} color="white" />}
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: "12px", fontWeight: 600, color: "#334155" }}>
+                    {voiceoverPreviewing ? "Playing preview..." : "AI Voiceover Ready"}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#94a3b8" }}>
+                    Voice: {selectedVoice.charAt(0).toUpperCase() + selectedVoice.slice(1)} · {selectedTone === "none" ? "Casual" : selectedTone.charAt(0).toUpperCase() + selectedTone.slice(1)}
+                  </div>
+                </div>
+                <Volume2Icon size={16} color={voiceoverPreviewing ? "#8b5cf6" : "#94a3b8"} />
+              </div>
+
+              {!voiceoverApplied ? (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={handleApplyVoiceover}
+                    disabled={isProcessing}
+                    style={{
+                      flex: 1, padding: "10px",
+                      background: "#16a34a", color: "white",
+                      borderRadius: "8px", border: "none",
+                      fontSize: "13px", fontWeight: 600,
+                      cursor: isProcessing ? "not-allowed" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                      transition: "background 0.2s",
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#15803d"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#16a34a"}
+                  >
+                    <CheckIcon size={14} /> Apply to Video
+                  </button>
+                  <button
+                    onClick={handleRemoveVoiceover}
+                    style={{
+                      padding: "10px 14px",
+                      background: "#f1f5f9", color: "#64748b",
+                      borderRadius: "8px", border: "1px solid #e2e8f0",
+                      fontSize: "13px", fontWeight: 500, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "background 0.2s",
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#f1f5f9"}
+                  >
+                    <XIcon size={14} />
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={handleRemoveVoiceover}
+                    style={{
+                      flex: 1, padding: "10px",
+                      background: "#f1f5f9", color: "#64748b",
+                      borderRadius: "8px", border: "1px solid #e2e8f0",
+                      fontSize: "13px", fontWeight: 500, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                      transition: "background 0.2s",
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "#e2e8f0"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "#f1f5f9"}
+                  >
+                    <RefreshCwIcon size={14} /> Generate New
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!voiceoverApplied && !voiceoverAudioBase64 && (
+            <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: "8px", fontStyle: "italic", lineHeight: 1.3 }}>
+              AI will generate narration from your transcript. Preview before applying.
+            </div>
+          )}
+        </div>
+        */}
+
       </div>
     </div>
   );

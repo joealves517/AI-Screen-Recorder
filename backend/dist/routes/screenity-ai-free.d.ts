@@ -1,7 +1,10 @@
 /**
- * Screenity AI Routes — Free tier (Gemini API key, requires auth to prevent abuse).
- * Uses the project's own API key, NOT shared with other extensions.
- * Rate limited aggressively.
+ * Screenity AI Routes — Free tier (Groq Whisper + Gemini API key).
+ * Requires auth to prevent abuse. Rate limited aggressively.
+ *
+ * Transcription: Groq Whisper (free, fast, accurate timestamps).
+ * Analysis: Gemini flash-lite (free tier API key).
+ * Duration limit: 20 minutes max per transcription request.
  */
 declare const router: import("express-serve-static-core").Router;
 export default router;

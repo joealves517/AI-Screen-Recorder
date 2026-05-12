@@ -257,6 +257,7 @@ const ContentState = (props) => {
       blurMode: false,
       cursorMode: "none",
       cursorEffects: [],
+      customRegion: false,
     });
     const isMulti = contentStateRef.current.multiMode;
     setContentState((prevContentState) => ({
@@ -278,6 +279,7 @@ const ContentState = (props) => {
       toolbarMode: "",
       cursorMode: "none",
       cursorEffects: [],
+      customRegion: false,
     }));
     // Remove blur from all elements
     const elements = document.querySelectorAll(".aisr-blur");

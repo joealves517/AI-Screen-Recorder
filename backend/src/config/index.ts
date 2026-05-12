@@ -19,10 +19,16 @@ function loadEnv() {
     gemini: {
       apiKey: process.env.GEMINI_API_KEY || "",
     },
+    google: {
+      oauthClientId: process.env.GOOGLE_OAUTH_CLIENT_ID || "676582412453-th7rc1b54slhajuepvus758pdakvb3t8.apps.googleusercontent.com",
+    },
     lemonSqueezy: {
       apiKey: process.env.LEMONSQUEEZY_API_KEY || "",
       webhookSecret: process.env.LEMONSQUEEZY_WEBHOOK_SECRET || "",
       storeId: process.env.LEMONSQUEEZY_STORE_ID || "",
+    },
+    groq: {
+      apiKey: process.env.GROQ_API_KEY || "",
     },
   } as const;
 }

@@ -8,10 +8,16 @@ declare function loadEnv(): {
     readonly gemini: {
         readonly apiKey: string;
     };
+    readonly google: {
+        readonly oauthClientId: string;
+    };
     readonly lemonSqueezy: {
         readonly apiKey: string;
         readonly webhookSecret: string;
         readonly storeId: string;
+    };
+    readonly groq: {
+        readonly apiKey: string;
     };
 };
 export declare const config: {
@@ -24,10 +30,16 @@ export declare const config: {
     readonly gemini: {
         readonly apiKey: string;
     };
+    readonly google: {
+        readonly oauthClientId: string;
+    };
     readonly lemonSqueezy: {
         readonly apiKey: string;
         readonly webhookSecret: string;
         readonly storeId: string;
+    };
+    readonly groq: {
+        readonly apiKey: string;
     };
 };
 export type AppConfig = ReturnType<typeof loadEnv>;

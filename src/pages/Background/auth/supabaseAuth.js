@@ -1,158 +1,121 @@
 /**
- * Supabase OAuth for Chrome Extension — direct Google login without web app.
- * Uses chrome.identity.launchWebAuthFlow to get Supabase session token,
+ * Google OAuth for Chrome Extension — replaces Supabase auth.
+ * Retains function names for backward compatibility with existing imports.
+ * Uses chrome.identity.getAuthToken() to get Google session token,
  * then stores it in chrome.storage.local for backend API calls.
  */
-
-const SUPABASE_URL = "https://xloruyavtuvcoqrvjolp.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsb3J1eWF2dHV2Y29xcnZqb2xwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjA5OTUsImV4cCI6MjA5MjUzNjk5NX0.ssnDrw4mldgIoDfFa4SpUIMNzcenv_hrctePwtOcSEA";
 
 const API_BASE = process.env.AISR_API_BASE_URL;
 
 /**
- * Initiate Supabase Google OAuth via chrome.identity.launchWebAuthFlow.
- * Returns the Supabase access token on success.
+ * Initiate Google OAuth via chrome.identity.getAuthToken.
+ * Returns the access token and user profile on success.
  */
 export async function supabaseGoogleLogin() {
-  const redirectUrl = chrome.identity.getRedirectURL();
-
-  // Build the Supabase OAuth URL for Google provider
-  const authUrl = new URL(`${SUPABASE_URL}/auth/v1/authorize`);
-  authUrl.searchParams.set("provider", "google");
-  authUrl.searchParams.set("redirect_to", redirectUrl);
-
   return new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: authUrl.href,
-        interactive: true,
-      },
-      async (responseUrl) => {
-        if (chrome.runtime.lastError) {
-          console.error("[Auth] Supabase OAuth error:", chrome.runtime.lastError.message);
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-
-        if (!responseUrl) {
-          reject(new Error("User cancelled sign-in"));
-          return;
-        }
-
-        try {
-          // Supabase returns tokens in the URL hash fragment
-          const hashParams = new URLSearchParams(
-            new URL(responseUrl).hash.substring(1)
-          );
-          const accessToken = hashParams.get("access_token");
-          const refreshToken = hashParams.get("refresh_token");
-
-          if (!accessToken) {
-            reject(new Error("No access_token in Supabase response"));
-            return;
-          }
-
-          // Fetch user profile from Supabase
-          const userResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              apikey: SUPABASE_ANON_KEY,
-            },
-          });
-
-          if (!userResponse.ok) {
-            throw new Error(`Supabase user fetch failed: ${userResponse.status}`);
-          }
-
-          const supabaseUser = await userResponse.json();
-
-          const user = {
-            id: supabaseUser.id,
-            email: supabaseUser.email,
-            name:
-              supabaseUser.user_metadata?.full_name ||
-              supabaseUser.user_metadata?.name ||
-              supabaseUser.email?.split("@")[0] || "",
-            avatar:
-              supabaseUser.user_metadata?.avatar_url ||
-              supabaseUser.user_metadata?.picture || "",
-          };
-
-          // Store auth state in chrome.storage.local
-          await chrome.storage.local.set({
-            aisrToken: accessToken,
-            aisrRefreshToken: refreshToken,
-            aisrUser: user,
-            isLoggedIn: true,
-            wasLoggedIn: false,
-            stayLoggedOut: false,
-            lastAuthCheck: Date.now(),
-          });
-
-          // Fetch user profile from our backend (creates user in Firestore if needed)
-          if (API_BASE) {
-            try {
-              const backendRes = await fetch(`${API_BASE}/api/user`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
-              });
-              if (backendRes.ok) {
-                const backendUser = await backendRes.json();
-                const quotaExhausted = backendUser.tier === "premium" && (backendUser.credits !== undefined && Number(backendUser.credits) <= 0);
-                await chrome.storage.local.set({
-                  isSubscribed: backendUser.tier === "premium",
-                  proSubscription: backendUser.subscription || null,
-                  quotaExhausted: quotaExhausted,
-                });
-              }
-            } catch (backendErr) {
-              console.warn("[Auth] Backend user fetch failed (non-critical):", backendErr.message);
-            }
-          }
-
-          resolve({ success: true, user, accessToken });
-        } catch (err) {
-          console.error("[Auth] Failed to process OAuth response:", err);
-          reject(err);
-        }
+    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
+      if (chrome.runtime.lastError || !token) {
+        console.error("[Auth] Google OAuth error:", chrome.runtime.lastError?.message);
+        reject(new Error(chrome.runtime.lastError?.message || "Failed to get token"));
+        return;
       }
-    );
+
+      try {
+        // Fetch user profile from Google
+        const userInfoRes = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        if (!userInfoRes.ok) {
+          throw new Error(`Google user fetch failed: ${userInfoRes.status}`);
+        }
+
+        const profile = await userInfoRes.json();
+
+        const user = {
+          id: profile.sub,
+          email: profile.email,
+          name: profile.name || profile.email?.split("@")[0] || "",
+          avatar: profile.picture || "",
+        };
+
+        // Store auth state in chrome.storage.local
+        // Using same keys for backward compatibility
+        await chrome.storage.local.set({
+          aisrToken: token,
+          aisrRefreshToken: "managed-by-chrome", // Chrome manages refresh automatically
+          aisrUser: user,
+          isLoggedIn: true,
+          wasLoggedIn: false,
+          stayLoggedOut: false,
+          lastAuthCheck: Date.now(),
+        });
+
+        // Fetch user profile from our backend (creates user in Firestore if needed)
+        if (API_BASE) {
+          try {
+            const backendRes = await fetch(`${API_BASE}/api/user`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (backendRes.ok) {
+              const backendUser = await backendRes.json();
+              const quotaExhausted = backendUser.tier === "premium" && (backendUser.credits !== undefined && Number(backendUser.credits) <= 0);
+              await chrome.storage.local.set({
+                isSubscribed: backendUser.tier === "premium",
+                proSubscription: backendUser.subscription || null,
+                quotaExhausted: quotaExhausted,
+              });
+            }
+          } catch (backendErr) {
+            console.warn("[Auth] Backend user fetch failed (non-critical):", backendErr.message);
+          }
+        }
+
+        resolve({ success: true, user, accessToken: token });
+      } catch (err) {
+        console.error("[Auth] Failed to process OAuth response:", err);
+        // Clean up token on error
+        chrome.identity.removeCachedAuthToken({ token }, () => {});
+        reject(err);
+      }
+    });
   });
 }
 
 /**
- * Refresh the Supabase access token using the stored refresh token.
+ * Refresh the access token. 
+ * Since chrome.identity handles refresh automatically, we just get the token again.
  */
 export async function refreshSupabaseToken() {
-  const { aisrRefreshToken } = await chrome.storage.local.get(["aisrRefreshToken"]);
+  const { aisrToken } = await chrome.storage.local.get(["aisrToken"]);
 
-  if (!aisrRefreshToken) {
+  if (!aisrToken) {
     return null;
   }
 
   try {
-    const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ refresh_token: aisrRefreshToken }),
+    // Remove the cached token to force Chrome to fetch a new one if it expired
+    await new Promise((resolve) => {
+      chrome.identity.removeCachedAuthToken({ token: aisrToken }, resolve);
     });
 
-    if (!response.ok) {
-      throw new Error(`Refresh failed: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const newToken = await new Promise((resolve, reject) => {
+      chrome.identity.getAuthToken({ interactive: false }, (token) => {
+        if (chrome.runtime.lastError || !token) {
+          reject(new Error(chrome.runtime.lastError?.message || "Failed to refresh token"));
+        } else {
+          resolve(token);
+        }
+      });
+    });
 
     await chrome.storage.local.set({
-      aisrToken: data.access_token,
-      aisrRefreshToken: data.refresh_token,
+      aisrToken: newToken,
       lastAuthCheck: Date.now(),
     });
 
-    return data.access_token;
+    return newToken;
   } catch (err) {
     console.error("[Auth] Token refresh failed:", err.message);
     // Clear auth state on refresh failure

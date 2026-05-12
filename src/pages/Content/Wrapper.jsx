@@ -332,7 +332,7 @@ const Wrapper = () => {
               display: "block",
               width: "100%",
               height: "100%",
-              position: "absolute",
+              position: "fixed",
               pointerEvents: "none",
               left: "0px",
               top: "0px",

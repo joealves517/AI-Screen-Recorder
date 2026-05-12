@@ -82,15 +82,14 @@ const Modal = (props) => {
         <div className="AlertDialogOverlay"></div>
         <AlertDialog.Content 
           className="AlertDialogContent"
-          aria-describedby={undefined}
-          aria-labelledby={undefined}
-          aria-label={title || "Alert"}
+          aria-describedby="dialog-desc"
+          aria-labelledby="dialog-title"
         >
-          <AlertDialog.Title className="AlertDialogTitle">
+          <AlertDialog.Title id="dialog-title" className="AlertDialogTitle">
             {title}
           </AlertDialog.Title>
           {description ? (
-            <AlertDialog.Description className="AlertDialogDescription">
+            <AlertDialog.Description id="dialog-desc" className="AlertDialogDescription">
               {typeof description === 'string' ? description.split("\n").map((line, idx) => (
                 <React.Fragment key={idx}>
                   {line}
@@ -107,7 +106,7 @@ const Modal = (props) => {
               )}
             </AlertDialog.Description>
           ) : (
-            <AlertDialog.Description style={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
+            <AlertDialog.Description id="dialog-desc" style={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
               {title || "Dialog"}
             </AlertDialog.Description>
           )}

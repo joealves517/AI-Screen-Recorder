@@ -6,7 +6,7 @@ export interface AuthenticatedRequest extends Request {
     userPicture: string;
 }
 /**
- * Middleware: verify Supabase Access Token and attach user info to request.
+ * Middleware: verify Google Access Token or Supabase Access Token.
  */
 export declare function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void>;
 //# sourceMappingURL=auth.d.ts.map

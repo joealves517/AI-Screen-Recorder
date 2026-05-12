@@ -1912,7 +1912,7 @@ const ContentState = (props) => {
     }
   };
 
-  const addAudio = async (videoBlob, audioBlob, volume) => {
+  const addAudio = async (videoBlob, audioBlob, volume, forceReplaceAudio) => {
     if (contentState.isProcessing) return;
     if (
       contentState.duration > contentState.editLimit &&
@@ -1936,7 +1936,7 @@ const ContentState = (props) => {
       audio: audioBlob,
       duration: contentState.duration,
       volume: volume,
-      replaceAudio: contentState.replaceAudio,
+      replaceAudio: forceReplaceAudio !== undefined ? forceReplaceAudio : contentState.replaceAudio,
       topLevel: false,
       _opId: opId,
     });
