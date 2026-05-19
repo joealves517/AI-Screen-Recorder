@@ -12,6 +12,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { transcribeWithGroq } from "../services/groq-queue.js";
 import Groq from "groq-sdk";
 import { config } from "../config/index.js";
+import { checkFreeCreditLimit, deductFreeCredits } from "../services/firestore.js";
 const groqClient = new Groq({ apiKey: config.groq.apiKey || process.env.GROQ_API_KEY });
 // Free tier: only 'autumn' voice is available
 const FREE_VOICE = "autumn";
@@ -64,9 +65,18 @@ const SUMMARIZE_PROMPTS = {
     quiz: (t) => `Based on this video transcript, generate a short interactive quiz with 3 multiple choice questions to test the viewer's knowledge. Provide the questions first, then list the correct answers at the end:\n\n${t}`,
 };
 router.post("/summarize", requireAuth, async (req, res) => {
+    const authReq = req;
     const { transcript, style } = req.body;
     if (!transcript) {
         res.status(400).json({ error: "missing_transcript" });
+        return;
+    }
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+        res.status(403).json({
+            error: "quota_exhausted",
+            message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
         return;
     }
     try {
@@ -82,6 +92,7 @@ router.post("/summarize", requireAuth, async (req, res) => {
             },
         });
         res.json({ summary: (response.text || "").trim() });
+        deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     }
     catch (error) {
         console.error("[Screenity Free] Summarize error:", error);
@@ -90,9 +101,18 @@ router.post("/summarize", requireAuth, async (req, res) => {
 });
 // ─── Translate ──────────────────────────────────────────────────────
 router.post("/translate", requireAuth, async (req, res) => {
+    const authReq = req;
     const { segments, targetLang } = req.body;
     if (!segments || !targetLang) {
         res.status(400).json({ error: "missing_params" });
+        return;
+    }
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+        res.status(403).json({
+            error: "quota_exhausted",
+            message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
         return;
     }
     try {
@@ -138,6 +158,7 @@ ${JSON.stringify(textsPayload)}`,
             text: textMap.get(idx) || seg.text,
         }));
         res.json({ translatedSegments });
+        deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     }
     catch (error) {
         console.error("[Screenity Free] Translate error:", error);
@@ -146,9 +167,18 @@ ${JSON.stringify(textsPayload)}`,
 });
 // ─── Smart Title ────────────────────────────────────────────────────
 router.post("/title", requireAuth, async (req, res) => {
+    const authReq = req;
     const { transcript } = req.body;
     if (!transcript) {
         res.status(400).json({ error: "missing_transcript" });
+        return;
+    }
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+        res.status(403).json({
+            error: "quota_exhausted",
+            message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
         return;
     }
     try {
@@ -187,6 +217,7 @@ Respond in this exact JSON format:
             description: result.description || "",
             tags: Array.isArray(result.tags) ? result.tags : [],
         });
+        deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     }
     catch (error) {
         console.error("[Screenity Free] Title error:", error);

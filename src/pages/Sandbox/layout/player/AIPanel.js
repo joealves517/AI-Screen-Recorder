@@ -482,7 +482,7 @@ const AIPanel = () => {
   // ─── Auto-transcribe on mount (2s delay for smooth editor load) ───
   useEffect(() => {
     if (segments || autoTranscribeStatus !== "idle") return;
-    if (userTier === "guest") return;
+    if (userTier === "guest" || userTier === "free") return;
     if (!contentState.blob && !contentState.rawBlob) return;
 
     const timer = setTimeout(() => {

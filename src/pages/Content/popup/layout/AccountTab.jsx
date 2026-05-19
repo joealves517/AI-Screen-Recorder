@@ -66,12 +66,12 @@ const AIFeatureItem = ({ icon, title, description, available, colorRgb = "59, 13
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "38px",
-          height: "38px",
-          borderRadius: "10px",
-          background: `linear-gradient(135deg, rgba(${colorRgb}, 0.14) 0%, rgba(${colorRgb}, 0.05) 100%)`,
-          border: `1px solid rgba(${colorRgb}, 0.1)`,
-          boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.5)",
+          width: "42px",
+          height: "42px",
+          borderRadius: "16px",
+          background: `linear-gradient(135deg, rgba(${colorRgb}, 0.15) 0%, rgba(255,255,255, 0.9) 100%)`,
+          boxShadow: `0 4px 12px rgba(${colorRgb}, 0.15), inset 0 1px 2px rgba(255,255,255, 1)`,
+          border: "1px solid rgba(255,255,255,0.8)",
         }}>
           {icon}
         </div>
@@ -79,12 +79,12 @@ const AIFeatureItem = ({ icon, title, description, available, colorRgb = "59, 13
           <div style={{
             fontSize: "13px",
             fontWeight: "600",
-            color: "#1F2937",
+            color: "#374151",
             lineHeight: "1.3",
           }}>{title}</div>
           <div style={{
             fontSize: "11.5px",
-            color: "#6B7280",
+            color: "#7C8694",
             lineHeight: "1.4",
             marginTop: "2px",
           }}>{description}</div>
@@ -146,7 +146,7 @@ const GuestView = () => {
         <h3 style={{
           fontSize: "16px",
           fontWeight: "600",
-          color: "#374151",
+          color: "#4B5563",
           margin: "0 0 4px",
           letterSpacing: "-0.01em",
         }}>Unlock AI Features</h3>
@@ -189,16 +189,16 @@ const GuestView = () => {
         />
       </div>
 
-      {/* Login CTA — Apple-style pill button */}
+      {/* Login CTA — Glassmorphic pill button */}
       <button
         onClick={handleLoginClick}
         disabled={isLoggingIn}
         style={{
           width: "100%",
           height: "44px",
-          background: "#FFFFFF",
-          color: isLoggingIn ? "#9CA3AF" : "#111827",
-          border: "1px solid #E5E7EB",
+          background: isLoggingIn ? "rgba(241, 245, 249, 0.6)" : `linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(255,255,255, 0.9) 100%)`,
+          color: isLoggingIn ? "#9CA3AF" : "#374151",
+          border: "1px solid rgba(255,255,255, 0.9)",
           borderRadius: "22px",
           fontSize: "14px",
           fontWeight: "600",
@@ -207,12 +207,12 @@ const GuestView = () => {
           alignItems: "center",
           justifyContent: "center",
           gap: "8px",
-          transition: "all 0.2s ease",
-          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05), inset 0 -2px 0 rgba(0,0,0,0.02)",
+          transition: "all 0.25s ease",
+          boxShadow: isLoggingIn ? "none" : `0 8px 32px -8px rgba(59, 130, 246, 0.15), inset 0 1px 1px rgba(255,255,255, 1)`,
         }}
-        onMouseOver={(e) => !isLoggingIn && (e.currentTarget.style.background = "#F9FAFB")}
-        onMouseOut={(e) => !isLoggingIn && (e.currentTarget.style.background = "#FFFFFF")}
-        onMouseDown={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(0.98)")}
+        onMouseOver={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(0.98)")}
+        onMouseOut={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(1)")}
+        onMouseDown={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(0.96)")}
         onMouseUp={(e) => !isLoggingIn && (e.currentTarget.style.transform = "scale(1)")}
       >
         {isLoggingIn ? (
@@ -262,7 +262,7 @@ const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => {
         <div style={{
           fontSize: "18px",
           fontWeight: "700",
-          color: "#111827",
+          color: "#374151",
           letterSpacing: "-0.02em",
           lineHeight: "1.3",
         }}>
@@ -270,7 +270,7 @@ const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => {
         </div>
         <div style={{
           fontSize: "12.5px",
-          color: "#6B7280",
+          color: "#7C8694",
           marginTop: "4px",
           lineHeight: "1.4",
         }}>
@@ -347,15 +347,15 @@ const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => {
       />
     </div>
 
-    {/* Logout — Apple-style pill button */}
+    {/* Logout — Glassmorphic pill button */}
     <button
       onClick={onLogout}
       style={{
         width: "100%",
-        height: "40px",
-        background: logoutHovered ? "#FEF2F2" : "transparent",
+        height: "44px",
+        background: logoutHovered ? `linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(255,255,255, 0.9) 100%)` : `linear-gradient(135deg, rgba(100, 116, 139, 0.06) 0%, rgba(255,255,255, 0.9) 100%)`,
         color: logoutHovered ? "#DC2626" : "#6B7280",
-        border: logoutHovered ? "1px solid #FECACA" : "1px solid #E5E7EB",
+        border: "1px solid rgba(255,255,255, 0.9)",
         borderRadius: "22px",
         fontSize: "13px",
         fontWeight: "600",
@@ -364,7 +364,8 @@ const LoggedInView = ({ user, isPro, quotaExhausted, onLogout }) => {
         alignItems: "center",
         justifyContent: "center",
         gap: "8px",
-        transition: "all 0.2s ease",
+        transition: "all 0.25s ease",
+        boxShadow: `0 8px 32px -8px rgba(100, 116, 139, 0.12), inset 0 1px 1px rgba(255,255,255, 1)`,
         marginTop: "4px",
       }}
       onMouseOver={() => setLogoutHovered(true)}

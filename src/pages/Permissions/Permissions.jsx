@@ -86,15 +86,19 @@ const Recorder = () => {
   const enumerateDevices = async (camGranted = true, micGranted = true) => {
     try {
       // Try to wake up devices to ensure they appear in enumeration.
-      // Ignore errors (e.g. NotFoundError) so we still enumerate whatever is available.
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: micGranted,
-          video: camGranted,
-        });
-        stream.getTracks().forEach((track) => track.stop());
-      } catch (wakeErr) {
-        console.warn("Wake up getUserMedia failed, continuing to enumeration:", wakeErr);
+      // Only attempt if at least one media type is granted; skip otherwise
+      // to avoid {audio:false, video:false} TypeError.
+      if (micGranted || camGranted) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: micGranted,
+            video: camGranted,
+          });
+          stream.getTracks().forEach((track) => track.stop());
+        } catch (wakeErr) {
+          // Expected on sandbox/iframe contexts — not a real error
+          console.debug("[AISR][Permissions] Wake-up getUserMedia skipped:", wakeErr.name);
+        }
       }
 
       const devicesInfo = await navigator.mediaDevices.enumerateDevices();

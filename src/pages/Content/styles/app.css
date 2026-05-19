@@ -1651,8 +1651,8 @@ body.driver-active .OnboardingArrow {
   transition: 2s;
   background: #fff;
   background-clip: content-box;
-  -webkit-mask-image: radial-gradient(circle at center top, transparent 31px, #000 31px);
-  mask-image: radial-gradient(circle at center top, transparent 31px, #000 31px);
+  -webkit-mask-image: radial-gradient(circle at center top, transparent 30px, #000 32px);
+  mask-image: radial-gradient(circle at center top, transparent 30px, #000 32px);
   background-position: center bottom 50px;
   border-radius: 30px;
   position: absolute;

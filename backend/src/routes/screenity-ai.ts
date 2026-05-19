@@ -14,6 +14,8 @@ import {
   createOrUpdateUser,
   deductCreditsByEmail,
   logUsage,
+  checkFreeCreditLimit,
+  deductFreeCredits,
 } from "../services/firestore.js";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../config/index.js";
@@ -38,7 +40,7 @@ const freeAI = new GoogleGenAI({
   apiKey: "AIzaSyCO3F6Znpad9_cZo6nQyVq18kSeXjjti8Y",
 });
 
-const PREMIUM_MODEL = "gemini-2.5-flash";
+const PREMIUM_MODEL = "gemini-3.1-flash-lite";
 const FREE_MODEL = "gemini-3.1-flash-lite";
 
 // Groq Model Rotation List for Free Users (Text generation)
@@ -197,6 +199,16 @@ router.post(
     }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
+    if (!usePremium) {
+      const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+      if (!canProceed) {
+        res.status(403).json({
+          error: "quota_exhausted",
+          message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
+        return;
+      }
+    }
     const { client, model } = pickAIClient(usePremium);
 
     try {
@@ -236,6 +248,10 @@ router.post(
         }
       }
 
+      if (!usePremium) {
+        deductFreeCredits(authReq.userEmail, 2).catch(console.error);
+      }
+
       res.json({ summary: summaryText });
     } catch (error) {
       console.error("[Screenity AI] Summarize error:", error);
@@ -265,6 +281,16 @@ router.post(
     }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
+    if (!usePremium) {
+      const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+      if (!canProceed) {
+        res.status(403).json({
+          error: "quota_exhausted",
+          message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
+        return;
+      }
+    }
     const { client, model } = pickAIClient(usePremium);
 
     try {
@@ -310,6 +336,10 @@ ${JSON.stringify(textsPayload)}`;
             outputTokens,
           }).catch(console.error);
         }
+      }
+
+      if (!usePremium) {
+        deductFreeCredits(authReq.userEmail, 2).catch(console.error);
       }
 
       const parsedJSON = parseJSON(rawText);
@@ -359,6 +389,16 @@ router.post(
     }, "AI Screen Recorder");
 
     const usePremium = user.credits > 0;
+    if (!usePremium) {
+      const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+      if (!canProceed) {
+        res.status(403).json({
+          error: "quota_exhausted",
+          message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
+        return;
+      }
+    }
     const { client, model } = pickAIClient(usePremium);
 
     try {
@@ -407,6 +447,10 @@ Respond in this exact JSON format:
             outputTokens,
           }).catch(console.error);
         }
+      }
+
+      if (!usePremium) {
+        deductFreeCredits(authReq.userEmail, 2).catch(console.error);
       }
 
       const result = parseJSON(rawText);

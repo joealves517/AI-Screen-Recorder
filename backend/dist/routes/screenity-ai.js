@@ -9,7 +9,7 @@
  */
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
-import { createOrUpdateUser, deductCreditsByEmail, logUsage, } from "../services/firestore.js";
+import { createOrUpdateUser, deductCreditsByEmail, logUsage, checkFreeCreditLimit, deductFreeCredits, } from "../services/firestore.js";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../config/index.js";
 import { calculateTokenCost } from "../services/token-cost.js";
@@ -27,7 +27,7 @@ const vertexAI = new GoogleGenAI({
 const freeAI = new GoogleGenAI({
     apiKey: "AIzaSyCO3F6Znpad9_cZo6nQyVq18kSeXjjti8Y",
 });
-const PREMIUM_MODEL = "gemini-2.5-flash";
+const PREMIUM_MODEL = "gemini-3.1-flash-lite";
 const FREE_MODEL = "gemini-3.1-flash-lite";
 // Groq Model Rotation List for Free Users (Text generation)
 const GROQ_MODELS = [
@@ -149,6 +149,16 @@ router.post("/summarize", requireAuth, async (req, res) => {
         picture: authReq.userPicture,
     }, "AI Screen Recorder");
     const usePremium = user.credits > 0;
+    if (!usePremium) {
+        const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+        if (!canProceed) {
+            res.status(403).json({
+                error: "quota_exhausted",
+                message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+            });
+            return;
+        }
+    }
     const { client, model } = pickAIClient(usePremium);
     try {
         const promptFn = SUMMARIZE_PROMPTS[style || "summary"] || SUMMARIZE_PROMPTS.summary;
@@ -183,6 +193,9 @@ router.post("/summarize", requireAuth, async (req, res) => {
                 }).catch(console.error);
             }
         }
+        if (!usePremium) {
+            deductFreeCredits(authReq.userEmail, 2).catch(console.error);
+        }
         res.json({ summary: summaryText });
     }
     catch (error) {
@@ -204,6 +217,16 @@ router.post("/translate", requireAuth, async (req, res) => {
         picture: authReq.userPicture,
     }, "AI Screen Recorder");
     const usePremium = user.credits > 0;
+    if (!usePremium) {
+        const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+        if (!canProceed) {
+            res.status(403).json({
+                error: "quota_exhausted",
+                message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+            });
+            return;
+        }
+    }
     const { client, model } = pickAIClient(usePremium);
     try {
         const textsPayload = segments.map((s, i) => ({
@@ -245,6 +268,9 @@ ${JSON.stringify(textsPayload)}`;
                 }).catch(console.error);
             }
         }
+        if (!usePremium) {
+            deductFreeCredits(authReq.userEmail, 2).catch(console.error);
+        }
         const parsedJSON = parseJSON(rawText);
         const translatedTexts = Array.isArray(parsedJSON) ? parsedJSON : (parsedJSON?.translations || []);
         const textMap = new Map();
@@ -281,6 +307,16 @@ router.post("/title", requireAuth, async (req, res) => {
         picture: authReq.userPicture,
     }, "AI Screen Recorder");
     const usePremium = user.credits > 0;
+    if (!usePremium) {
+        const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+        if (!canProceed) {
+            res.status(403).json({
+                error: "quota_exhausted",
+                message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+            });
+            return;
+        }
+    }
     const { client, model } = pickAIClient(usePremium);
     try {
         const contextText = transcript.slice(0, 5000);
@@ -323,6 +359,9 @@ Respond in this exact JSON format:
                     outputTokens,
                 }).catch(console.error);
             }
+        }
+        if (!usePremium) {
+            deductFreeCredits(authReq.userEmail, 2).catch(console.error);
         }
         const result = parseJSON(rawText);
         res.json({

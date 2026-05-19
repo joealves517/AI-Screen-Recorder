@@ -116,9 +116,52 @@ export async function findUserByLemonSqueezyCustomerId(customerId) {
     const doc = snapshot.docs[0];
     return { id: doc.id, data: doc.data() };
 }
-// ─── Usage Logs ─────────────────────────────────────────────────────
 export async function logUsage(log) {
     await usageLogsRef.add(log);
+}
+// ─── Free Tier Credits ──────────────────────────────────────────────
+export const FREE_CREDITS_PER_DAY = 100;
+function getTodayString() {
+    const d = new Date();
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+export async function checkFreeCreditLimit(email) {
+    const existing = await getUserByEmail(email);
+    if (!existing)
+        return false;
+    const user = existing.data;
+    const today = getTodayString();
+    const lastReset = user.freeCreditsLastReset;
+    let usedToday = user.freeCreditsUsedToday || 0;
+    if (lastReset !== today) {
+        usedToday = 0;
+        // We intentionally do not await this to reduce latency, fire-and-forget
+        usersRef.doc(existing.id).update({
+            freeCreditsUsedToday: 0,
+            freeCreditsLastReset: today,
+        }).catch(console.error);
+    }
+    return usedToday < FREE_CREDITS_PER_DAY;
+}
+export async function deductFreeCredits(email, amount) {
+    const existing = await getUserByEmail(email);
+    if (!existing)
+        return;
+    const today = getTodayString();
+    const lastReset = existing.data.freeCreditsLastReset;
+    if (lastReset !== today) {
+        await usersRef.doc(existing.id).update({
+            freeCreditsUsedToday: amount,
+            freeCreditsLastReset: today,
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+    }
+    else {
+        await usersRef.doc(existing.id).update({
+            freeCreditsUsedToday: FieldValue.increment(amount),
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+    }
 }
 export { db };
 //# sourceMappingURL=firestore.js.map

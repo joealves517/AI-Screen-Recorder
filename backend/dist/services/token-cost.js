@@ -9,8 +9,8 @@
  *   1 credit = $0.001 (0.1 cent)
  *   Budget per cycle: $3.99 → 3,990 credits
  */
-const INPUT_PRICE_PER_MILLION = 0.30;
-const OUTPUT_PRICE_PER_MILLION = 2.50;
+const INPUT_PRICE_PER_MILLION = 0.25;
+const OUTPUT_PRICE_PER_MILLION = 1.50;
 const DOLLARS_PER_CREDIT = 0.001;
 /**
  * Calculate credit cost from actual token usage.

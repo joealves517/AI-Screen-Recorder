@@ -65,23 +65,78 @@ const openPlaygroundOrPopup = async (tab) => {
     activeSceneId: null,
   });
 
-  const forbiddenURLs = [
+  // Schemes where content scripts cannot be injected
+  const forbiddenSchemes = [
     "chrome://",
     "chrome-extension://",
-    "chrome.google.com/webstore",
-    "chromewebstore.google.com",
-    "stackoverflow.com/",
+    "edge://",
+    "about:",
+    "devtools://",
+    "view-source:",
+    "data:",
+    "blob:",
+    "file://",
+    "chrome-search://",
+    "chrome-untrusted://",
   ];
 
-  const isForbidden = forbiddenURLs.some((url) => tab.url.startsWith(url));
+  // Domains where content scripts are blocked by Chrome policy
+  const forbiddenDomains = [
+    "chrome.google.com",
+    "chromewebstore.google.com",
+    "addons.mozilla.org",
+    "microsoftedge.microsoft.com",
+    "accounts.google.com",
+  ];
+
+  const tabUrl = tab.url || "";
   const isPlaygroundOrSetup =
-    tab.url.includes("/playground.html") || tab.url.includes("/setup.html");
+    tabUrl.includes("/playground.html") || tabUrl.includes("/setup.html");
+
+  const isForbiddenScheme = forbiddenSchemes.some((scheme) =>
+    tabUrl.startsWith(scheme)
+  );
+  const isForbiddenDomain = forbiddenDomains.some((domain) => {
+    try {
+      return new URL(tabUrl).hostname === domain ||
+             new URL(tabUrl).hostname.endsWith("." + domain);
+    } catch {
+      return false;
+    }
+  });
+  // Empty URL (new tab not yet loaded) or chrome-native pages
+  const isEmptyOrNewTab = !tabUrl || tabUrl === "chrome://newtab/";
+
+  const isForbidden = isForbiddenScheme || isForbiddenDomain || isEmptyOrNewTab;
 
   if ((!isForbidden || isPlaygroundOrSetup) && navigator.onLine) {
-    sendMessageTab(tab.id, { type: "toggle-popup" })
-      .then(() => console.log("[AISR][ActionClick] toggle-popup delivered to tab", tab.id))
-      .catch((err) => console.error("[AISR][ActionClick] toggle-popup FAILED to tab", tab.id, String(err).slice(0, 120)));
-    chrome.storage.local.set({ activeTab: tab.id });
+    // Try to deliver the message; if it fails, the content script isn't loaded
+    try {
+      await sendMessageTab(tab.id, { type: "toggle-popup" });
+      console.log("[AISR][ActionClick] toggle-popup delivered to tab", tab.id);
+      chrome.storage.local.set({ activeTab: tab.id });
+    } catch (err) {
+      console.warn(
+        "[AISR][ActionClick] toggle-popup failed, opening playground as fallback",
+        tab.id,
+        String(err).slice(0, 120)
+      );
+      // Content script not available — fall through to playground
+      const newTab = await chrome.tabs.create({
+        url: "playground.html",
+        active: true,
+      });
+      chrome.storage.local.set({ activeTab: newTab.id });
+      const onUpdated = (tabId, changeInfo) => {
+        if (tabId === newTab.id && changeInfo.status === "complete") {
+          chrome.tabs.onUpdated.removeListener(onUpdated);
+          setTimeout(() => {
+            sendMessageTab(newTab.id, { type: "toggle-popup" });
+          }, 500);
+        }
+      };
+      chrome.tabs.onUpdated.addListener(onUpdated);
+    }
   } else {
     const newTab = await chrome.tabs.create({
       url: "playground.html",
@@ -89,8 +144,8 @@ const openPlaygroundOrPopup = async (tab) => {
     });
     chrome.storage.local.set({ activeTab: newTab.id });
 
-    const onUpdated = (tabId, changeInfo, updatedTab) => {
-      if (updatedTab.id === newTab.id && changeInfo.status === "complete") {
+    const onUpdated = (tabId, changeInfo) => {
+      if (tabId === newTab.id && changeInfo.status === "complete") {
         chrome.tabs.onUpdated.removeListener(onUpdated);
         setTimeout(() => {
           sendMessageTab(newTab.id, { type: "toggle-popup" });

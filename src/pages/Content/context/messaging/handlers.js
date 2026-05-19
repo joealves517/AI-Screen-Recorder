@@ -530,9 +530,13 @@ export const setupHandlers = () => {
     }
 
     // Full UI cleanup — must match stopRecording() in ContentState.jsx
+    // Preserve popup visibility if user currently has it open
+    const currentState = getState();
+    const keepPopup = currentState.showPopup;
     setContentState((prev) => ({
       ...prev,
-      showExtension: false,
+      showExtension: keepPopup ? prev.showExtension : false,
+      showPopup: keepPopup ? prev.showPopup : false,
       recording: false,
       paused: false,
       pipEnded: false,
@@ -675,7 +679,15 @@ export const setupHandlers = () => {
     }));
   });
 
-  registerMessage("hide-popup-recording", () => {
+  registerMessage("hide-popup-recording", async () => {
+    // Verify this tab is truly not the recording tab before hiding
+    const { tabRecordedID } = await chrome.storage.local.get(["tabRecordedID"]);
+    const state = getState();
+
+    // If popup is actively shown and we can't confirm this is a non-recording tab,
+    // skip the hide to prevent false dismissals
+    if (state.showPopup && !tabRecordedID) return;
+
     setContentState((prev) => ({
       ...prev,
       showPopup: false,

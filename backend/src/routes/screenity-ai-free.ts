@@ -9,10 +9,11 @@
 
 import { Router, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
 import { transcribeWithGroq } from "../services/groq-queue.js";
 import Groq from "groq-sdk";
 import { config } from "../config/index.js";
+import { checkFreeCreditLimit, deductFreeCredits } from "../services/firestore.js";
 
 const groqClient = new Groq({ apiKey: config.groq.apiKey || process.env.GROQ_API_KEY });
 
@@ -95,10 +96,20 @@ router.post(
   "/summarize",
   requireAuth,
   async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthenticatedRequest;
     const { transcript, style } = req.body;
 
     if (!transcript) {
       res.status(400).json({ error: "missing_transcript" });
+      return;
+    }
+
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+      res.status(403).json({
+        error: "quota_exhausted",
+        message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+      });
       return;
     }
 
@@ -119,6 +130,7 @@ router.post(
       });
 
       res.json({ summary: (response.text || "").trim() });
+      deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     } catch (error) {
       console.error("[Screenity Free] Summarize error:", error);
       res.status(500).json({ error: "summarization_failed" });
@@ -132,10 +144,20 @@ router.post(
   "/translate",
   requireAuth,
   async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthenticatedRequest;
     const { segments, targetLang } = req.body;
 
     if (!segments || !targetLang) {
       res.status(400).json({ error: "missing_params" });
+      return;
+    }
+
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+      res.status(403).json({
+        error: "quota_exhausted",
+        message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+      });
       return;
     }
 
@@ -188,6 +210,7 @@ ${JSON.stringify(textsPayload)}`,
       }));
 
       res.json({ translatedSegments });
+      deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     } catch (error) {
       console.error("[Screenity Free] Translate error:", error);
       res.status(500).json({ error: "translation_failed" });
@@ -201,10 +224,20 @@ router.post(
   "/title",
   requireAuth,
   async (req: Request, res: Response): Promise<void> => {
+    const authReq = req as AuthenticatedRequest;
     const { transcript } = req.body;
 
     if (!transcript) {
       res.status(400).json({ error: "missing_transcript" });
+      return;
+    }
+
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+      res.status(403).json({
+        error: "quota_exhausted",
+        message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+      });
       return;
     }
 
@@ -248,6 +281,7 @@ Respond in this exact JSON format:
         description: result.description || "",
         tags: Array.isArray(result.tags) ? result.tags : [],
       });
+      deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     } catch (error) {
       console.error("[Screenity Free] Title error:", error);
       res.status(500).json({ error: "title_generation_failed" });

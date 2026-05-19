@@ -131,10 +131,18 @@ const Wrapper = () => {
   const permissionsRef = useRef(null);
   const regionCaptureRef = useRef(null);
   const contentStateRef = useRef(contentState);
+  const showExtensionAtRef = useRef(0);
 
   useEffect(() => {
     contentStateRef.current = contentState;
   }, [contentState]);
+
+  // Track when showExtension becomes true to prevent premature overlay dismissals
+  useEffect(() => {
+    if (contentState.showExtension) {
+      showExtensionAtRef.current = Date.now();
+    }
+  }, [contentState.showExtension]);
 
   useEffect(() => {
     if (!parentRef.current) return;
@@ -307,6 +315,10 @@ const Wrapper = () => {
                       "aisr-driver-active"
                     ) || Boolean(document.querySelector(".driver-overlay"));
                   if (onboardingActive) return;
+
+                  // Guard: ignore clicks within 400ms of popup opening
+                  // to prevent race condition dismissals
+                  if (Date.now() - showExtensionAtRef.current < 400) return;
 
                   if (
                     window.location.href.indexOf(safeUrls.setup) === -1 &&
