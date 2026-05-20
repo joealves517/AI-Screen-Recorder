@@ -10,24 +10,24 @@
 import { Router, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { requireAuth, AuthenticatedRequest } from "../middleware/auth.js";
-import { transcribeWithGroq } from "../services/groq-queue.js";
-import Groq from "groq-sdk";
-import { config } from "../config/index.js";
-import { checkFreeCreditLimit, deductFreeCredits } from "../services/firestore.js";
-
-const groqClient = new Groq({ apiKey: config.groq.apiKey || process.env.GROQ_API_KEY });
+import { transcribeWithGemini } from "../services/gemini-transcribe.js";
 
 // Free tier: only 'autumn' voice is available
 const FREE_VOICE = "autumn";
 
 const router = Router();
 
+import { config } from "../config/index.js";
+import { checkFreeCreditLimit, deductFreeCredits } from "../services/firestore.js";
+
 // Shared free tier API key (synced with BlackNote production)
 const ai = new GoogleGenAI({
-  apiKey: "AIzaSyCO3F6Znpad9_cZo6nQyVq18kSeXjjti8Y",
+  vertexai: true,
+  project: config.gcp.projectId,
+  location: config.gcp.region,
 });
 
-const MODEL = "gemini-2.5-flash-lite";
+const MODEL = "gemini-3.1-flash-lite";
 const FREE_MAX_DURATION_SEC = 1200; // 20 minutes
 
 // ─── Transcribe (Groq Whisper) ──────────────────────────────────────
@@ -54,9 +54,10 @@ router.post(
     }
 
     try {
-      const result = await transcribeWithGroq(
+      const result = await transcribeWithGemini(
         audioBase64,
-        mimeType || "audio/mpeg"
+        mimeType || "audio/mpeg",
+        false
       );
 
       res.json({
@@ -65,9 +66,8 @@ router.post(
       });
     } catch (error: any) {
       console.error("[Screenity Free] Transcribe error:", error?.message);
-      const isRateLimit = error?.status === 429;
-      res.status(isRateLimit ? 429 : 500).json({
-        error: isRateLimit ? "rate_limited" : "transcription_failed",
+      res.status(500).json({
+        error: "We are facing high traffic. Please try again later.",
       });
     }
   }
@@ -108,7 +108,7 @@ router.post(
     if (!canProceed) {
       res.status(403).json({
         error: "quota_exhausted",
-        message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
       });
       return;
     }
@@ -133,7 +133,7 @@ router.post(
       deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     } catch (error) {
       console.error("[Screenity Free] Summarize error:", error);
-      res.status(500).json({ error: "summarization_failed" });
+      res.status(500).json({ error: "We are facing high traffic. Please try again later." });
     }
   }
 );
@@ -156,7 +156,7 @@ router.post(
     if (!canProceed) {
       res.status(403).json({
         error: "quota_exhausted",
-        message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
       });
       return;
     }
@@ -213,7 +213,7 @@ ${JSON.stringify(textsPayload)}`,
       deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     } catch (error) {
       console.error("[Screenity Free] Translate error:", error);
-      res.status(500).json({ error: "translation_failed" });
+      res.status(500).json({ error: "We are facing high traffic. Please try again later." });
     }
   }
 );
@@ -236,7 +236,7 @@ router.post(
     if (!canProceed) {
       res.status(403).json({
         error: "quota_exhausted",
-        message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
       });
       return;
     }
@@ -284,113 +284,12 @@ Respond in this exact JSON format:
       deductFreeCredits(authReq.userEmail, 2).catch(console.error);
     } catch (error) {
       console.error("[Screenity Free] Title error:", error);
-      res.status(500).json({ error: "title_generation_failed" });
+      res.status(500).json({ error: "We are facing high traffic. Please try again later." });
     }
   }
 );
 
-// ─── Voiceover (Groq Orpheus TTS — Free tier: locked to 'autumn' voice) ───
-
-router.post(
-  "/voiceover",
-  requireAuth,
-  async (req: Request, res: Response): Promise<void> => {
-    const { transcript } = req.body;
-
-    if (!transcript) {
-      res.status(400).json({ error: "missing_transcript" });
-      return;
-    }
-
-    try {
-      const chunks = chunkTranscriptBySentence(transcript, 190);
-      const wavBuffers: Buffer[] = [];
-
-      for (const chunk of chunks) {
-        const response = await groqClient.audio.speech.create({
-          model: "canopylabs/orpheus-v1-english",
-          voice: FREE_VOICE as any,
-          input: chunk,
-          response_format: "wav",
-        });
-        const buffer = Buffer.from(await response.arrayBuffer());
-        wavBuffers.push(buffer);
-      }
-
-      const combined = concatenateWavBuffers(wavBuffers);
-      const base64 = combined.toString("base64");
-
-      res.json({ audioBase64: base64, mimeType: "audio/wav" });
-    } catch (error: any) {
-      console.error("[Screenity Free] Voiceover error:", error?.message);
-      const isRateLimit = error?.status === 429;
-      res.status(isRateLimit ? 429 : 500).json({
-        error: isRateLimit ? "rate_limited" : "voiceover_failed",
-      });
-    }
-  }
-);
-
-// ─── Helpers ────────────────────────────────────────────────────────
-
-function chunkTranscriptBySentence(text: string, maxLen: number): string[] {
-  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
-  const chunks: string[] = [];
-  let current = "";
-
-  for (const sentence of sentences) {
-    const trimmed = sentence.trim();
-    if (!trimmed) continue;
-
-    if (current.length + trimmed.length + 1 <= maxLen) {
-      current += (current ? " " : "") + trimmed;
-    } else {
-      if (current) chunks.push(current);
-      if (trimmed.length > maxLen) {
-        const words = trimmed.split(/\s+/);
-        let wordBuf = "";
-        for (const word of words) {
-          if (wordBuf.length + word.length + 1 <= maxLen) {
-            wordBuf += (wordBuf ? " " : "") + word;
-          } else {
-            if (wordBuf) chunks.push(wordBuf);
-            wordBuf = word;
-          }
-        }
-        current = wordBuf;
-      } else {
-        current = trimmed;
-      }
-    }
-  }
-  if (current) chunks.push(current);
-  return chunks;
-}
-
-function concatenateWavBuffers(buffers: Buffer[]): Buffer {
-  if (buffers.length === 0) return Buffer.alloc(0);
-  if (buffers.length === 1) return buffers[0];
-
-  const headerSize = 44;
-  let totalDataSize = 0;
-  for (const buf of buffers) {
-    totalDataSize += buf.length - headerSize;
-  }
-
-  const header = Buffer.from(buffers[0].subarray(0, headerSize));
-  header.writeUInt32LE(totalDataSize + headerSize - 8, 4);
-  header.writeUInt32LE(totalDataSize, 40);
-
-  const result = Buffer.alloc(headerSize + totalDataSize);
-  header.copy(result, 0);
-
-  let offset = headerSize;
-  for (const buf of buffers) {
-    buf.copy(result, offset, headerSize);
-    offset += buf.length - headerSize;
-  }
-  return result;
-}
+// Helper function to clean markdown fences from JSON output
 
 function parseJSON(rawText: string): any {
   const cleaned = stripMarkdownFences(rawText);

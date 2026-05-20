@@ -1,9 +1,7 @@
 /**
  * Free Tier AI Service for AI Screen Recorder
- * Uses Groq API as primary for fast, free text generation with Model Rotation.
- * Fallbacks to Gemini API for large contexts or multimodal requests.
- *
- * Adapted from BlackNote for video/recording analysis context.
+ * Route directly to Vertex AI (Gemini 3.1 Flash Lite) for text generation.
+ * No API Keys, no Groq, no complex routing.
  */
 interface StreamCallbacks {
     onToken: (token: string) => void;

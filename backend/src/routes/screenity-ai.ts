@@ -20,10 +20,7 @@ import {
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../config/index.js";
 import { calculateTokenCost } from "../services/token-cost.js";
-import { transcribeWithGroq } from "../services/groq-queue.js";
-import Groq from "groq-sdk";
-
-const groqClient = new Groq({ apiKey: config.groq.apiKey });
+import { transcribeWithGemini } from "../services/gemini-transcribe.js";
 
 const VALID_VOICES = ["autumn", "diana", "hannah", "austin", "daniel", "troy"] as const;
 
@@ -35,70 +32,21 @@ const vertexAI = new GoogleGenAI({
   location: config.gcp.region,
 });
 
-// Free-tier Gemini client (API key based) for fallback
-const freeAI = new GoogleGenAI({
-  apiKey: "AIzaSyCO3F6Znpad9_cZo6nQyVq18kSeXjjti8Y",
-});
-
+// Premium-tier model configuration
 const PREMIUM_MODEL = "gemini-3.1-flash-lite";
-const FREE_MODEL = "gemini-3.1-flash-lite";
-
-// Groq Model Rotation List for Free Users (Text generation)
-const GROQ_MODELS = [
-  "llama-3.3-70b-versatile",
-  "mixtral-8x7b-32768",
-  "llama-3.1-8b-instant"
-];
-const GROQ_TOKEN_LIMIT = 6000;
 
 // Helper to estimate tokens
 function estimateTokenCount(text: string): number {
   return Math.ceil((text?.length || 0) / 4);
 }
 
-/**
- * Executes a text generation request using Groq with model rotation on failure.
- */
-async function generateTextWithGroq(systemPrompt: string, userPrompt: string, isJson: boolean = false): Promise<string> {
-  const messages: any[] = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: userPrompt }
-  ];
-
-  let lastError: any = null;
-
-  for (let i = 0; i < GROQ_MODELS.length; i++) {
-    const model = GROQ_MODELS[i];
-    try {
-      console.log(`[Groq Text] Trying model: ${model}`);
-      const response = await groqClient.chat.completions.create({
-        model: model,
-        messages: messages,
-        temperature: 0.5,
-        max_tokens: 2048,
-        response_format: isJson ? { type: "json_object" } : undefined
-      });
-
-      return response.choices[0]?.message?.content || "";
-    } catch (error: any) {
-      console.warn(`[Groq Text] Model ${model} failed:`, error?.message);
-      lastError = error;
-      // If last model, throw the error to be handled by the route
-      if (i === GROQ_MODELS.length - 1) {
-        throw error;
-      }
-    }
-  }
-  throw lastError;
-}
+// Helpers removed since Groq text is deleted
 
 const FREE_MAX_DURATION_SEC = 1200; // 20 minutes
 
 /** Pick the correct AI client and model based on whether credits are available */
-function pickAIClient(hasPremiumCredits: boolean) {
-  return hasPremiumCredits
-    ? { client: vertexAI, model: PREMIUM_MODEL }
-    : { client: freeAI, model: FREE_MODEL };
+function pickAIClient() {
+  return { client: vertexAI, model: PREMIUM_MODEL };
 }
 
 /** Extract token usage from Vertex AI response and calculate credit cost */
@@ -130,22 +78,45 @@ router.post(
     }, "AI Screen Recorder");
 
     // Free tier: enforce 20-minute limit
-    const isPremium = user.tier === "premium" || user.credits > 0;
-    if (!isPremium && audioDurationSec && audioDurationSec > FREE_MAX_DURATION_SEC) {
-      res.status(403).json({
-        error: "recording_too_long",
-        maxMinutes: 20,
-        message: "Free users can only transcribe recordings up to 20 minutes. Upgrade to PRO for unlimited.",
-      });
-      return;
+    const usePremium = user.credits > 0;
+    if (!usePremium) {
+      if (audioDurationSec && audioDurationSec > FREE_MAX_DURATION_SEC) {
+        res.status(403).json({
+          error: "recording_too_long",
+          maxMinutes: 20,
+          message: "Free users can only transcribe recordings up to 20 minutes. Upgrade to PRO for unlimited.",
+        });
+        return;
+      }
+
+      const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+      if (!canProceed) {
+        res.status(403).json({
+          error: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
+        return;
+      }
     }
 
     try {
-      // Groq Whisper — free, no credit deduction
-      const result = await transcribeWithGroq(
+      // Gemini Flash Lite — free/premium, deduct credits based on token cost
+      const result = await transcribeWithGemini(
         audioBase64,
-        mimeType || "audio/mpeg"
+        mimeType || "audio/mpeg",
+        usePremium
       );
+
+      const creditsUsed = result.usage
+        ? calculateTokenCost(result.usage)
+        : 5;
+
+      console.log(`[Screenity AI] Transcribe completed. Cost: ${creditsUsed} credits (tokens: ${JSON.stringify(result.usage)})`);
+
+      if (usePremium) {
+        deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
+      } else {
+        deductFreeCredits(authReq.userEmail, creditsUsed).catch(console.error);
+      }
 
       res.json({
         segments: result.segments,
@@ -153,9 +124,8 @@ router.post(
       });
     } catch (error: any) {
       console.error("[Screenity AI] Transcribe error:", error?.message);
-      const isRateLimit = error?.status === 429;
-      res.status(isRateLimit ? 429 : 500).json({
-        error: isRateLimit ? "rate_limited" : "transcription_failed",
+      res.status(500).json({
+        error: "We are facing high traffic. Please try again later.",
       });
     }
   }
@@ -204,12 +174,12 @@ router.post(
       if (!canProceed) {
         res.status(403).json({
           error: "quota_exhausted",
-          message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+          message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
         });
         return;
       }
     }
-    const { client, model } = pickAIClient(usePremium);
+    const { client, model } = pickAIClient();
 
     try {
       const promptFn = SUMMARIZE_PROMPTS[style || "summary"] || SUMMARIZE_PROMPTS.summary;
@@ -218,44 +188,38 @@ router.post(
 
       let summaryText = "";
 
-      if (!usePremium && estimateTokenCount(prompt) <= GROQ_TOKEN_LIMIT) {
-        summaryText = await generateTextWithGroq(systemInstruction, prompt, false);
-      } else {
-        const response = await client.models.generateContent({
+      const response = await client.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.5,
+          maxOutputTokens: 2048,
+        },
+      });
+      
+      summaryText = (response.text || "").trim();
+
+      if (usePremium) {
+        const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
+        deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
+        logUsage({
+          userId: authReq.userId,
+          app: "screenity",
+          creditsUsed,
           model,
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            systemInstruction,
-            temperature: 0.5,
-            maxOutputTokens: 2048,
-          },
-        });
-        
-        summaryText = (response.text || "").trim();
-
-        if (usePremium) {
-          const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
-          deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
-          logUsage({
-            userId: authReq.userId,
-            app: "screenity",
-            creditsUsed,
-            model,
-            timestamp: new Date(),
-            inputTokens,
-            outputTokens,
-          }).catch(console.error);
-        }
-      }
-
-      if (!usePremium) {
+          timestamp: new Date(),
+          inputTokens,
+          outputTokens,
+        }).catch(console.error);
+      } else {
         deductFreeCredits(authReq.userEmail, 2).catch(console.error);
       }
 
       res.json({ summary: summaryText });
     } catch (error) {
       console.error("[Screenity AI] Summarize error:", error);
-      res.status(500).json({ error: "summarization_failed" });
+      res.status(500).json({ error: "We are facing high traffic. Please try again later." });
     }
   }
 );
@@ -286,12 +250,12 @@ router.post(
       if (!canProceed) {
         res.status(403).json({
           error: "quota_exhausted",
-          message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+          message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
         });
         return;
       }
     }
-    const { client, model } = pickAIClient(usePremium);
+    const { client, model } = pickAIClient();
 
     try {
       const textsPayload = segments.map((s: any, i: number) => ({
@@ -308,37 +272,31 @@ ${JSON.stringify(textsPayload)}`;
       const systemInstruction = "You are a professional translator for screen recordings. Output only the requested JSON object.";
       let rawText = "[]";
 
-      if (!usePremium && estimateTokenCount(prompt) <= GROQ_TOKEN_LIMIT) {
-        rawText = await generateTextWithGroq(systemInstruction, prompt, true);
-      } else {
-        const response = await client.models.generateContent({
+      const response = await client.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.3,
+          maxOutputTokens: 8192,
+        },
+      });
+
+      rawText = (response.text || "[]").trim();
+
+      if (usePremium) {
+        const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
+        deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
+        logUsage({
+          userId: authReq.userId,
+          app: "screenity",
+          creditsUsed,
           model,
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            systemInstruction,
-            temperature: 0.3,
-            maxOutputTokens: 8192,
-          },
-        });
-
-        rawText = (response.text || "[]").trim();
-
-        if (usePremium) {
-          const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
-          deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
-          logUsage({
-            userId: authReq.userId,
-            app: "screenity",
-            creditsUsed,
-            model,
-            timestamp: new Date(),
-            inputTokens,
-            outputTokens,
-          }).catch(console.error);
-        }
-      }
-
-      if (!usePremium) {
+          timestamp: new Date(),
+          inputTokens,
+          outputTokens,
+        }).catch(console.error);
+      } else {
         deductFreeCredits(authReq.userEmail, 2).catch(console.error);
       }
 
@@ -363,7 +321,7 @@ ${JSON.stringify(textsPayload)}`;
       res.json({ translatedSegments });
     } catch (error) {
       console.error("[Screenity AI] Translate error:", error);
-      res.status(500).json({ error: "translation_failed" });
+      res.status(500).json({ error: "We are facing high traffic. Please try again later." });
     }
   }
 );
@@ -394,12 +352,12 @@ router.post(
       if (!canProceed) {
         res.status(403).json({
           error: "quota_exhausted",
-          message: "⚠️ You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+          message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
         });
         return;
       }
     }
-    const { client, model } = pickAIClient(usePremium);
+    const { client, model } = pickAIClient();
 
     try {
       const contextText = transcript.slice(0, 5000);
@@ -419,37 +377,31 @@ Respond in this exact JSON format:
 
       let rawText = "{}";
 
-      if (!usePremium && estimateTokenCount(prompt) <= GROQ_TOKEN_LIMIT) {
-        rawText = await generateTextWithGroq(systemInstruction, prompt, true);
-      } else {
-        const response = await client.models.generateContent({
+      const response = await client.models.generateContent({
+        model,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.6,
+          maxOutputTokens: 256,
+        },
+      });
+
+      rawText = (response.text || "{}").trim();
+
+      if (usePremium) {
+        const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
+        deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
+        logUsage({
+          userId: authReq.userId,
+          app: "screenity",
+          creditsUsed,
           model,
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          config: {
-            systemInstruction,
-            temperature: 0.6,
-            maxOutputTokens: 256,
-          },
-        });
-
-        rawText = (response.text || "{}").trim();
-
-        if (usePremium) {
-          const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
-          deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
-          logUsage({
-            userId: authReq.userId,
-            app: "screenity",
-            creditsUsed,
-            model,
-            timestamp: new Date(),
-            inputTokens,
-            outputTokens,
-          }).catch(console.error);
-        }
-      }
-
-      if (!usePremium) {
+          timestamp: new Date(),
+          inputTokens,
+          outputTokens,
+        }).catch(console.error);
+      } else {
         deductFreeCredits(authReq.userEmail, 2).catch(console.error);
       }
 
@@ -464,132 +416,12 @@ Respond in this exact JSON format:
       });
     } catch (error) {
       console.error("[Screenity AI] Title error:", error);
-      res.status(500).json({ error: "title_generation_failed" });
+      res.status(500).json({ error: "We are facing high traffic. Please try again later." });
     }
   }
 );
 
-// ─── Voiceover (Groq Orpheus TTS) ───────────────────────────────────
-
-router.post(
-  "/voiceover",
-  requireAuth,
-  async (req: Request, res: Response): Promise<void> => {
-    const { transcript, voice = "autumn" } = req.body;
-
-    if (!transcript) {
-      res.status(400).json({ error: "missing_transcript" });
-      return;
-    }
-
-    if (!VALID_VOICES.includes(voice)) {
-      res.status(400).json({ error: "invalid_voice", validVoices: VALID_VOICES });
-      return;
-    }
-
-    try {
-      // Chunk transcript into ≤ 190 char pieces (Orpheus limit: 200 chars)
-      const chunks = chunkTranscriptBySentence(transcript, 190);
-      const wavBuffers: Buffer[] = [];
-
-      for (const chunk of chunks) {
-        const response = await groqClient.audio.speech.create({
-          model: "canopylabs/orpheus-v1-english",
-          voice: voice as any,
-          input: chunk,
-          response_format: "wav",
-        });
-        const buffer = Buffer.from(await response.arrayBuffer());
-        wavBuffers.push(buffer);
-      }
-
-      // Concatenate WAV files (keep header from first, append raw PCM from rest)
-      const combined = concatenateWavBuffers(wavBuffers);
-      const base64 = combined.toString("base64");
-
-      res.json({ audioBase64: base64, mimeType: "audio/wav" });
-    } catch (error: any) {
-      console.error("[Screenity AI] Voiceover error:", error?.message);
-      const isRateLimit = error?.status === 429;
-      res.status(isRateLimit ? 429 : 500).json({
-        error: isRateLimit ? "rate_limited" : "voiceover_failed",
-      });
-    }
-  }
-);
-
-// ─── Helpers ────────────────────────────────────────────────────────
-
-/**
- * Split transcript into chunks ≤ maxLen chars, preferring sentence boundaries.
- */
-function chunkTranscriptBySentence(text: string, maxLen: number): string[] {
-  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
-  const chunks: string[] = [];
-  let current = "";
-
-  for (const sentence of sentences) {
-    const trimmed = sentence.trim();
-    if (!trimmed) continue;
-
-    if (current.length + trimmed.length + 1 <= maxLen) {
-      current += (current ? " " : "") + trimmed;
-    } else {
-      if (current) chunks.push(current);
-      // If single sentence exceeds maxLen, hard-split by words
-      if (trimmed.length > maxLen) {
-        const words = trimmed.split(/\s+/);
-        let wordBuf = "";
-        for (const word of words) {
-          if (wordBuf.length + word.length + 1 <= maxLen) {
-            wordBuf += (wordBuf ? " " : "") + word;
-          } else {
-            if (wordBuf) chunks.push(wordBuf);
-            wordBuf = word;
-          }
-        }
-        current = wordBuf;
-      } else {
-        current = trimmed;
-      }
-    }
-  }
-  if (current) chunks.push(current);
-  return chunks;
-}
-
-/**
- * Concatenate multiple WAV buffers into one.
- * Assumes all have same sample rate/format (Orpheus outputs consistent WAV).
- */
-function concatenateWavBuffers(buffers: Buffer[]): Buffer {
-  if (buffers.length === 0) return Buffer.alloc(0);
-  if (buffers.length === 1) return buffers[0];
-
-  // WAV header is 44 bytes; raw PCM data starts at byte 44
-  const headerSize = 44;
-  let totalDataSize = 0;
-
-  for (const buf of buffers) {
-    totalDataSize += buf.length - headerSize;
-  }
-
-  // Copy header from first file, update data size fields
-  const header = Buffer.from(buffers[0].subarray(0, headerSize));
-  header.writeUInt32LE(totalDataSize + headerSize - 8, 4);   // RIFF chunk size
-  header.writeUInt32LE(totalDataSize, 40);                   // data chunk size
-
-  const result = Buffer.alloc(headerSize + totalDataSize);
-  header.copy(result, 0);
-
-  let offset = headerSize;
-  for (const buf of buffers) {
-    buf.copy(result, offset, headerSize);
-    offset += buf.length - headerSize;
-  }
-
-  return result;
-}
+// Helper function to clean markdown fences from JSON output
 
 function parseJSON(rawText: string): any {
   const cleaned = stripMarkdownFences(rawText);

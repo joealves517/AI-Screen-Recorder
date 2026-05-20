@@ -120,7 +120,7 @@ export async function logUsage(log) {
     await usageLogsRef.add(log);
 }
 // ─── Free Tier Credits ──────────────────────────────────────────────
-export const FREE_CREDITS_PER_DAY = 100;
+export const FREE_CREDITS_PER_DAY = 25;
 function getTodayString() {
     const d = new Date();
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;

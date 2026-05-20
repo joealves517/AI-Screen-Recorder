@@ -38,6 +38,13 @@ const VideoPlayer = (props) => {
     }
   }, [contentState.time]);
 
+  const aspect = useMemo(() => {
+    if (contentState.width && contentState.height) {
+      return `${contentState.width}:${contentState.height}`;
+    }
+    return "16:9";
+  }, [contentState.width, contentState.height]);
+
   const options = useMemo(
     () => ({
       controls: [
@@ -55,7 +62,7 @@ const VideoPlayer = (props) => {
       ],
       captions: { active: true, update: true },
       urls: null,
-      ratio: "16:9",
+      ratio: aspect,
       blankVideo:
         "chrome-extension://" +
         chrome.i18n.getMessage("@@extension_id") +
@@ -64,7 +71,7 @@ const VideoPlayer = (props) => {
         global: true,
       },
     }),
-    []
+    [aspect]
   );
 
   const [vidUrl, setVidUrl] = useState(null);

@@ -189,7 +189,7 @@ export async function logUsage(log: UsageLog): Promise<void> {
 
 // ─── Free Tier Credits ──────────────────────────────────────────────
 
-export const FREE_CREDITS_PER_DAY = 100;
+export const FREE_CREDITS_PER_DAY = 25;
 
 function getTodayString() {
   const d = new Date();

@@ -63,7 +63,7 @@ export declare function findUserByLemonSqueezyCustomerId(customerId: string): Pr
     data: UserDocument;
 } | null>;
 export declare function logUsage(log: UsageLog): Promise<void>;
-export declare const FREE_CREDITS_PER_DAY = 100;
+export declare const FREE_CREDITS_PER_DAY = 25;
 export declare function checkFreeCreditLimit(email: string): Promise<boolean>;
 export declare function deductFreeCredits(email: string, amount: number): Promise<void>;
 export { db };

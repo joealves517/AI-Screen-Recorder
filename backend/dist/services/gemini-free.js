@@ -1,30 +1,18 @@
 /**
  * Free Tier AI Service for AI Screen Recorder
- * Uses Groq API as primary for fast, free text generation with Model Rotation.
- * Fallbacks to Gemini API for large contexts or multimodal requests.
- *
- * Adapted from BlackNote for video/recording analysis context.
+ * Route directly to Vertex AI (Gemini 3.1 Flash Lite) for text generation.
+ * No API Keys, no Groq, no complex routing.
  */
 import { GoogleGenAI } from "@google/genai";
-import { Groq } from "groq-sdk";
 import { config } from "../config/index.js";
 // --- Clients ---
-const gemini = new GoogleGenAI({
-    apiKey: "AIzaSyCO3F6Znpad9_cZo6nQyVq18kSeXjjti8Y",
-});
-const groq = new Groq({
-    apiKey: config.groq.apiKey || process.env.GROQ_API_KEY,
+const ai = new GoogleGenAI({
+    vertexai: true,
+    project: config.gcp.projectId,
+    location: config.gcp.region,
 });
 // --- Constants ---
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
-// Groq Model Rotation List (Ordered by preference)
-const GROQ_MODELS = [
-    "llama-3.3-70b-versatile",
-    "mixtral-8x7b-32768",
-    "llama-3.1-8b-instant"
-];
-// Token limit threshold for Groq (approx 6000 words/tokens to be safe)
-const GROQ_TOKEN_LIMIT = 6000;
 const RECORDING_SYSTEM_PROMPT = `You are an expert AI assistant for a screen recording tool called AI Screen Recorder.
 You help users analyze, summarize, and extract insights from their video recordings.
 
@@ -33,77 +21,13 @@ CRITICAL RULES:
 - Match the user's language
 - Be concise and natural — the output should feel human-written
 - Use Markdown formatting for structure (headings, lists, etc.)`;
-// Helper to estimate tokens (1 token ≈ 4 characters)
-function estimateTokenCount(text) {
-    return Math.ceil((text?.length || 0) / 4);
-}
 function handleAiError(error, callbacks) {
-    console.error("[AI Free] Error:", error?.message || error);
-    callbacks.onError(new Error("We are facing high traffic, consider upgrading to PRO to enjoy the best experience."));
+    console.error("[AI Free] Vertex AI Error:", error?.message || error);
+    callbacks.onError(new Error("We are facing high traffic. Please try again later."));
 }
 export async function streamFreeRecordingAI(text, option, callbacks, abortSignal, history) {
     const sysInstruction = RECORDING_SYSTEM_PROMPT;
-    // Token Estimation
-    let totalInputTokens = estimateTokenCount(sysInstruction) + estimateTokenCount(text);
-    if (history) {
-        history.forEach(h => totalInputTokens += estimateTokenCount(h.content));
-    }
-    // Routing Logic: large context → Gemini, small context → Groq
-    if (totalInputTokens > GROQ_TOKEN_LIMIT) {
-        console.log(`[AI Free] Routing to Gemini (Tokens: ${totalInputTokens})`);
-        return streamGemini(text, sysInstruction, callbacks, abortSignal, history);
-    }
-    else {
-        console.log(`[AI Free] Routing to Groq (Tokens: ${totalInputTokens})`);
-        return streamGroq(text, sysInstruction, callbacks, abortSignal, history);
-    }
-}
-async function streamGroq(userPrompt, sysInstruction, callbacks, abortSignal, history) {
-    const messages = [{ role: "system", content: sysInstruction }];
-    if (history && history.length > 0) {
-        history.forEach(msg => {
-            if (!msg.content)
-                return;
-            messages.push({
-                role: msg.role === "ai" || msg.role === "assistant" ? "assistant" : "user",
-                content: msg.content
-            });
-        });
-    }
-    messages.push({ role: "user", content: userPrompt });
-    // Model Rotation Loop
-    for (let i = 0; i < GROQ_MODELS.length; i++) {
-        const model = GROQ_MODELS[i];
-        try {
-            console.log(`[Groq] Trying model: ${model}`);
-            const stream = await groq.chat.completions.create({
-                model: model,
-                messages: messages,
-                temperature: 0.7,
-                max_tokens: 4096,
-                stream: true,
-            });
-            for await (const chunk of stream) {
-                if (abortSignal?.aborted) {
-                    callbacks.onDone();
-                    return;
-                }
-                const token = chunk.choices[0]?.delta?.content || "";
-                if (token) {
-                    callbacks.onToken(token);
-                }
-            }
-            callbacks.onDone();
-            return; // Success — exit
-        }
-        catch (error) {
-            console.warn(`[Groq] Model ${model} failed:`, error?.message);
-            if (i === GROQ_MODELS.length - 1) {
-                return handleAiError(error, callbacks);
-            }
-            // Loop continues to the next model
-        }
-    }
+    return streamGemini(text, sysInstruction, callbacks, abortSignal, history);
 }
 async function streamGemini(userPrompt, sysInstruction, callbacks, abortSignal, history) {
     const contents = [];
@@ -119,7 +43,7 @@ async function streamGemini(userPrompt, sysInstruction, callbacks, abortSignal, 
     }
     contents.push({ role: "user", parts: [{ text: userPrompt }] });
     try {
-        const response = await gemini.models.generateContentStream({
+        const response = await ai.models.generateContentStream({
             model: GEMINI_MODEL,
             contents: contents,
             config: {

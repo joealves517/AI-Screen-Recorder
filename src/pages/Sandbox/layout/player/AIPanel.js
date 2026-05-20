@@ -479,27 +479,7 @@ const AIPanel = () => {
     return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
-  // ─── Auto-transcribe on mount (2s delay for smooth editor load) ───
-  useEffect(() => {
-    if (segments || autoTranscribeStatus !== "idle") return;
-    if (userTier === "guest" || userTier === "free") return;
-    if (!contentState.blob && !contentState.rawBlob) return;
 
-    const timer = setTimeout(() => {
-      setAutoTranscribeStatus("processing");
-      setIsProcessing(true);
-      setActiveTask("transcribe");
-      setProgress(0);
-      setError(null);
-
-      window.parent.postMessage(
-        { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
-        "*"
-      );
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [contentState.blob, contentState.rawBlob, segments, userTier, autoTranscribeStatus]);
 
   // Restore AI data from cache on mount
   useEffect(() => {
@@ -750,8 +730,12 @@ const AIPanel = () => {
       return; // Skip the generic error display below while we check auth
     }
 
-    // Normalize all errors to a single flag — raw messages are never displayed
-    setError("SERVER_ERROR");
+    // Normalize all errors
+    if (errorMsg === "quota_exhausted" || errorMsg === "FREE_LIMIT_EXCEEDED" || (errorMsg && errorMsg.includes("limit"))) {
+      setError("QUOTA_EXHAUSTED");
+    } else {
+      setError("SERVER_ERROR");
+    }
     
     // Auto-scroll to the top to show the error banner
     setTimeout(() => {
@@ -810,48 +794,87 @@ const AIPanel = () => {
         </div>
       );
     } else if (userTier === "free") {
-      content = (
-        <div className={styles.alert}>
-          <div className={styles.buttonLeft}>
-            <AnimatedIcon animation="none">
-              <Crown size={24} color="currentColor" />
-            </AnimatedIcon>
-          </div>
-          <div className={styles.buttonMiddle}>
-            <div className={styles.buttonTitle}>
-              We are currently experiencing high traffic
+      if (error === "QUOTA_EXHAUSTED") {
+        content = (
+          <div className={styles.alert}>
+            <div className={styles.buttonLeft}>
+              <AnimatedIcon animation="none">
+                <Crown size={24} color="currentColor" />
+              </AnimatedIcon>
             </div>
-            <div className={styles.buttonDescription}>
-              Upgrade to Pro for priority processing and higher limits.
-              <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "10px" }}>
-                <div
-                  onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
-                  style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", color: "#387ef7", fontWeight: 600 }}
-                >
-                  {chrome.i18n.getMessage("learnMoreLabel")}
-                </div>
-                <div
-                  onClick={() => {
-                    setError(null);
-                    if (autoTranscribeStatus === "error" && (contentState.blob || contentState.rawBlob)) {
-                      setAutoTranscribeStatus("processing");
-                      setIsProcessing(true);
-                      setActiveTask("transcribe");
-                      window.parent.postMessage(
-                        { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
-                        "*"
-                      );
-                    }
-                  }}
-                  style={{ cursor: "pointer", color: "#64748b", fontWeight: 600 }}
-                >
-                  Try Again
+            <div className={styles.buttonMiddle}>
+              <div className={styles.buttonTitle}>
+                Limit Reached
+              </div>
+              <div className={styles.buttonDescription}>
+                You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access.
+                <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "10px" }}>
+                  <div
+                    onClick={() => chrome.runtime.sendMessage({ type: "handle-upgrade" }).catch(() => {})}
+                    style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", color: "#387ef7", fontWeight: 600 }}
+                  >
+                    {chrome.i18n.getMessage("learnMoreLabel")}
+                  </div>
+                  <div
+                    onClick={() => {
+                      setError(null);
+                      if (autoTranscribeStatus === "error" && (contentState.blob || contentState.rawBlob)) {
+                        setAutoTranscribeStatus("processing");
+                        setIsProcessing(true);
+                        setActiveTask("transcribe");
+                        window.parent.postMessage(
+                          { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
+                          "*"
+                        );
+                      }
+                    }}
+                    style={{ cursor: "pointer", color: "#64748b", fontWeight: 600 }}
+                  >
+                    Try Again
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      );
+        );
+      } else {
+        content = (
+          <div className={styles.alert}>
+            <div className={styles.buttonLeft}>
+              <AnimatedIcon animation="none">
+                <Info size={24} color="currentColor" />
+              </AnimatedIcon>
+            </div>
+            <div className={styles.buttonMiddle}>
+              <div className={styles.buttonTitle}>
+                We are facing high traffic
+              </div>
+              <div className={styles.buttonDescription}>
+                We are facing high traffic. Please try again later.
+                <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "10px" }}>
+                  <div
+                    onClick={() => {
+                      setError(null);
+                      if (autoTranscribeStatus === "error" && (contentState.blob || contentState.rawBlob)) {
+                        setAutoTranscribeStatus("processing");
+                        setIsProcessing(true);
+                        setActiveTask("transcribe");
+                        window.parent.postMessage(
+                          { type: "ai-transcribe", blob: contentState.blob || contentState.rawBlob },
+                          "*"
+                        );
+                      }
+                    }}
+                    style={{ cursor: "pointer", color: "#387ef7", fontWeight: 600 }}
+                  >
+                    Try Again
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
     } else {
       // PRO user: friendly error with retry
       content = (

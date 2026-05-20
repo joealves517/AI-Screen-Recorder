@@ -399,7 +399,7 @@ const PopupContainer = (props) => {
             <div
               style={{
                 position: "absolute",
-                bottom: "-44px",
+                bottom: "-40px",
                 left: "50%",
                 transform: "translateX(-50%)",
                 display: "flex",
@@ -409,8 +409,9 @@ const PopupContainer = (props) => {
                 backgroundColor: "rgba(255, 255, 255, 0.9)",
                 backdropFilter: "blur(4px)",
                 WebkitBackdropFilter: "blur(4px)",
-                borderRadius: "20px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                borderRadius: "9999px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.06), inset 0 1px 1px #ffffff",
+                border: "1px solid rgba(0, 0, 0, 0.06)",
                 cursor: "pointer",
                 color: "#4B5563",
                 fontSize: "13px",
