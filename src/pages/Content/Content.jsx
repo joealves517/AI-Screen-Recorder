@@ -124,7 +124,10 @@ const Content = () => {
 .AisrDropdownMenuContent {
 	z-index: 99999999999!important;
   min-width: 200px;
-  background-color: white;
+  background-color: #ffffff!important;
+  background: #ffffff!important;
+  backdrop-filter: none!important;
+  -webkit-backdrop-filter: none!important;
   margin-top: 4px;
   margin-right: 8px;
   padding-top: 12px;
@@ -132,8 +135,8 @@ const Content = () => {
   border-radius: 15px;
   font-family: 'Satoshi-Medium', sans-serif;
   color: #29292F;
-  box-shadow: 0px 10px 38px -10px rgba(22, 23, 24, 0.35),
-    0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+  box-shadow: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
@@ -160,6 +163,13 @@ const Content = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.AisrItemIndicator svg,
+.AisrItemIndicator svg *,
+.AisrItemIndicator path {
+  color: #ffffff!important;
+  stroke: #ffffff!important;
+  fill: none!important;
 }
 .AisrDropdownMenuItem,
 .AisrDropdownMenuRadioItem {

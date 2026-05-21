@@ -12,7 +12,7 @@ const ai = new GoogleGenAI({
     location: config.gcp.region,
 });
 // --- Constants ---
-const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_MODEL = "gemini-2.5-flash-lite";
 const RECORDING_SYSTEM_PROMPT = `You are an expert AI assistant for a screen recording tool called AI Screen Recorder.
 You help users analyze, summarize, and extract insights from their video recordings.
 

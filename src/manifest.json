@@ -3,7 +3,7 @@
   "name": "__MSG_extName__",
   "description": "__MSG_extDesc__",
   "default_locale": "en",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwY9z0CqtogrwOmQkilPqHjZN8/l6/313YIiTInZ/IIx0AYo6rLC4800XWYv5obJAV8UfMMC+IYKZ6qD04kZv42Pic+Xkpyy1OJkKaMKLqQObd4yGnM2vMFXeU8k7zCqxPuA7lgjjBNIwv56FDDJLPmAe/v5pEHGO+LlrDAt+93J6N0zz7O3lj93jTYqKTcd3YJsgUzesOwELXPhug4VKeNCgaPE5r50/OebjLduZD2oKWbk2Utd/rWq1azEB1QiEJ05wyxfU5HBXuO44RVtHed1fEzKL8lECxDyRk8ixn+uq7e/kWep+9kg+sSfUXG3XsGzHJaIJKpMCejpjeYlENQIDAQAB",
   "background": {
     "service_worker": "background.bundle.js"

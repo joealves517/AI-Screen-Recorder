@@ -673,6 +673,124 @@ const Sandbox = () => {
           break;
         }
 
+        case "ai-chat": {
+          try {
+            const transcript = message.transcript || "";
+            // Security Guardrails: Scan for typical API keys (OpenAI, Google) or plain passwords
+            const hasApiKey = /AIzaSy[A-Za-z0-9-_]{33}|sk-[A-Za-z0-9]{48}/.test(transcript) || /api_key\s*[:=]\s*['"][A-Za-z0-9-_]+['"]/.test(transcript);
+            const hasPassword = /password\s*[:=]\s*['"][^'"]+['"]/.test(transcript);
+
+            if ((hasApiKey || hasPassword) && !message.approvedByHuman) {
+              sendMessage({
+                type: "ai-chat-approval-required",
+                toolName: "send_transcript",
+                args: { text: message.text, history: message.history },
+                reason: "We detected potential API keys or passwords in your transcript. Sending this to the AI server could expose credentials. Do you want to proceed?"
+              });
+              break;
+            }
+
+            const response = await fetchWithAuthRetry("/chat", {
+              method: "POST",
+              body: JSON.stringify({
+                history: message.history || [],
+                transcript: message.transcript || "",
+              }),
+            });
+            const data = await response.json();
+            sendMessage({
+              type: "ai-chat-result",
+              reply: data.reply,
+              thoughts: data.thoughts,
+              tool_calls: data.tool_calls || []
+            });
+          } catch (err) {
+            sendMessage({ type: "ai-chat-error", error: err.message });
+          }
+          break;
+        }
+
+        case "ai-execute-tool": {
+          const { name, args } = message;
+          try {
+            if (name === "translate_subtitles") {
+              const response = await fetchWithAuthRetry("/translate", {
+                method: "POST",
+                body: JSON.stringify({
+                  segments: message.segments,
+                  targetLang: args.targetLang,
+                }),
+              });
+              const { translatedSegments } = await response.json();
+              sendMessage({
+                type: "ai-execute-tool-success",
+                name,
+                result: { translatedSegments, targetLang: args.targetLang }
+              });
+            } else if (name === "generate_summary") {
+              const response = await fetchWithAuthRetry("/summarize", {
+                method: "POST",
+                body: JSON.stringify({
+                  transcript: message.transcript,
+                  style: args.style || "summary",
+                }),
+              });
+              const { summary } = await response.json();
+              sendMessage({
+                type: "ai-execute-tool-success",
+                name,
+                result: { summary, style: args.style }
+              });
+            } else if (name === "apply_voiceover") {
+              const response = await fetchWithAuthRetry("/voiceover", {
+                method: "POST",
+                body: JSON.stringify({
+                  transcript: message.transcript,
+                  voice: args.voice || "autumn",
+                }),
+              });
+              const { audioBase64, mimeType } = await response.json();
+              cachedVoiceoverRef.current = { base64: audioBase64, mimeType };
+
+              let updatedVideoBase64 = null;
+              if (message.videoBlob) {
+                const byteChars = atob(audioBase64);
+                const byteArr = new Uint8Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+                const audioBlob = new Blob([byteArr], { type: mimeType });
+
+                const resultBlob = await addAudioToVideo(
+                  ffmpegInstance.current,
+                  message.videoBlob,
+                  audioBlob,
+                  message.duration,
+                  1.0,
+                  true, // replaceAudio
+                  (progress) =>
+                    sendMessage({ type: "processor-progress", progress: Math.round(progress * 100) })
+                );
+                updatedVideoBase64 = await toBase64(resultBlob);
+              }
+
+              sendMessage({
+                type: "ai-execute-tool-success",
+                name,
+                result: { voice: args.voice, updatedVideoBase64 }
+              });
+            } else {
+              throw new Error(`Unknown tool name: ${name}`);
+            }
+          } catch (err) {
+            sendMessage({
+              type: "ai-execute-tool-error",
+              name,
+              error: err.message || `Execution of tool ${name} failed.`
+            });
+          }
+          break;
+        }
+
+
         case "ecosystem-relay": {
           // Relay cross-extension messages from the sandboxed AIPanel
           // Route through background service worker for reliable external messaging

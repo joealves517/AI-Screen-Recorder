@@ -307,6 +307,7 @@ const SettingsMenu = (props) => {
                   >
                     <DropdownMenu.Item
                       className="AisrDropdownMenuItem"
+                      disabled={width < 3840 || height < 2160}
                       onClick={(e) => {
                         chrome.runtime.sendMessage({
                           type: "resize-window",
@@ -328,6 +329,7 @@ const SettingsMenu = (props) => {
                   >
                     <DropdownMenu.Item
                       className="AisrDropdownMenuItem"
+                      disabled={width < 1920 || height < 1080}
                       onClick={(e) => {
                         chrome.runtime.sendMessage({
                           type: "resize-window",
@@ -349,6 +351,7 @@ const SettingsMenu = (props) => {
                   >
                     <DropdownMenu.Item
                       className="AisrDropdownMenuItem"
+                      disabled={width < 1280 || height < 720}
                       onClick={(e) => {
                         chrome.runtime.sendMessage({
                           type: "resize-window",
@@ -370,6 +373,7 @@ const SettingsMenu = (props) => {
                   >
                     <DropdownMenu.Item
                       className="AisrDropdownMenuItem"
+                      disabled={width < 640 || height < 480}
                       onClick={(e) => {
                         chrome.runtime.sendMessage({
                           type: "resize-window",
@@ -391,6 +395,7 @@ const SettingsMenu = (props) => {
                   >
                     <DropdownMenu.Item
                       className="AisrDropdownMenuItem"
+                      disabled={width < 480 || height < 360}
                       onClick={(e) => {
                         chrome.runtime.sendMessage({
                           type: "resize-window",
@@ -412,6 +417,7 @@ const SettingsMenu = (props) => {
                   >
                     <DropdownMenu.Item
                       className="AisrDropdownMenuItem"
+                      disabled={width < 320 || height < 240}
                       onClick={(e) => {
                         chrome.runtime.sendMessage({
                           type: "resize-window",
@@ -477,7 +483,7 @@ const SettingsMenu = (props) => {
                       <DropdownMenu.RadioItem
                         className="AisrDropdownMenuItem"
                         value="4k"
-                        
+                        disabled={RAM < 8 || width < 3840 || height < 2160}
                       >
                         4k
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
@@ -495,7 +501,7 @@ const SettingsMenu = (props) => {
                       <DropdownMenu.RadioItem
                         className="AisrDropdownMenuItem"
                         value="1080p"
-                        
+                        disabled={RAM < 4 || width < 1920 || height < 1080}
                       >
                         1080p
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">
@@ -513,7 +519,7 @@ const SettingsMenu = (props) => {
                       <DropdownMenu.RadioItem
                         className="AisrDropdownMenuItem"
                         value="720p"
-                        
+                        disabled={RAM < 2 || width < 1280 || height < 720}
                       >
                         720p
                         <DropdownMenu.ItemIndicator className="AisrItemIndicator">

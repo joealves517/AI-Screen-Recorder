@@ -363,6 +363,7 @@ const AIPanel = () => {
   const [transcribeFinishing, setTranscribeFinishing] = useState(false);
   const [fakeProgressWidth, setFakeProgressWidth] = useState("0%");
 
+
   useEffect(() => {
     if (isProcessing && activeTask === "transcribe" && !transcribeFinishing) {
       setTimeout(() => setFakeProgressWidth("95%"), 100);
@@ -681,6 +682,81 @@ const AIPanel = () => {
           break;
         }
 
+        case "ai-chat-result": {
+          const { reply, thoughts, tool_calls } = event.data;
+          
+          if (thoughts) {
+            dispatch({ type: "AGENT_THOUGHT", payload: { text: thoughts } });
+          }
+          
+          dispatch({ type: "AGENT_MESSAGE", payload: { text: reply } });
+          
+          if (tool_calls && tool_calls.length > 0) {
+            tool_calls.forEach(tool => {
+              dispatch({ type: "TOOL_CALL", payload: { name: tool.name, args: tool.args } });
+              
+              window.parent.postMessage({
+                type: "ai-execute-tool",
+                name: tool.name,
+                args: tool.args,
+                segments,
+                transcript,
+                videoBlob: contentState.videoBlob,
+                duration: contentState.duration
+              }, "*");
+            });
+          }
+          break;
+        }
+
+        case "ai-chat-approval-required": {
+          const { toolName, args, reason } = event.data;
+          dispatch({ type: "ASK_APPROVAL", payload: { toolName, args, reason } });
+          break;
+        }
+
+        case "ai-execute-tool-success": {
+          const { name, result } = event.data;
+          dispatch({ type: "TOOL_SUCCESS", payload: { name, result } });
+          
+          if (name === "translate_subtitles") {
+            const translatedRaw = result.translatedSegments || [];
+            const translated = translatedRaw.map((seg, i) => ({
+              ...seg,
+              start: seg.start !== undefined ? seg.start : segments[i]?.start,
+              end: seg.end !== undefined ? seg.end : segments[i]?.end,
+              duration: seg.duration !== undefined ? seg.duration : segments[i]?.duration,
+            }));
+            setTranslatedSegments(translated);
+            setTargetLang(result.targetLang);
+            if (translated.length > 0) {
+              if (segments) applySegmentsToPlayer(segments, true, "en");
+              applySegmentsToPlayer(translated, false, result.targetLang);
+            }
+          } else if (name === "generate_summary") {
+            const style = result.style || "summary";
+            if (style === "summary") setSummary(result.summary);
+            else if (style === "keypoints") setActionItems(result.summary);
+            else if (style === "chapters") setChapters(result.summary);
+            else if (style === "social") setSocial(result.summary);
+            else if (style === "meeting_minutes") setMeetingMinutes(result.summary);
+          }
+          break;
+        }
+
+        case "ai-execute-tool-error": {
+          const { name, error: errVal } = event.data;
+          dispatch({ type: "TOOL_ERROR", payload: { name, error: errVal } });
+          handleAIError(errVal);
+          break;
+        }
+
+        case "ai-chat-error": {
+          dispatch({ type: "SET_ERROR", payload: event.data.error });
+          handleAIError(event.data.error);
+          break;
+        }
+
         default:
           if (type && type.endsWith("-error")) {
             // Handle FREE_LIMIT_EXCEEDED and recording_too_long specially
@@ -698,7 +774,7 @@ const AIPanel = () => {
           break;
       }
     },
-    [setContentState, segments, targetLang]
+    [setContentState, segments, targetLang, transcript, contentState]
   );
 
   useEffect(() => {
@@ -916,6 +992,8 @@ const AIPanel = () => {
 
     return ReactDOM.createPortal(content, portalTarget);
   };
+
+
 
   // --- Handlers ---
 
@@ -1714,7 +1792,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\
           title: "Chat with Video",
           description: "Ask AI anything about this recording.",
           onClick: () => {
-            if (!locked) openSparkAI(segments, contentState.title);
+            if (!locked) openSparkAI(segments, titleData?.title || contentState.title);
           },
           taskKey: "chat",
           disabled: locked || isProcessing,

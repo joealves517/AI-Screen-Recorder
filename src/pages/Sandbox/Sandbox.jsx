@@ -153,7 +153,9 @@ const Sandbox = () => {
 
   return (
     <div ref={parentRef}>
-      <DotPattern backgroundColor="transparent" style={{ zIndex: -1 }} />
+      {!["edit", "crop", "audio"].includes(contentState.mode) && (
+        <DotPattern backgroundColor="transparent" style={{ zIndex: -1 }} />
+      )}
       <Modal />
       <video></video>
       {/* Render the WaveformGenerator component and pass the ffmpeg instance as a prop */}

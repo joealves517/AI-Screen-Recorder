@@ -10,6 +10,7 @@ import { Router } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { requireAuth } from "../middleware/auth.js";
 import { transcribeWithGemini } from "../services/gemini-transcribe.js";
+import { calculateTokenCost } from "../services/token-cost.js";
 // Free tier: only 'autumn' voice is available
 const FREE_VOICE = "autumn";
 const router = Router();
@@ -21,10 +22,11 @@ const ai = new GoogleGenAI({
     project: config.gcp.projectId,
     location: config.gcp.region,
 });
-const MODEL = "gemini-3.1-flash-lite";
+const MODEL = "gemini-2.5-flash-lite";
 const FREE_MAX_DURATION_SEC = 1200; // 20 minutes
 // ─── Transcribe (Groq Whisper) ──────────────────────────────────────
 router.post("/transcribe", requireAuth, async (req, res) => {
+    const authReq = req;
     const { audioBase64, mimeType, audioDurationSec } = req.body;
     if (!audioBase64) {
         res.status(400).json({ error: "missing_audio" });
@@ -39,8 +41,20 @@ router.post("/transcribe", requireAuth, async (req, res) => {
         });
         return;
     }
+    const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+    if (!canProceed) {
+        res.status(403).json({
+            error: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+        });
+        return;
+    }
     try {
         const result = await transcribeWithGemini(audioBase64, mimeType || "audio/mpeg", false);
+        const creditsUsed = result.usage
+            ? calculateTokenCost(result.usage)
+            : 5;
+        console.log(`[Screenity Free] Transcribe completed. Cost: ${creditsUsed} credits (tokens: ${JSON.stringify(result.usage)})`);
+        deductFreeCredits(authReq.userEmail, creditsUsed).catch(console.error);
         res.json({
             segments: result.segments,
             transcript: result.transcript,

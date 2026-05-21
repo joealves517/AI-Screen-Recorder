@@ -5,7 +5,7 @@ const vertexAI = new GoogleGenAI({
     project: config.gcp.projectId,
     location: config.gcp.region,
 });
-const MODEL_NAME = "gemini-3.1-flash-lite";
+const MODEL_NAME = "gemini-2.5-flash-lite";
 async function callGeminiTranscribe(client, audioBase64, mimeType) {
     const response = await client.models.generateContent({
         model: MODEL_NAME,

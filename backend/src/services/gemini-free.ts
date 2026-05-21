@@ -15,7 +15,7 @@ const ai = new GoogleGenAI({
 });
 
 // --- Constants ---
-const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_MODEL = "gemini-2.5-flash-lite";
 
 interface StreamCallbacks {
   onToken: (token: string) => void;

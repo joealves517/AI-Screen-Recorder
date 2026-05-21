@@ -43,7 +43,7 @@ const Settings = () => {
     >
       <Collapsible.Trigger className="CollapsibleTrigger">
         <div className="CollapsibleLabel">
-          ✨ {chrome.i18n.getMessage("showMoreOptionsLabel")}{" "}
+          {chrome.i18n.getMessage("showMoreOptionsLabel")}{" "}
           <img src={DropdownIcon} />
         </div>
       </Collapsible.Trigger>

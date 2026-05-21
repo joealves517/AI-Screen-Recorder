@@ -22,7 +22,7 @@ const vertexAI = new GoogleGenAI({
     location: config.gcp.region,
 });
 // Premium-tier model configuration
-const PREMIUM_MODEL = "gemini-3.1-flash-lite";
+const PREMIUM_MODEL = "gemini-2.5-flash-lite";
 // Helper to estimate tokens
 function estimateTokenCount(text) {
     return Math.ceil((text?.length || 0) / 4);
@@ -351,5 +351,89 @@ function stripMarkdownFences(text) {
         cleaned = cleaned.slice(0, -3);
     return cleaned.trim();
 }
+// ─── AI Chat Agent (with structured Tool Calls) ──────────────────────
+router.post("/chat", requireAuth, async (req, res) => {
+    const authReq = req;
+    const { history, transcript } = req.body;
+    if (!history) {
+        res.status(400).json({ error: "missing_history" });
+        return;
+    }
+    const user = await createOrUpdateUser(authReq.userId, {
+        email: authReq.userEmail,
+        displayName: authReq.userName,
+        picture: authReq.userPicture,
+    }, "AI Screen Recorder");
+    const usePremium = user.credits > 0;
+    if (!usePremium) {
+        const canProceed = await checkFreeCreditLimit(authReq.userEmail);
+        if (!canProceed) {
+            res.status(403).json({
+                error: "quota_exhausted",
+                message: "You have reached your daily limit for free AI services. Consider upgrading to Pro for unlimited access."
+            });
+            return;
+        }
+    }
+    const { client, model } = pickAIClient();
+    try {
+        const formattedHistory = history
+            .map((msg) => `${msg.role === "user" ? "User" : "Agent"}: ${msg.content}`)
+            .join("\n");
+        const prompt = `You are a helpful AI Screen Recorder Assistant. You help users interact with their screen recording transcripts and run local tools.
+Here is the video transcript:
+"${transcript || "No transcript available for this video."}"
+
+You can run these extension tools by returning structured tool calls:
+1. "translate_subtitles" (args: { "targetLang": string }) - Translate subtitles to a new language. Example targetLang values: "vi" (Vietnamese), "fr" (French), "es" (Spanish), "ja" (Japanese), etc.
+2. "generate_summary" (args: { "style": string }) - Re-generate a summary (styles: "summary", "keypoints", "chapters", "meeting_minutes", "social").
+3. "apply_voiceover" (args: { "voice": string }) - Generate and apply AI Voice Narrator.
+
+If the user asks you to perform one of these actions, specify the tool call in the JSON.
+CRITICAL: Respond in a valid JSON object only. Do NOT output markdown code blocks like \`\`\`json.
+Format of JSON:
+{
+  "reply": "Your conversational reply to the user...",
+  "thoughts": "Your thought process about what tools to use...",
+  "tool_calls": [
+    {
+      "name": "translate_subtitles", 
+      "args": { "targetLang": "vi" }
+    }
+  ] // Empty array if no tools are needed.
+}
+
+Conversation History:
+${formattedHistory}`;
+        const systemInstruction = "You are a video assistant companion. Respond ONLY in valid JSON format. Always match the user's language in the reply. Speak naturally and concisely.";
+        const response = await client.models.generateContent({
+            model,
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            config: {
+                systemInstruction,
+                temperature: 0.7,
+                maxOutputTokens: 2048,
+            },
+        });
+        const rawText = (response.text || "{}").trim();
+        const result = parseJSON(rawText);
+        if (usePremium) {
+            const { creditsUsed, inputTokens, outputTokens } = extractTokenCost(response);
+            deductCreditsByEmail(authReq.userEmail, creditsUsed).catch(console.error);
+        }
+        else {
+            deductFreeCredits(authReq.userEmail, 2).catch(console.error);
+        }
+        res.json({
+            reply: result.reply || "I'm sorry, I couldn't process that.",
+            thoughts: result.thoughts || "",
+            tool_calls: result.tool_calls || [],
+        });
+    }
+    catch (error) {
+        console.error("[Screenity AI] Chat agent error:", error);
+        res.status(500).json({ error: "We are facing high traffic. Please try again later." });
+    }
+});
 export default router;
 //# sourceMappingURL=screenity-ai.js.map
