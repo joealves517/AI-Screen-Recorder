@@ -185,21 +185,25 @@ export function AudioMenu({
             setPlayingAudioId(track.id);
             player.pause();
             
-            // Direct playback from URL for maximum speed
-            player.src = track.url;
+            // Prioritize proxy URL to bypass CORS blockages in Chrome Extension origins
+            const proxyPlayUrl = `${API_BASE}/api/proxy?url=${encodeURIComponent(track.url)}`;
+            player.src = proxyPlayUrl;
             player.load();
             
             player.play()
                 .catch(e => {
-                    console.warn("Direct playback failed, trying secure proxy fallback:", e);
-                    // Fallback only if the user hasn't toggled playback off in the meantime
+                    // Use silent console.log to prevent triggering strict development error overlays in WXT
+                    console.log("[AISR][AudioMenu] Proxy playback failed, trying direct URL fallback:", e.message || e);
+                    
+                    // Fallback to direct URL if proxy fails or is slow
                     try {
-                        const proxyPlayUrl = `${API_BASE}/api/proxy?url=${encodeURIComponent(track.url)}`;
-                        player.src = proxyPlayUrl;
+                        player.src = track.url;
                         player.load();
-                        player.play().catch(err => console.error("Proxy playback failed:", err));
-                    } catch (proxyError) {
-                        console.error("Proxy fallback failed:", proxyError);
+                        player.play().catch(err => {
+                            console.log("[AISR][AudioMenu] Direct URL fallback also failed:", err.message || err);
+                        });
+                    } catch (fallbackError) {
+                        // Silent catch
                     }
                 });
 
@@ -255,7 +259,7 @@ export function AudioMenu({
             const file = new File([blob], `${track.name}.mp3`, { type: "audio/mpeg" });
             onAudioUpload(file);
         } catch (error) {
-            console.error("Error adding stock audio:", error);
+            console.log("[AISR][AudioMenu] Error adding stock audio:", error);
             gooeyToast.error("Failed to download stock music", { description: "Cannot load this audio file from external source due to CORS error. Tested background proxy but failed." });
         } finally {
             setDownloadingAudioId(null);

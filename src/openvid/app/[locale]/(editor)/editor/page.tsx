@@ -213,7 +213,7 @@ export default function Editor() {
         setSubtitleSegments((prev) => {
             const updated = prev.map((seg, i) => i === index ? { ...seg, ...updates } : seg);
             const sorted = [...updated].sort((a, b) => a.start - b.start);
-            
+
             const vtt = formatToVTT(sorted);
             const blob = new Blob([vtt], { type: "text/vtt" });
             const url = URL.createObjectURL(blob);
@@ -2602,10 +2602,10 @@ export default function Editor() {
         try {
             const assetId = `bg-image-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             const blobUrl = URL.createObjectURL(file);
-            
+
             // Map the RAM Blob URL to its IndexedDB asset metadata
             assetBlobMapRef.current.set(blobUrl, { id: assetId, file });
-            
+
             // Persist the binary image into IndexedDB cache asynchronously
             import("@/lib/editor-assets-cache")
                 .then(mod => mod.saveCachedAsset(assetId, file))
