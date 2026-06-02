@@ -149,6 +149,115 @@ const Sandbox = () => {
   const onMessage = async (message) => {
     try {
       switch (message.type) {
+        case "save-recorded-video": {
+          console.log("[AISR][Parent] Received save-recorded-video from iframe. Saving to VidFlowDB...");
+          const finalBlob = message.blob;
+          const duration = message.duration || 0;
+          
+          const dbName = "VidFlowDB";
+          const storeName = "videos";
+
+          const saveToDb = (database) => {
+            try {
+              const transaction = database.transaction([storeName], "readwrite");
+              const store = transaction.objectStore(storeName);
+
+              const videoData = {
+                blob: finalBlob,
+                duration: duration,
+                videoId: `vid_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                timestamp: Date.now(),
+                isRecordedVideo: true,
+                cameraBlob: null,
+                cameraConfig: null,
+              };
+
+              const putRequest = store.put(videoData, "currentVideo");
+
+              transaction.oncomplete = () => {
+                database.close();
+                console.log("[AISR][Parent] Successfully saved video to VidFlowDB! Clearing upload cache...");
+                
+                // Clear the uploaded video cache to prevent timestamp conflicts
+                const uploadDbName = "VidFlow-uploaded-videos";
+                const uploadRequest = indexedDB.open(uploadDbName);
+                
+                uploadRequest.onsuccess = (e) => {
+                  const uploadDb = e.target.result;
+                  try {
+                    if (uploadDb.objectStoreNames.contains("videos")) {
+                      const uploadTx = uploadDb.transaction("videos", "readwrite");
+                      const uploadStore = uploadTx.objectStore("videos");
+                      uploadStore.delete("current-uploaded-video");
+                      
+                      uploadTx.oncomplete = () => {
+                        uploadDb.close();
+                        const targetUrl = chrome.runtime.getURL("/openvideditor.html?page=editor");
+                        window.location.href = targetUrl;
+                      };
+                      uploadTx.onerror = () => {
+                        uploadDb.close();
+                        const targetUrl = chrome.runtime.getURL("/openvideditor.html?page=editor");
+                        window.location.href = targetUrl;
+                      };
+                      return; // wait for transaction
+                    }
+                  } catch (err) {
+                    console.error("[AISR] Error clearing upload cache:", err);
+                  }
+                  
+                  uploadDb.close();
+                  // Redirect after cache is cleared (or if no store)
+                  const targetUrl = chrome.runtime.getURL("/openvideditor.html?page=editor");
+                  window.location.href = targetUrl;
+                };
+                
+                uploadRequest.onerror = () => {
+                  // If it fails, just redirect anyway
+                  const targetUrl = chrome.runtime.getURL("/openvideditor.html?page=editor");
+                  window.location.href = targetUrl;
+                };
+              };
+
+              transaction.onerror = (err) => {
+                database.close();
+                console.error("[AISR][Parent] Failed to put video in VidFlowDB:", err);
+              };
+            } catch (err) {
+              database.close();
+              console.error("[AISR][Parent] Error in saveAndRedirect transaction:", err);
+            }
+          };
+
+          const request = indexedDB.open(dbName);
+          request.onsuccess = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {
+              const currentVersion = db.version;
+              db.close();
+              const upgradeRequest = indexedDB.open(dbName, currentVersion + 1);
+              upgradeRequest.onupgradeneeded = (ev) => {
+                const upgradeDb = ev.target.result;
+                if (!upgradeDb.objectStoreNames.contains(storeName)) {
+                  upgradeDb.createObjectStore(storeName);
+                }
+              };
+              upgradeRequest.onsuccess = (ev) => {
+                saveToDb(ev.target.result);
+              };
+              upgradeRequest.onerror = (err) => {
+                console.error("[AISR][Parent] Failed to upgrade VidFlowDB:", err);
+              };
+            } else {
+              saveToDb(db);
+            }
+          };
+          request.onerror = (e) => {
+            console.error("[AISR][Parent] Failed to open VidFlowDB:", e);
+          };
+          break;
+        }
+
         case "load-ffmpeg":
           triggerLoad.current = true;
           await loadFfmpeg();

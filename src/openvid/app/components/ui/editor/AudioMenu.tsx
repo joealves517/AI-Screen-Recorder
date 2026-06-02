@@ -13,123 +13,123 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCredits } from "@/hooks/useCredits";
 
 interface StockAudio {
-  id: string;
-  name: string;
-  artist: string;
-  url: string;
-  duration: number;
-  category: "lofi" | "tech" | "epic" | "acoustic";
-  tags: string[];
+    id: string;
+    name: string;
+    artist: string;
+    url: string;
+    duration: number;
+    category: "lofi" | "tech" | "epic" | "acoustic";
+    tags: string[];
 }
 
 const STOCK_AUDIOS: StockAudio[] = [
-  {
-    id: "lofi-1",
-    name: "Dreamy Lofi Chill",
-    artist: "Lofi Dreamer",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-    duration: 372,
-    category: "lofi",
-    tags: ["lofi", "chill", "relax", "dreamy", "background", "study"]
-  },
-  {
-    id: "lofi-2",
-    name: "Late Night Study Cafe",
-    artist: "Chill Beats",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-    duration: 423,
-    category: "lofi",
-    tags: ["lofi", "chill", "cafe", "night", "study", "relax"]
-  },
-  {
-    id: "lofi-3",
-    name: "Lofi Raindrops",
-    artist: "Rainy Day",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
-    duration: 385,
-    category: "lofi",
-    tags: ["lofi", "chill", "rain", "soft", "study", "relax"]
-  },
-  {
-    id: "tech-1",
-    name: "Startup Corporate Upbeat",
-    artist: "Modern Pulse",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-    duration: 302,
-    category: "tech",
-    tags: ["tech", "upbeat", "corporate", "business", "modern", "energetic"]
-  },
-  {
-    id: "tech-2",
-    name: "Digital Marketing Tech",
-    artist: "Groove Factory",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-    duration: 341,
-    category: "tech",
-    tags: ["tech", "upbeat", "marketing", "digital", "modern", "groove"]
-  },
-  {
-    id: "tech-3",
-    name: "Future Innovation",
-    artist: "Electro Lab",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-    duration: 318,
-    category: "tech",
-    tags: ["tech", "electronic", "future", "innovation", "energetic", "modern"]
-  },
-  {
-    id: "epic-1",
-    name: "Epic Cinematic Inspiration",
-    artist: "Orchestra Hall",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-    duration: 362,
-    category: "epic",
-    tags: ["epic", "cinematic", "inspiration", "orchestra", "trailer", "grand"]
-  },
-  {
-    id: "epic-2",
-    name: "Cinematic Atmosphere",
-    artist: "Space Voyager",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-    duration: 412,
-    category: "epic",
-    tags: ["epic", "cinematic", "atmosphere", "space", "ambient", "drama"]
-  },
-  {
-    id: "acoustic-1",
-    name: "Sunny Morning Folk",
-    artist: "Guitar Acoustic",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
-    duration: 310,
-    category: "acoustic",
-    tags: ["acoustic", "guitar", "folk", "sunny", "happy", "morning"]
-  },
-  {
-    id: "acoustic-2",
-    name: "Acoustic Sunset Road",
-    artist: "Country Road",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-    duration: 388,
-    category: "acoustic",
-    tags: ["acoustic", "guitar", "sunset", "road", "calm", "nostalgic"]
-  }
+    {
+        id: "lofi-1",
+        name: "Dreamy Lofi Chill",
+        artist: "Lofi Dreamer",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        duration: 372,
+        category: "lofi",
+        tags: ["lofi", "chill", "relax", "dreamy", "background", "study"]
+    },
+    {
+        id: "lofi-2",
+        name: "Late Night Study Cafe",
+        artist: "Chill Beats",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        duration: 423,
+        category: "lofi",
+        tags: ["lofi", "chill", "cafe", "night", "study", "relax"]
+    },
+    {
+        id: "lofi-3",
+        name: "Lofi Raindrops",
+        artist: "Rainy Day",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+        duration: 385,
+        category: "lofi",
+        tags: ["lofi", "chill", "rain", "soft", "study", "relax"]
+    },
+    {
+        id: "tech-1",
+        name: "Startup Corporate Upbeat",
+        artist: "Modern Pulse",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        duration: 302,
+        category: "tech",
+        tags: ["tech", "upbeat", "corporate", "business", "modern", "energetic"]
+    },
+    {
+        id: "tech-2",
+        name: "Digital Marketing Tech",
+        artist: "Groove Factory",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        duration: 341,
+        category: "tech",
+        tags: ["tech", "upbeat", "marketing", "digital", "modern", "groove"]
+    },
+    {
+        id: "tech-3",
+        name: "Future Innovation",
+        artist: "Electro Lab",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+        duration: 318,
+        category: "tech",
+        tags: ["tech", "electronic", "future", "innovation", "energetic", "modern"]
+    },
+    {
+        id: "epic-1",
+        name: "Epic Cinematic Inspiration",
+        artist: "Orchestra Hall",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+        duration: 362,
+        category: "epic",
+        tags: ["epic", "cinematic", "inspiration", "orchestra", "trailer", "grand"]
+    },
+    {
+        id: "epic-2",
+        name: "Cinematic Atmosphere",
+        artist: "Space Voyager",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+        duration: 412,
+        category: "epic",
+        tags: ["epic", "cinematic", "atmosphere", "space", "ambient", "drama"]
+    },
+    {
+        id: "acoustic-1",
+        name: "Sunny Morning Folk",
+        artist: "Guitar Acoustic",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+        duration: 310,
+        category: "acoustic",
+        tags: ["acoustic", "guitar", "folk", "sunny", "happy", "morning"]
+    },
+    {
+        id: "acoustic-2",
+        name: "Acoustic Sunset Road",
+        artist: "Country Road",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+        duration: 388,
+        category: "acoustic",
+        tags: ["acoustic", "guitar", "sunset", "road", "calm", "nostalgic"]
+    }
 ];
 
 const API_BASE = (import.meta.env?.VITE_API_BASE || "https://openvid-backend-676582412453.us-central1.run.app").replace(/\/$/, "");
 
 // Helper to download external files via our robust Cloud Run CORS Proxy
 const fetchExternalResource = async (url: string): Promise<Blob> => {
-  try {
-    const proxyUrl = `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error(`Proxy fetch failed (HTTP ${res.status})`);
-    return await res.blob();
-  } catch (error) {
-    console.warn("Proxy download failed, trying native fetch fallback:", error);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return res.blob();
-  }
+    try {
+        const proxyUrl = `${API_BASE}/api/proxy?url=${encodeURIComponent(url)}`;
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error(`Proxy fetch failed (HTTP ${res.status})`);
+        return await res.blob();
+    } catch (error) {
+        console.warn("Proxy download failed, trying native fetch fallback:", error);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.blob();
+    }
 };
 
 export function AudioMenu({
@@ -144,7 +144,7 @@ export function AudioMenu({
     const { user } = useAuth();
     const { credits } = useCredits();
     const isPremium = credits?.tier === "premium";
-    
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
     const [trimModalOpen, setTrimModalOpen] = useState(false);
@@ -184,26 +184,22 @@ export function AudioMenu({
             // Instant UI feedback: show pause icon immediately so user knows it's loading/playing
             setPlayingAudioId(track.id);
             player.pause();
-            
-            // Prioritize proxy URL to bypass CORS blockages in Chrome Extension origins
-            const proxyPlayUrl = `${API_BASE}/api/proxy?url=${encodeURIComponent(track.url)}`;
-            player.src = proxyPlayUrl;
+
+            // Direct playback from URL for maximum speed
+            player.src = track.url;
             player.load();
-            
+
             player.play()
                 .catch(e => {
-                    // Use silent console.log to prevent triggering strict development error overlays in WXT
-                    console.log("[AISR][AudioMenu] Proxy playback failed, trying direct URL fallback:", e.message || e);
-                    
-                    // Fallback to direct URL if proxy fails or is slow
+                    console.warn("Direct playback failed, trying secure proxy fallback:", e);
+                    // Fallback only if the user hasn't toggled playback off in the meantime
                     try {
-                        player.src = track.url;
+                        const proxyPlayUrl = `${API_BASE}/api/proxy?url=${encodeURIComponent(track.url)}`;
+                        player.src = proxyPlayUrl;
                         player.load();
-                        player.play().catch(err => {
-                            console.log("[AISR][AudioMenu] Direct URL fallback also failed:", err.message || err);
-                        });
-                    } catch (fallbackError) {
-                        // Silent catch
+                        player.play().catch(err => console.error("Proxy playback failed:", err));
+                    } catch (proxyError) {
+                        console.error("Proxy fallback failed:", proxyError);
                     }
                 });
 
@@ -247,7 +243,7 @@ export function AudioMenu({
 
         if (downloadingAudioId) return;
         setDownloadingAudioId(track.id);
-        
+
         // Stop playing if it's currently playing
         if (playingAudioId === track.id && audioPlayerRef.current) {
             audioPlayerRef.current.pause();
@@ -259,7 +255,7 @@ export function AudioMenu({
             const file = new File([blob], `${track.name}.mp3`, { type: "audio/mpeg" });
             onAudioUpload(file);
         } catch (error) {
-            console.log("[AISR][AudioMenu] Error adding stock audio:", error);
+            console.error("Error adding stock audio:", error);
             gooeyToast.error("Failed to download stock music", { description: "Cannot load this audio file from external source due to CORS error. Tested background proxy but failed." });
         } finally {
             setDownloadingAudioId(null);
@@ -268,9 +264,9 @@ export function AudioMenu({
 
     const filteredStockAudios = STOCK_AUDIOS.filter(audio => {
         const matchesCategory = selectedCategory === "all" || audio.category === selectedCategory;
-        
+
         const query = musicSearchQuery.toLowerCase().trim();
-        const matchesSearch = !query || 
+        const matchesSearch = !query ||
             audio.name.toLowerCase().includes(query) ||
             audio.artist.toLowerCase().includes(query) ||
             audio.tags.some(tag => tag.toLowerCase().includes(query));
@@ -494,9 +490,9 @@ export function AudioMenu({
                         aria-label={t("stockMusic.searchPlaceholder")}
                     />
                     {musicSearchQuery && (
-                        <button 
-                            onClick={() => setMusicSearchQuery("")} 
-                            className="text-white/30 hover:text-white/60 transition-colors" 
+                        <button
+                            onClick={() => setMusicSearchQuery("")}
+                            className="text-white/30 hover:text-white/60 transition-colors"
                             aria-label="Clear search"
                         >
                             <Icon icon="mdi:close" width="13" aria-hidden="true" />
@@ -510,11 +506,10 @@ export function AudioMenu({
                         <button
                             key={cat}
                             onClick={() => setSelectedCategory(cat)}
-                            className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all border ${
-                                selectedCategory === cat
+                            className={`px-2.5 py-0.5 rounded-full text-[11px] transition-all border ${selectedCategory === cat
                                     ? "bg-white/15 border-white/30 text-white/90"
                                     : "bg-white/5 border-white/10 text-white/50 hover:text-white/70 hover:border-white/20"
-                            }`}
+                                }`}
                         >
                             {t(`stockMusic.categories.${cat}`)}
                         </button>
@@ -535,15 +530,14 @@ export function AudioMenu({
                                     {/* Play/Pause Button */}
                                     <button
                                         onClick={() => handlePlayPause(track)}
-                                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border transition-all ${
-                                            isPlaying 
-                                                ? "bg-blue-500/20 border-blue-500/40 text-blue-400 scale-105" 
+                                        className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border transition-all ${isPlaying
+                                                ? "bg-blue-500/20 border-blue-500/40 text-blue-400 scale-105"
                                                 : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10"
-                                        }`}
+                                            }`}
                                     >
-                                        <Icon 
-                                            icon={isPlaying ? "solar:pause-bold" : "solar:play-bold"} 
-                                            width="16" 
+                                        <Icon
+                                            icon={isPlaying ? "solar:pause-bold" : "solar:play-bold"}
+                                            width="16"
                                             className={isPlaying ? "animate-pulse" : ""}
                                         />
                                     </button>
@@ -563,7 +557,7 @@ export function AudioMenu({
                                     <span className="text-[10px] font-mono text-white/30">
                                         {formatDuration(track.duration)}
                                     </span>
-                                    
+
                                     {isDownloading ? (
                                         <div className="w-16 flex justify-center items-center">
                                             <Icon icon="svg-spinners:ring-resize" width="16" className="text-blue-400" />

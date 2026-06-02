@@ -5,6 +5,11 @@ import Content from "./Content";
 export default defineContentScript({
   matches: ['<all_urls>'],
   main() {
+    // Do not run on editor pages to avoid overlaying the editor
+    if (window.location.pathname.includes('openvideditor.html')) {
+      return;
+    }
+
     // Check if aisr-ui already exists, if so, remove it
     const existingRoot = document.getElementById("aisr-ui");
     if (existingRoot) {

@@ -92,6 +92,7 @@ export const stopRecording = async () => {
 
   chrome.storage.local.set({
     recording: false,
+    pendingRecording: false,
     recordingDuration: duration,
     tabRecordedID: null,
     offscreen: false,

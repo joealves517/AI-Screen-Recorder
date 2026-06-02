@@ -41,22 +41,15 @@ async function getDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const dbName = "VidFlowDB";
     const storeName = "videos";
-    const version = 2;
 
-    const request = indexedDB.open(dbName, version);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(storeName)) {
-        db.createObjectStore(storeName);
-      }
-    };
+    const request = indexedDB.open(dbName);
 
     request.onsuccess = () => {
-      const db = request.result;
+      let db = request.result;
       if (!db.objectStoreNames.contains(storeName)) {
+        const currentVersion = db.version;
         db.close();
-        const retryRequest = indexedDB.open(dbName, version + 1);
+        const retryRequest = indexedDB.open(dbName, currentVersion + 1);
         retryRequest.onupgradeneeded = (e) => {
           const retryDb = (e.target as IDBOpenDBRequest).result;
           if (!retryDb.objectStoreNames.contains(storeName)) {

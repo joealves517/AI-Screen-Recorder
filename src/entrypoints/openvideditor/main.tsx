@@ -1,47 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import Home from '@/app/[locale]/(home)/page.tsx';
-import HomeLayout from '@/app/[locale]/(home)/layout.tsx';
 import Editor from '@/app/[locale]/(editor)/editor/page.tsx';
 import EditorLayout from '@/app/[locale]/(editor)/layout.tsx';
 import Login from '@/app/[locale]/(auth)/login/page.tsx';
-import Privacy from '@/app/[locale]/(legal)/privacy/page.tsx';
-import Terms from '@/app/[locale]/(legal)/terms/page.tsx';
-import LegalLayout from '@/app/[locale]/(legal)/layout.tsx';
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useLocale } from 'next-intl';
 import '@/app/globals.css';
 import { GooeyToaster } from 'goey-toast';
 import 'goey-toast/styles.css';
 
 function AppRouter() {
-  const [route, setRoute] = useState<'home' | 'editor' | 'login' | 'privacy' | 'terms'>(() => {
+  const [route, setRoute] = useState<'editor' | 'login'>(() => {
     // Detect route based on URL search params
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const page = params.get('page');
-      if (page === 'editor') return 'editor';
       if (page === 'login') return 'login';
-      if (page === 'privacy') return 'privacy';
-      if (page === 'terms') return 'terms';
     }
-    return 'home';
+    return 'editor';
   });
 
   useEffect(() => {
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const page = params.get('page');
-      if (page === 'editor') {
-        setRoute('editor');
-      } else if (page === 'login') {
+      if (page === 'login') {
         setRoute('login');
-      } else if (page === 'privacy') {
-        setRoute('privacy');
-      } else if (page === 'terms') {
-        setRoute('terms');
       } else {
-        setRoute('home');
+        setRoute('editor');
       }
     };
 
@@ -51,7 +36,7 @@ function AppRouter() {
     };
   }, []);
 
-  const navigate = (newRoute: 'home' | 'editor' | 'login' | 'privacy' | 'terms', searchParams: string = '') => {
+  const navigate = (newRoute: 'editor' | 'login', searchParams: string = '') => {
     let newUrl = `${window.location.pathname}?page=${newRoute}`;
     if (searchParams) {
       const cleanedParams = searchParams.startsWith('?') || searchParams.startsWith('&') 
@@ -71,16 +56,6 @@ function AppRouter() {
     (window as any).navigateExtension = navigate;
   }
 
-  if (route === 'editor') {
-    return (
-      <EditorLayout>
-        <TooltipProvider delayDuration={200}>
-          <Editor />
-        </TooltipProvider>
-      </EditorLayout>
-    );
-  }
-
   if (route === 'login') {
     return (
       <TooltipProvider delayDuration={200}>
@@ -89,36 +64,15 @@ function AppRouter() {
     );
   }
 
-  if (route === 'privacy') {
-    return (
-      <LegalLayout>
-        <TooltipProvider delayDuration={200}>
-          <Privacy />
-        </TooltipProvider>
-      </LegalLayout>
-    );
-  }
-
-  if (route === 'terms') {
-    return (
-      <LegalLayout>
-        <TooltipProvider delayDuration={200}>
-          <Terms />
-        </TooltipProvider>
-      </LegalLayout>
-    );
-  }
-
-  // Otherwise render the homepage landing layout
-  const locale = useLocale();
   return (
-    <HomeLayout>
+    <EditorLayout>
       <TooltipProvider delayDuration={200}>
-        <Home params={Promise.resolve({ locale })} />
+        <Editor />
       </TooltipProvider>
-    </HomeLayout>
+    </EditorLayout>
   );
 }
+
 
 // Add DOM container check for safe WXT build/prerender evaluation
 if (typeof document !== 'undefined') {
@@ -132,3 +86,4 @@ if (typeof document !== 'undefined') {
     );
   }
 }
+

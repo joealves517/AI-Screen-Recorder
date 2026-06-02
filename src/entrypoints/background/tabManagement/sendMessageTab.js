@@ -69,6 +69,6 @@ export const sendMessageTab = async (
     if (noTab && typeof noTab === "function") {
       noTab();
     }
-    return Promise.reject(error);
+    return Promise.resolve({ error: typeof error === 'string' ? error : error.message || String(error) });
   }
 };

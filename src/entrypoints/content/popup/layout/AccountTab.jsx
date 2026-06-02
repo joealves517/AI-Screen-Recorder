@@ -409,8 +409,8 @@ const SettingsSection = ({
               e.currentTarget.style.color = "#475569";
             }}
           >
-            <HistoryIcon size={13} color="currentColor" strokeWidth={2.5} />
-            <span style={{ fontSize: "11px", fontFamily: '"Satoshi-Bold", sans-serif' }}>Restore</span>
+            <HistoryIcon size={15} color="currentColor" strokeWidth={2.5} />
+            <span style={{ fontSize: "12.5px", fontFamily: '"Satoshi-Bold", sans-serif' }}>Restore</span>
           </div>
         )}
       </div>
@@ -654,7 +654,7 @@ const LoggedInView = ({
                 padding: "2px 8px",
                 background: "#f1f5f9",
                 border: "1px solid #cbd5e1",
-                borderRadius: "4px",
+                borderRadius: "9999px",
                 fontSize: "10px",
                 fontFamily: '"Satoshi-Bold", sans-serif',
                 color: "#475569",
@@ -673,7 +673,7 @@ const LoggedInView = ({
                   background: "#2563eb",
                   color: "#ffffff",
                   border: "none",
-                  borderRadius: "6px",
+                  borderRadius: "9999px",
                   fontSize: "11px",
                   fontFamily: '"Satoshi-Bold", sans-serif',
                   cursor: "pointer",

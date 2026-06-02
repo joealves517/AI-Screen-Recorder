@@ -61,8 +61,8 @@ export function UserMenu() {
   }
 
   const meta = user.user_metadata || {};
-  const displayName = profile?.first_name || profile?.full_name || meta.full_name || meta.name || user.email?.split("@")[0] || t('defaultUser');
-  const avatarUrl = profile?.avatar_url || meta.avatar_url || meta.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
+  const displayName = profile?.first_name || profile?.full_name || user.name || meta.full_name || meta.name || user.email?.split("@")[0] || t('defaultUser');
+  const avatarUrl = profile?.avatar_url || user.avatar || user.picture || meta.avatar_url || meta.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
   const provider = profile?.provider || meta.provider || "email";
 
   return (
@@ -74,7 +74,7 @@ export function UserMenu() {
             aria-label={t('ariaLabel')}
           >
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-white/10 hover:border-white/30 transition-colors">
-              <Image src={avatarUrl} alt={displayName} fill sizes="36px" className="object-cover" />
+              <Image src={avatarUrl} alt={displayName} fill sizes="36px" className="object-cover" crossOrigin="anonymous" />
             </div>
             <div className="hidden sm:flex items-center gap-1.5 leading-none shrink-0">
               <span className="text-sm font-medium text-neutral-300 max-w-25 truncate">

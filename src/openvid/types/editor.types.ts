@@ -121,4 +121,5 @@ export interface VideoCanvasProps {
     onTextToolDeactivate?: () => void;
     onAddElement?: (element: CanvasElement) => void;
     subtitlesUrl?: string | null;
+    cameraStream?: MediaStream | null;
 }

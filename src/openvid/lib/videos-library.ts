@@ -39,7 +39,7 @@ async function openDB(): Promise<IDBDatabase> {
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
             dbInstance = request.result;
-            cleanupOldLibraryEntries(dbInstance).catch(() => {});
+            cleanupOldLibraryEntries(dbInstance).catch(() => { });
             resolve(request.result);
         };
 
@@ -78,7 +78,7 @@ export async function findExistingVideo(fileName: string, fileSize: number): Pro
     });
 }
 
-async function getVideoMetadata(file: File): Promise<{
+export async function getVideoMetadata(file: File | Blob): Promise<{
     duration: number;
     width: number;
     height: number;
@@ -153,14 +153,14 @@ async function generateThumbnail(blob: Blob): Promise<string> {
 export async function addVideoToLibrary(file: File): Promise<LibraryVideo> {
     const db = await openDB();
     const metadata = await getVideoMetadata(file);
-    
+
     let thumbnailUrl: string | undefined;
     try {
         thumbnailUrl = await generateThumbnail(file);
     } catch (e) {
         console.warn("Failed to generate thumbnail:", e);
     }
-    
+
     let hasAudio = false;
     try {
         hasAudio = await detectVideoHasAudio(file);
@@ -204,14 +204,14 @@ export interface AddVideoWithMetadataOptions {
 
 export async function addVideoToLibraryWithMetadata(options: AddVideoWithMetadataOptions): Promise<LibraryVideo> {
     const db = await openDB();
-    
+
     let thumbnailUrl: string | undefined;
     try {
         thumbnailUrl = await generateThumbnail(options.blob);
     } catch (e) {
         console.warn("Failed to generate thumbnail:", e);
     }
-    
+
     let hasAudio = options.hasAudio;
     if (hasAudio === undefined) {
         try {
@@ -372,7 +372,7 @@ export async function deleteLibraryVideo(id: string): Promise<void> {
 export async function updateVideoAudioState(id: string, hasAudio: boolean): Promise<void> {
     const db = await openDB();
     const video = await getLibraryVideo(id);
-    
+
     if (!video) {
         throw new Error(`Video with id ${id} not found`);
     }

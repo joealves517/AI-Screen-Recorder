@@ -15,7 +15,7 @@ export function useAI() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcribeProgress, setTranscribeProgress] = useState(0);
   const [transcribeStatus, setTranscribeStatus] = useState("");
-  
+
   const [isTranslating, setIsTranslating] = useState(false);
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
   const [isGeneratingVoiceover, setIsGeneratingVoiceover] = useState(false);
@@ -59,7 +59,7 @@ export function useAI() {
     setIsTranscribing(true);
     setTranscribeProgress(5);
     setTranscribeStatus("Downloading video for audio extraction...");
-    
+
     try {
       const res = await fetch(videoUrl);
       if (!res.ok) throw new Error("Failed to load video file");

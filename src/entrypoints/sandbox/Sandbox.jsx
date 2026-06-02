@@ -148,6 +148,16 @@ const Sandbox = () => {
         duration,
       });
 
+      // Post message to parent so it can save on the correct extension-origin IndexedDB
+      if (window.parent && window.parent !== window) {
+        console.log("[AISR][Sandbox] Posting save-recorded-video to parent...");
+        window.parent.postMessage({
+          type: "save-recorded-video",
+          blob: finalBlob,
+          duration: duration,
+        }, "*");
+      }
+
       const dbName = "VidFlowDB";
       const storeName = "videos";
       const version = 2;
@@ -203,7 +213,7 @@ const Sandbox = () => {
 
           const putRequest = store.put(videoData, "currentVideo");
 
-          putRequest.onsuccess = () => {
+          transaction.oncomplete = () => {
             db.close();
             console.log("[AISR][Sandbox] Successfully saved video to VidFlowDB! Redirecting parent to openvideditor...");
             
@@ -215,7 +225,7 @@ const Sandbox = () => {
             }
           };
 
-          putRequest.onerror = (err) => {
+          transaction.onerror = (err) => {
             db.close();
             console.error("[AISR][Sandbox] Failed to put video in VidFlowDB:", err);
           };

@@ -15,7 +15,7 @@ import { useVideoExport } from "@/hooks/useVideoExport";
 import { useVideoThumbnails, type VideoThumbnail } from "@/hooks/useVideoThumbnails";
 import { useUndoRedo } from "@/hooks/useUndoRedo";
 import { clearAllThumbnailCache } from "@/lib/thumbnail-cache";
-import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo } from "@/lib/videos-library";
+import { addVideoToLibrary, addVideoToLibraryWithMetadata, getLibraryVideoCount, getLibraryVideo, findExistingVideo, getVideoMetadata } from "@/lib/videos-library";
 import { calculateTotalDuration, findNextClipPosition, getClipAtTime, type VideoTrackClip } from "@/types/video-track.types";
 import type { ExportQuality, Tool, BackgroundTab, VideoCanvasHandle, BackgroundColorConfig, AspectRatio, CropArea, ZoomFragment, AudioTrack, ImageExportFormat } from "@/types";
 import type { TrimRange } from "@/types/timeline.types";
@@ -239,6 +239,10 @@ export default function Editor() {
     }, []);
 
     const [currentTime, setCurrentTime] = useState<number>(0);
+    const currentTimeRef = useRef<number>(0);
+    useEffect(() => {
+        currentTimeRef.current = currentTime;
+    }, [currentTime]);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<VideoCanvasHandle>(null);
@@ -288,6 +292,52 @@ export default function Editor() {
     // Camera overlay state (from recorded video's camera track, or post-record adjustments)
     const [cameraConfig, setCameraConfig] = useState<CameraConfig | null>(null);
     const [cameraUrl, setCameraUrl] = useState<string | null>(null);
+    const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, [cameraStream]);
+
+    const handleStartLiveCamera = useCallback(async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    frameRate: { ideal: 30 }
+                },
+                audio: false
+            });
+            setCameraStream(stream);
+            setCameraUrl("live-stream");
+            setCameraConfig({
+                enabled: true,
+                x: 5,
+                y: 5,
+                size: 0.15,
+                shape: "circle",
+                borderWidth: 4,
+                borderColor: "#3b82f6",
+                shadow: "md",
+                mirror: true,
+                corner: "bottom-left",
+                position: { x: 5, y: 5 }
+            });
+            gooeyToast.success("Live webcam added successfully!");
+        } catch (error: any) {
+            console.error("Error accessing camera:", error);
+            const errorMsg = error instanceof Error 
+                ? `${error.name}: ${error.message}` 
+                : typeof error === 'object' && error !== null 
+                    ? error.name || JSON.stringify(error) 
+                    : String(error);
+            gooeyToast.error(`Camera access failed: ${errorMsg}`);
+        }
+    }, [cameraStream]);
 
     const handleCameraConfigChange = useCallback((partial: Partial<CameraConfig>) => {
         setCameraConfig((prev) => (prev ? { ...prev, ...partial } : prev));
@@ -296,6 +346,7 @@ export default function Editor() {
     const handleCameraClick = useCallback(() => {
         setActiveTool("camera");
     }, []);
+
 
     // Auto-save current image project when configurations change
     const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1476,6 +1527,28 @@ export default function Editor() {
     const { uploadVideo, loadUploadedVideo, isUploading } = useVideoUpload();
     const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
 
+    const handleDownloadOriginal = useCallback(() => {
+        let blobToDownload = videoBlob;
+        if (!blobToDownload && videoClips.length > 0) {
+            const firstClip = videoClips[0];
+            blobToDownload = videoBlobsRef.current.get(firstClip.libraryVideoId) || null;
+        }
+
+        if (blobToDownload) {
+            const extension = blobToDownload.type.includes("mp4") ? "mp4" : "webm";
+            const url = URL.createObjectURL(blobToDownload);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `recording-original.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } else {
+            console.warn("No original video blob found to download");
+        }
+    }, [videoBlob, videoClips]);
+
     const handleExport = (quality: ExportQuality) => {
         isExportingRef.current = true;
         for (const audioEl of audioElementsRef.current.values()) {
@@ -1887,7 +1960,7 @@ export default function Editor() {
                 }
 
                 if (videoToLoad) {
-                    if (lastLoadedVideoIdRef.current !== videoToLoad.videoId && videoClipsRef.current.length === 0) {
+                    if (lastLoadedVideoIdRef.current !== videoToLoad.videoId) {
                         lastLoadedVideoIdRef.current = videoToLoad.videoId;
 
                         setVideoUrl(videoToLoad.url);
@@ -1895,18 +1968,33 @@ export default function Editor() {
                         if (videoRef.current) {
                             videoRef.current.src = videoToLoad.url;
                         }
-                        setVideoDuration(videoToLoad.duration);
-                        setTrimRange({ start: 0, end: videoToLoad.duration });
-                        const savedSession = localStorage.getItem(`VidFlow-video-session-${videoToLoad.duration}`);
+                        let durationToUse = videoToLoad.duration;
+                        let actualWidth = 'width' in videoToLoad ? (videoToLoad.width as number) : 1920;
+                        let actualHeight = 'height' in videoToLoad ? (videoToLoad.height as number) : 1080;
+
+                        if (!durationToUse || !isFinite(durationToUse) || durationToUse === 0) {
+                            try {
+                                const metadata = await getVideoMetadata(videoBlob);
+                                durationToUse = metadata.duration;
+                                actualWidth = metadata.width;
+                                actualHeight = metadata.height;
+                            } catch (e) {
+                                console.error("Failed to get video metadata for recorded video", e);
+                            }
+                        }
+
+                        setVideoDuration(durationToUse);
+                        setTrimRange({ start: 0, end: durationToUse });
+                        const savedSession = localStorage.getItem(`VidFlow-video-session-${durationToUse}`);
                         if (!savedSession) {
-                            const defaultFragments = generateDefaultZoomFragments(videoToLoad.duration);
+                            const defaultFragments = generateDefaultZoomFragments(durationToUse);
                             setZoomFragments(defaultFragments);
                         }
 
                         if ('aspectRatio' in videoToLoad) {
                             setAspectRatio(videoToLoad.aspectRatio || "auto");
-                            if (videoToLoad.width && videoToLoad.height) {
-                                setVideoDimensions({ width: videoToLoad.width, height: videoToLoad.height });
+                            if (actualWidth && actualHeight) {
+                                setVideoDimensions({ width: actualWidth, height: actualHeight });
                             }
                         }
 
@@ -1916,8 +2004,6 @@ export default function Editor() {
                             const fileName = 'fileName' in videoToLoad
                                 ? (videoToLoad.fileName as string)
                                 : `Recording-${videoToLoad.videoId}.webm`;
-                            const width = 'width' in videoToLoad ? (videoToLoad.width as number) : 1920;
-                            const height = 'height' in videoToLoad ? (videoToLoad.height as number) : 1080;
 
                             try {
                                 let libraryVideo = await findExistingVideo(fileName, videoBlob.size);
@@ -1926,9 +2012,9 @@ export default function Editor() {
                                     libraryVideo = await addVideoToLibraryWithMetadata({
                                         blob: videoBlob,
                                         fileName,
-                                        duration: videoToLoad.duration,
-                                        width,
-                                        height,
+                                        duration: durationToUse,
+                                        width: actualWidth,
+                                        height: actualHeight,
                                     });
                                 }
 
@@ -2098,17 +2184,17 @@ export default function Editor() {
                     setCurrentTime(timelineTime);
                     syncAudioPlayback(timelineTime, false);
                 } else {
-                    syncAudioPlayback(currentTime, false);
+                    syncAudioPlayback(currentTimeRef.current, false);
                 }
             } else {
                 const clips = videoClipsRef.current;
-                let startTime = currentTime;
+                let startTime = currentTimeRef.current;
 
-                if (trimRange.end > 0) {
-                    if (startTime < trimRange.start || startTime >= trimRange.end) {
-                        startTime = trimRange.start;
-                        setCurrentTime(startTime);
-                    }
+                // Auto rewind if playhead is at the end of video duration or trim end to prevent freeze
+                const effectiveEnd = trimRange.end > 0 ? trimRange.end : videoDuration;
+                if (startTime < trimRange.start || startTime >= effectiveEnd - 0.15) {
+                    startTime = trimRange.start;
+                    setCurrentTime(startTime);
                 }
 
                 if (clips.length > 0) {
@@ -2133,11 +2219,7 @@ export default function Editor() {
                                     }
                                     videoRef.current?.removeEventListener('canplay', onCanPlay);
                                 };
-                                if (videoRef.current.readyState >= 3) {
-                                    onCanPlay();
-                                } else {
-                                    videoRef.current.addEventListener('canplay', onCanPlay);
-                                }
+                                videoRef.current.addEventListener('canplay', onCanPlay);
                                 setIsPlaying(true);
                                 return;
                             }
@@ -2163,7 +2245,7 @@ export default function Editor() {
             }
             setIsPlaying(!isPlaying);
         }
-    }, [isPlaying, currentTime, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, safePlay]);
+    }, [isPlaying, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, safePlay]);
 
     const updateTimeSmoothRef = useRef<() => void>(() => { });
 
@@ -2278,11 +2360,7 @@ export default function Editor() {
                                         }
                                         currentVideo?.removeEventListener('canplay', onCanPlay);
                                     };
-                                    if (currentVideo.readyState >= 3) {
-                                        onCanPlay();
-                                    } else {
-                                        currentVideo.addEventListener('canplay', onCanPlay);
-                                    }
+                                    currentVideo.addEventListener('canplay', onCanPlay);
 
                                     setCurrentTime(nextClipSnapshot.startTime);
                                     animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
@@ -2380,7 +2458,7 @@ export default function Editor() {
     }, [syncAudioPlayback, isDraggingPlayhead]);
 
     const handleTimeUpdate = () => {
-        if (videoRef.current && !justEndedRef.current && !isSeekingToClipRef.current) {
+        if (videoRef.current && !isPlaying && !justEndedRef.current && !isSeekingToClipRef.current) {
             const clips = videoClipsRef.current;
             if (clips.length > 0 && activeClipDataRef.current) {
                 const activeClip = activeClipDataRef.current;
@@ -2449,11 +2527,7 @@ export default function Editor() {
                                 }
                                 currentVideo?.removeEventListener('canplay', onCanPlay);
                             };
-                            if (currentVideo.readyState >= 3) {
-                                onCanPlay();
-                            } else {
-                                currentVideo.addEventListener('canplay', onCanPlay);
-                            }
+                            currentVideo.addEventListener('canplay', onCanPlay);
                             return;
                         }
                     } else {
@@ -2571,11 +2645,7 @@ export default function Editor() {
                             }
                             currentVideo?.removeEventListener('canplay', onCanPlay);
                         };
-                        if (currentVideo.readyState >= 3) {
-                            onCanPlay();
-                        } else {
-                            currentVideo.addEventListener('canplay', onCanPlay);
-                        }
+                        currentVideo.addEventListener('canplay', onCanPlay);
                         syncAudioPlayback(time, false);
                         return;
                     } else {
@@ -3120,6 +3190,8 @@ export default function Editor() {
                                         onBackgroundColorChange={handleBackgroundColorChange}
                                         onTogglePanel={() => setIsControlPanelOpen(!isControlPanelOpen)}
                                         isOpen={isControlPanelOpen}
+                                        onStartLiveCamera={handleStartLiveCamera}
+
                                         zoomFragments={zoomFragments}
                                         selectedZoomFragment={selectedZoomFragment}
                                         onSelectZoomFragment={handleSelectZoomFragment}
@@ -3199,7 +3271,7 @@ export default function Editor() {
                                     onClick={() => setIsControlPanelOpen(true)}
                                     className="absolute top-2 left-4 z-50 p-2 flex items-center gap-2 squircle-element bg-[#18181b] border border-white/10 text-white hover:bg-[#252529] transition-all duration-200 shadow-lg"
                                 >
-                                    <Link href="/" className="block sm:hidden"><Image src="/images/logo-vidflow.png" alt="Logo" width={24} height={24} className="hover:opacity-80 transition-opacity" /></Link>
+                                    <Link href="/" className="block sm:hidden"><Image src="/assets/img/icon-32.png" alt="Logo" width={24} height={24} className="hover:opacity-80 transition-opacity" /></Link>
                                     <Icon icon="lucide:sidebar-open" width="20" className="hidden sm:block"
                                     />
                                 </motion.button>
@@ -3222,12 +3294,15 @@ export default function Editor() {
                                 imageExportProgress={imageExportProgress}
                                 canvasWidth={customAspectRatio?.width || 1920}
                                 canvasHeight={customAspectRatio?.height || 1080}
+                                onDownloadOriginal={handleDownloadOriginal}
                             />
                         }
                         ref={canvasRef}
                         videoUrl={videoUrl}
                         videoRef={videoRef}
+                        cameraStream={cameraStream}
                         mediaType={isPhotoMode ? "image" : "video"}
+
                         imageUrl={imageUrl}
                         imageRef={imageRef}
                         imageTransform={imageTransform}

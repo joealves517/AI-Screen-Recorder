@@ -192,10 +192,7 @@ export function useVideoThumbnails(
 
         const video = document.createElement("video");
         video.src = videoUrl;
-        // Do not set crossOrigin for blob/data URLs to prevent CORS SecurityError in Chrome Extension environments
-        if (videoUrl && !videoUrl.startsWith("blob:") && !videoUrl.startsWith("data:")) {
-            video.crossOrigin = "anonymous";
-        }
+        video.crossOrigin = "anonymous";
         video.muted = true;
         video.preload = "auto";
         videoElementRef.current = video;
@@ -267,7 +264,14 @@ export function useVideoThumbnails(
                 }
             }
         } catch (error) {
-            console.error("[AISR][useVideoThumbnails] Error generating thumbnails:", error);
+            // Suppress expected errors: deleted/revoked blob URLs and timeouts
+            if (error instanceof Error
+                && !error.message.includes("Failed to load")
+                && !error.message.includes("timeout")
+                && !error.message.includes("Format error")
+                && !error.message.includes("MEDIA_ELEMENT_ERROR")) {
+                console.error("Error generating thumbnails:", error);
+            }
             // Clear thumbnails on error to avoid showing stale data
             setLowQualityThumbnails([]);
             setHighQualityThumbnails([]);

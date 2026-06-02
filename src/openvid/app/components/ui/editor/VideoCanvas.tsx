@@ -77,7 +77,9 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
     onTextToolDeactivate,
     onAddElement,
     subtitlesUrl = null,
+    cameraStream = null,
 }, ref) {
+
     const wallpaperUrl = getWallpaperUrl(selectedWallpaper);
 
     const hasMedia = mediaType === "video" ? !!videoUrl : !!imageUrl;
@@ -548,10 +550,25 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
         };
     }, [isDraggingVideo, isDraggingRotation, videoTransform, onVideoTransformChange]);
 
-    // Camera overlay: load src when cameraUrl changes
+    // Camera overlay: load src when cameraUrl or cameraStream changes
     useEffect(() => {
         const el = cameraVideoRef.current;
         if (!el) return;
+
+        if (cameraStream) {
+            if (el.srcObject !== cameraStream) {
+                el.srcObject = cameraStream;
+                el.muted = true;
+                el.play().catch(err => console.log("Camera play error:", err));
+            }
+            return;
+        }
+
+        // Cleanup srcObject if no live camera stream is available
+        if (el.srcObject) {
+            el.srcObject = null;
+        }
+
         if (!cameraUrl) {
             if (el.src) {
                 el.pause();
@@ -564,15 +581,17 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
             el.src = cameraUrl;
             el.load();
         }
-    }, [cameraUrl]);
+    }, [cameraUrl, cameraStream]);
 
     // Camera overlay: sync playback with main video (time, play/pause, seek)
     useEffect(() => {
         const mainVideo = videoRef.current;
         const camVideo = cameraVideoRef.current;
-        if (!mainVideo || !camVideo || !cameraUrl) return;
+        if (!mainVideo || !camVideo) return;
+        if (!cameraUrl && !cameraStream) return;
 
         const syncTime = () => {
+            if (cameraStream) return; // Do not sync timeline for live webcam stream
             if (!camVideo.seeking && Math.abs(camVideo.currentTime - mainVideo.currentTime) > 0.15) {
                 try {
                     camVideo.currentTime = mainVideo.currentTime;
@@ -585,7 +604,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
             camVideo.play().catch(() => undefined);
         };
         const syncPause = () => {
-            if (!camVideo.paused) camVideo.pause();
+            if (!cameraStream && !camVideo.paused) camVideo.pause();
         };
 
         mainVideo.addEventListener("play", syncPlay);
@@ -599,7 +618,7 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
             mainVideo.removeEventListener("seeked", syncTime);
             mainVideo.removeEventListener("timeupdate", syncTime);
         };
-    }, [videoRef, cameraUrl]);
+    }, [videoRef, cameraUrl, cameraStream]);
 
     // Capture start positions of all selected elements ONCE when drag begins
     useEffect(() => {

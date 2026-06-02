@@ -19,6 +19,53 @@ if (typeof window !== 'undefined') {
       console.error("Error loading mock user:", e);
     }
   }
+
+  // Synchronize with chrome.storage.local to support cross-page login synchronization in Chrome Extension
+  const syncWithChromeStorage = () => {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(["aisrToken", "aisrUser", "isLoggedIn"], (result) => {
+        if (result.isLoggedIn && result.aisrUser) {
+          const token = result.aisrToken || 'mock-access-token';
+          const syncedUser = {
+            id: result.aisrUser.id,
+            email: result.aisrUser.email,
+            user_metadata: {
+              name: result.aisrUser.name,
+              full_name: result.aisrUser.name,
+              avatar_url: result.aisrUser.avatar,
+              picture: result.aisrUser.avatar,
+              provider: 'google'
+            }
+          };
+          
+          // Only update if state has actually changed to avoid infinite loop / redundant triggers
+          if (!currentMockUser || currentMockUser.id !== syncedUser.id) {
+            currentMockUser = syncedUser;
+            currentMockSession = { user: currentMockUser, access_token: token };
+            localStorage.setItem('VidFlow-mock-user', JSON.stringify(currentMockUser));
+            mockAuthListeners.forEach(listener => listener('SIGNED_IN', currentMockSession));
+          }
+        } else if (result.isLoggedIn === false && currentMockUser) {
+          currentMockUser = null;
+          currentMockSession = null;
+          localStorage.removeItem('VidFlow-mock-user');
+          mockAuthListeners.forEach(listener => listener('SIGNED_OUT', null));
+        }
+      });
+    }
+  };
+
+  // Run initial sync
+  syncWithChromeStorage();
+
+  // Listen for storage changes from other context pages (e.g. Popup sign in / sign out)
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName === 'local' && (changes.isLoggedIn || changes.aisrUser)) {
+        syncWithChromeStorage();
+      }
+    });
+  }
 }
 
 // Safe mock client for offline extension usage when Supabase is not configured
@@ -59,6 +106,26 @@ const mockSupabaseClient = {
         // Revoke token from Google servers to completely clear permission grants
         fetch(`https://accounts.google.com/o/oauth2/revoke?token=${token}`).catch((err) => {
           console.warn("Failed to revoke token from Google servers:", err);
+        });
+      }
+
+      // Clean up chrome.storage.local keys upon sign out
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.remove([
+          "aisrToken",
+          "aisrUser",
+          "lastAuthCheck",
+          "isSubscribed",
+          "isLoggedIn",
+          "proSubscription",
+        ]);
+        chrome.storage.local.set({
+          isLoggedIn: false,
+          wasLoggedIn: false,
+          stayLoggedOut: true,
+          isSubscribed: false,
+          proSubscription: null,
+          aisrUser: null,
         });
       }
 
@@ -104,6 +171,47 @@ const mockSupabaseClient = {
 
               if (typeof window !== 'undefined') {
                 localStorage.setItem('VidFlow-mock-user', JSON.stringify(currentMockUser));
+              }
+
+              // Store auth state in chrome.storage.local for background script sync
+              if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+                const bgUser = {
+                  id: userInfo.id,
+                  email: userInfo.email,
+                  name: userInfo.name || userInfo.email?.split("@")[0] || "",
+                  avatar: userInfo.picture || "",
+                };
+                chrome.storage.local.set({
+                  aisrToken: token,
+                  aisrRefreshToken: "managed-by-chrome",
+                  aisrUser: bgUser,
+                  isLoggedIn: true,
+                  wasLoggedIn: false,
+                  stayLoggedOut: false,
+                  lastAuthCheck: Date.now(),
+                });
+
+                // Fetch user profile from backend (creates user in Firestore if needed)
+                const API_BASE = "https://openvid-backend-676582412453.us-central1.run.app";
+                fetch(`${API_BASE}/api/user`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                })
+                  .then((res) => {
+                    if (res.ok) return res.json();
+                  })
+                  .then((backendUser) => {
+                    if (backendUser) {
+                      const quotaExhausted = backendUser.tier === "premium" && (backendUser.credits !== undefined && Number(backendUser.credits) <= 0);
+                      chrome.storage.local.set({
+                        isSubscribed: backendUser.tier === "premium",
+                        proSubscription: backendUser.subscription || null,
+                        quotaExhausted: quotaExhausted,
+                      });
+                    }
+                  })
+                  .catch((err) => {
+                    console.warn("[Auth Client] Backend user fetch failed:", err.message);
+                  });
               }
 
               mockAuthListeners.forEach(listener => listener('SIGNED_IN', currentMockSession));

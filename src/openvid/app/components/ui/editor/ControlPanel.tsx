@@ -46,6 +46,7 @@ interface ExtendedControlPanelProps extends ControlPanelProps {
     onTogglePanel?: () => void;
     isOpen?: boolean;
     elementsTextTabTrigger?: number;
+    onStartLiveCamera?: () => void;
 }
 
 export function ControlPanel({
@@ -136,7 +137,9 @@ export function ControlPanel({
     onAddAudioTrackAtTime,
     onToggleMuteOriginalAudio,
     muteOriginalAudio,
+    onStartLiveCamera,
 }: ExtendedControlPanelProps) {
+
 
     const t = useTranslations("controlPanel");
 
@@ -146,11 +149,10 @@ export function ControlPanel({
                 <Link
                     href="/"
                     onClick={() => { window.location.href = window.location.pathname === '/' ? '/index.html?page=home' : window.location.pathname + '?page=home'; }}
-                    className="flex items-center gap-2 group"
-                    aria-label="VidFlow home"
+                    className="flex items-center gap-2 group overflow-hidden pl-1"
+                    aria-label="AI Screen Recorder home"
                 >
-                    <Image src="/images/logo-vidflow.png" alt="" width={30} height={30} />
-                    <Image src="/images/text-vidflow.png" alt="VidFlow" width={70} height={50} />
+                    <Image src="/images/logo-text-aisr.svg" alt="AI Screen Recorder Logo" width={150} height={30} className="hover:opacity-90 transition-opacity" />
                 </Link>
 
                 <TooltipAction label={t("header.close")} side="right">
@@ -373,6 +375,7 @@ export function ControlPanel({
                         cameraUrl={cameraUrl}
                         cameraConfig={cameraConfig}
                         onCameraConfigChange={onCameraConfigChange || (() => { })}
+                        onStartLiveCamera={onStartLiveCamera}
                     />
                 )}
 

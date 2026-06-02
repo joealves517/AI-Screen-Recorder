@@ -16,6 +16,7 @@ interface Props {
   cameraUrl: string | null;
   cameraConfig: CameraConfig | null;
   onCameraConfigChange: (partial: Partial<CameraConfig>) => void;
+  onStartLiveCamera?: () => void;
 }
 
 const CORNER_BUTTONS: Array<{ id: Exclude<CameraCorner, "custom"> }> = [
@@ -25,7 +26,8 @@ const CORNER_BUTTONS: Array<{ id: Exclude<CameraCorner, "custom"> }> = [
   { id: "bottom-right" },
 ];
 
-export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Props) {
+export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange, onStartLiveCamera }: Props) {
+
   const t = useTranslations("cameraMenu");
 
   if (!cameraUrl || !cameraConfig) {
@@ -38,9 +40,16 @@ export function CameraMenu({ cameraUrl, cameraConfig, onCameraConfigChange }: Pr
         <div className="flex flex-col items-center gap-3 text-neutral-400 bg-[#09090B] border border-dashed border-white/10 squircle-element p-8 text-center" role="status">
           <Icon icon="solar:videocamera-record-broken" className="size-8 text-neutral-500" aria-hidden="true" />
           <p className="text-sm font-medium">{t("noCamera.title")}</p>
-          <p className="text-xs text-neutral-500 max-w-52">
+          <p className="text-xs text-neutral-500 max-w-52 mb-1">
             {t("noCamera.description")}
           </p>
+          <button
+            onClick={onStartLiveCamera}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold cursor-pointer transition-all duration-200 shadow-md shadow-blue-600/20 active:scale-95 border-0 outline-none"
+          >
+            <Icon icon="solar:videocamera-record-bold" width="16" />
+            Add Live Webcam
+          </button>
         </div>
       </div>
     );

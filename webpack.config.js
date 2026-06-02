@@ -196,7 +196,7 @@ const config = {
       "process.env.AISR_WEBSITE_BASE": JSON.stringify(""),
       "process.env.AISR_ENABLE_CLOUD_FEATURES": JSON.stringify(process.env.AISR_ENABLE_CLOUD_FEATURES || "true"),
       "process.env.AISR_API_BASE_URL": JSON.stringify(
-        process.env.AISR_API_BASE_URL || "https://screenity-api-676582412453.us-central1.run.app"
+        process.env.AISR_API_BASE_URL || "https://openvid-backend-676582412453.us-central1.run.app"
       ),
       "process.env.MAX_RECORDING_DURATION": JSON.stringify(
         process.env.MAX_RECORDING_DURATION || 3600 // Default to 1 hour

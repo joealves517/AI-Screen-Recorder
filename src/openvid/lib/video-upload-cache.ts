@@ -46,7 +46,7 @@ async function openDB(): Promise<IDBDatabase> {
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
             dbInstance = request.result;
-            cleanupOldUploadCache(dbInstance).catch(() => {});
+            cleanupOldUploadCache(dbInstance).catch(() => { });
             resolve(request.result);
         };
 
@@ -74,7 +74,7 @@ async function getVideoMetadata(file: File): Promise<{
     return new Promise((resolve, reject) => {
         const video = document.createElement("video");
         video.preload = "metadata";
-        
+
         video.onloadedmetadata = () => {
             const metadata = {
                 duration: video.duration,
@@ -82,16 +82,16 @@ async function getVideoMetadata(file: File): Promise<{
                 height: video.videoHeight,
                 aspectRatio: calculateAspectRatio(video.videoWidth, video.videoHeight),
             };
-            
+
             URL.revokeObjectURL(video.src);
             resolve(metadata);
         };
-        
+
         video.onerror = () => {
             URL.revokeObjectURL(video.src);
             reject(new Error("Failed to load video metadata"));
         };
-        
+
         video.src = URL.createObjectURL(file);
     });
 }
@@ -99,9 +99,9 @@ async function getVideoMetadata(file: File): Promise<{
 export async function saveUploadedVideo(file: File): Promise<CachedUploadedVideo> {
     try {
         const db = await openDB();
-        
+
         const metadata = await getVideoMetadata(file);
-        
+
         const data: CachedUploadedVideo = {
             key: SINGLE_VIDEO_KEY,
             blob: file,
@@ -117,7 +117,7 @@ export async function saveUploadedVideo(file: File): Promise<CachedUploadedVideo
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(STORE_NAME, "readwrite");
             const store = transaction.objectStore(STORE_NAME);
-            
+
             const request = store.put(data);
 
             request.onerror = () => reject(request.error);
@@ -181,7 +181,7 @@ export async function getUploadedVideoInfo(): Promise<{
 } | null> {
     const video = await getUploadedVideo();
     if (!video) return null;
-    
+
     return {
         fileName: video.fileName,
         fileSize: video.fileSize,

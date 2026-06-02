@@ -799,6 +799,9 @@
       "noBackground": "sin fondo",
       "solidBackground": "FONDO SÓLIDO",
       "gifNotice": "Fondo negro sólido",
+      "downloadOriginal": "Descargar video original",
+      "instant": "Al instante",
+      "downloadOriginalDesc": "Descarga directa del archivo thô gốc sin renderizado.",
       "qualities": {
         "4k": {
           "label": "4K Ultra HD",

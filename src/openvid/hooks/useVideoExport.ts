@@ -73,7 +73,8 @@ export function useVideoExport(
             return;
         }
 
-        if (!video.duration || video.duration === Infinity || isNaN(video.duration)) {
+        const trimEndVal = settings.trim?.end ?? video.duration;
+        if (!trimEndVal || trimEndVal === Infinity || isNaN(trimEndVal)) {
             setExportProgress({
                 status: "error",
                 progress: 0,

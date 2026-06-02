@@ -49,9 +49,7 @@ export default defineConfig({
         'https://www.googleapis.com/auth/userinfo.profile'
       ]
     },
-    sandbox: {
-      pages: ['editor.html']
-    },
+
     cross_origin_embedder_policy: {
       value: 'require-corp'
     },
@@ -156,7 +154,7 @@ export default defineConfig({
       'process.env.AISR_APP_BASE': JSON.stringify(''),
       'process.env.AISR_WEBSITE_BASE': JSON.stringify(''),
       'process.env.AISR_ENABLE_CLOUD_FEATURES': JSON.stringify(process.env.AISR_ENABLE_CLOUD_FEATURES || 'true'),
-      'process.env.AISR_API_BASE_URL': JSON.stringify(process.env.AISR_API_BASE_URL || 'https://screenity-api-676582412453.us-central1.run.app'),
+      'process.env.AISR_API_BASE_URL': JSON.stringify(process.env.AISR_API_BASE_URL || 'https://openvid-backend-676582412453.us-central1.run.app'),
       'process.env.MAX_RECORDING_DURATION': JSON.stringify(process.env.MAX_RECORDING_DURATION || 3600),
       'process.env.RECORDING_WARNING_THRESHOLD': JSON.stringify(process.env.RECORDING_WARNING_THRESHOLD || 60),
       'process.env.AISR_DEV_MODE': JSON.stringify(process.env.AISR_DEV_MODE || ''),

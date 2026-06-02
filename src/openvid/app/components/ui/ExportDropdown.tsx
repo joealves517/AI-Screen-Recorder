@@ -17,9 +17,10 @@ interface ExportDropdownProps {
   onExport: (quality: ExportQuality) => void;
   exportProgress: ExportProgress;
   hasTransparentBackground?: boolean;
+  onDownloadOriginal?: () => void;
 }
 
-export function ExportDropdown({ onExport, exportProgress, hasTransparentBackground }: ExportDropdownProps) {
+export function ExportDropdown({ onExport, exportProgress, hasTransparentBackground, onDownloadOriginal }: ExportDropdownProps) {
   const t = useTranslations("editor.export");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -80,37 +81,68 @@ export function ExportDropdown({ onExport, exportProgress, hasTransparentBackgro
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button 
-          variant="primary" 
-          className="px-3 py-2 text-sm gap-2 min-w-27.5" 
-          size="sm" 
-          disabled={isExporting}
-          aria-label={t("button")}
-        >
-          <Icon icon="icon-park-outline:export" width="18" aria-hidden="true" />
-          {t("button")}
-          <Icon icon="mdi:chevron-down" width="16" className="opacity-50" aria-hidden="true" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 bg-[#1C1C1F] border-white/10 text-white shadow-2xl p-0 overflow-hidden">
-        <div className="flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden shadow-2xl">
-          <div className="px-4 py-3 border-b border-white/10 bg-white/5">
-            <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">
-              {t("title")}
-            </span>
+    <div className="relative inline-block">
+      <Button 
+        variant="primary" 
+        className="px-3 py-2 text-sm gap-2 min-w-27.5" 
+        size="sm" 
+        disabled={isExporting}
+        aria-label={t("button")}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <Icon icon="icon-park-outline:export" width="18" aria-hidden="true" />
+        {t("button")}
+        <Icon icon="mdi:chevron-down" width="16" className="opacity-50" aria-hidden="true" />
+      </Button>
+
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-40 cursor-default" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div 
+            className="absolute right-0 mt-2 w-72 bg-[#1C1C1F] border border-white/10 rounded-xl text-white shadow-2xl p-0 overflow-hidden z-50 animate-in fade-in-50 slide-in-from-top-1 duration-200"
+          >
+            <div className="flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+              <div className="px-4 py-3 border-b border-white/10 bg-white/5">
+                <span className="text-[10px] font-medium uppercase tracking-[0.15em] text-white/50">
+                  {t("title")}
+                </span>
+              </div>
+              <div className="flex flex-col max-h-120 overflow-y-auto custom-scrollbar">
+                <button 
+                  className="group flex flex-col items-start gap-1.5 p-4 transition-all text-left border-b border-white/10 hover:bg-blue-500/5 cursor-pointer" 
+                  onClick={() => {
+                    setIsOpen(false);
+                    onDownloadOriginal?.();
+                  }}
+                  aria-label="Download original video"
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-sm font-semibold text-blue-400 group-hover:text-blue-300 flex items-center gap-1.5">
+                      <Icon icon="solar:download-square-bold" width="16" />
+                      {t("downloadOriginal") || "Tải video gốc"}
+                    </span>
+                    <span className="bg-blue-500/10 text-blue-400 text-[9px] px-2 py-0.5 rounded-full font-bold border border-blue-500/20">
+                      {t("instant") || "Tức thì"}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-white/50">
+                    {t("downloadOriginalDesc") || "Tải file ghi hình thô gốc, không qua xử lý"}
+                  </span>
+                </button>
+                {renderQualityItem("4k", "3840 × 2160")}
+                {renderQualityItem("2k", "2560 × 1440")}
+                {renderQualityItem("1080p", "1920 × 1080", true)}
+                {renderQualityItem("720p", "1280 × 720")}
+                {renderQualityItem("480p", "854 × 480")}
+                {renderQualityItem("gif", "1280 × 720")}
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col max-h-120 overflow-y-auto custom-scrollbar">
-            {renderQualityItem("4k", "3840 × 2160")}
-            {renderQualityItem("2k", "2560 × 1440")}
-            {renderQualityItem("1080p", "1920 × 1080", true)}
-            {renderQualityItem("720p", "1280 × 720")}
-            {renderQualityItem("480p", "854 × 480")}
-            {renderQualityItem("gif", "1280 × 720")}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </>
+      )}
+    </div>
   );
 }

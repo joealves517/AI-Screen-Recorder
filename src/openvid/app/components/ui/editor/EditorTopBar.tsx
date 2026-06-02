@@ -2,11 +2,10 @@
 
 import { Icon } from "@iconify/react";
 import { ExportDropdown } from "../ExportDropdown";
-import { ExportImageDropdown } from "../ExportImageDropdown";
 import type { ExportQuality, ExportProgress } from "@/types";
 import type { EditorMode } from "@/types/editor-mode.types";
-import type { ImageExportFormat } from "@/types/image-project.types";
 import { useEffect, useState } from "react";
+
 import { gooeyToast } from "goey-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslations } from "next-intl";
@@ -17,6 +16,7 @@ import { TooltipAction } from "@/components/ui/tooltip-action";
 import { useCredits } from "@/hooks/useCredits";
 import { UpgradeModal } from "../UpgradeModal";
 import { ShinyText } from "@/components/ui/ShinyText";
+import { createClient } from "@/utils/supabase/client";
 
 
 interface ImageExportProgress {
@@ -39,6 +39,7 @@ interface EditorTopBarProps {
     imageExportProgress?: ImageExportProgress;
     canvasWidth?: number;
     canvasHeight?: number;
+    onDownloadOriginal?: () => void;
 }
 
 export function EditorTopBar({
@@ -54,7 +55,9 @@ export function EditorTopBar({
     imageExportProgress,
     canvasWidth = 1920,
     canvasHeight = 1080,
+    onDownloadOriginal,
 }: EditorTopBarProps) {
+
     const isPhotoMode = editorMode === "photo";
     const t = useTranslations("editor.topBar");
     // Removed local showAlert and prevStatus state since gooeyToast is handled globally
@@ -64,6 +67,26 @@ export function EditorTopBar({
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
     const isPremium = credits?.tier === "premium";
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+    const handleSignIn = async () => {
+        setIsLoggingIn(true);
+        try {
+            const supabase = createClient();
+            const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+            if (error) {
+                console.error("Sign in error:", error);
+                gooeyToast.error("Failed to sign in. Please try again.");
+            } else {
+                gooeyToast.success("Signed in successfully!");
+            }
+        } catch (error) {
+            console.error("Sign in error:", error);
+            gooeyToast.error("An unexpected error occurred during sign in.");
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
 
     const handleSignOut = async () => {
         setIsLoggingOut(true);
@@ -80,6 +103,7 @@ export function EditorTopBar({
     const displayName =
         profile?.first_name ||
         profile?.full_name ||
+        user?.name ||
         meta.full_name ||
         meta.name ||
         user?.email?.split("@")[0] ||
@@ -87,6 +111,8 @@ export function EditorTopBar({
 
     const avatarUrl =
         profile?.avatar_url ||
+        user?.avatar ||
+        user?.picture ||
         meta.avatar_url ||
         meta.picture ||
         `https://api.dicebear.com/7.x/initials/svg?seed=${displayName}`;
@@ -128,22 +154,13 @@ export function EditorTopBar({
                         </button>
                     </TooltipAction>
                 </div>
+                <ExportDropdown
+                    onExport={onExport}
+                    exportProgress={exportProgress}
+                    hasTransparentBackground={hasTransparentBackground}
+                    onDownloadOriginal={onDownloadOriginal}
+                />
 
-                {isPhotoMode && onImageExport && imageExportProgress ? (
-                    <ExportImageDropdown
-                        onExport={onImageExport}
-                        exportProgress={imageExportProgress}
-                        hasTransparentBackground={hasTransparentBackground}
-                        canvasWidth={canvasWidth}
-                        canvasHeight={canvasHeight}
-                    />
-                ) : (
-                    <ExportDropdown
-                        onExport={onExport}
-                        exportProgress={exportProgress}
-                        hasTransparentBackground={hasTransparentBackground}
-                    />
-                )}
 
                 {loading ? (
                     <div className="flex items-center gap-2 pl-3 border-l border-white/10 ml-1">
@@ -155,9 +172,14 @@ export function EditorTopBar({
                     </div>
                 ) : !user ? (
                     <div className="pl-3 border-l border-white/10 ml-1 flex items-center h-8">
-                        <Link href="/login" className="text-sm font-medium text-white/80 hover:text-white transition-colors">
+                        <button
+                            onClick={handleSignIn}
+                            disabled={isLoggingIn}
+                            className="text-sm font-medium text-white/80 hover:text-white transition-colors bg-transparent border-0 cursor-pointer outline-none flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                            {isLoggingIn && <Icon icon="svg-spinners:ring-resize" className="size-3.5" />}
                             {t("auth.signIn")}
-                        </Link>
+                        </button>
                     </div>
                 ) : (
                     <DropdownMenu.Root>
@@ -166,18 +188,8 @@ export function EditorTopBar({
                                 className="flex items-center gap-2 pl-3 border-l border-white/10 ml-1 hover:opacity-80 transition-opacity focus:outline-none"
                                 aria-label={t("auth.userMenu")}
                             >
-                                <div className="hidden sm:flex flex-col items-end leading-none gap-0.5">
-                                    <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-medium text-white max-w-25 truncate">{displayName}</span>
-                                        {isPremium && (
-                                            <span className="text-[8px] bg-indigo-600 text-white px-1 py-0.2 rounded border border-indigo-400/30 leading-none font-bold uppercase tracking-wider shrink-0 select-none">
-                                                PRO
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
                                 <div className="h-8 w-8 rounded-full border border-white/10 bg-neutral-900 overflow-hidden shrink-0 relative">
-                                    <Image src={avatarUrl} alt={displayName} fill sizes="32px" className="object-cover" unoptimized />
+                                    <Image src={avatarUrl} alt={displayName} fill sizes="32px" className="object-cover" unoptimized crossOrigin="anonymous" />
                                 </div>
                             </button>
                         </DropdownMenu.Trigger>
@@ -227,24 +239,7 @@ export function EditorTopBar({
                                 )}
 
 
-                                <DropdownMenu.Item asChild>
-                                    <Link
-                                        href="/"
-                                        className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer outline-none"
-                                    >
-                                        <Icon icon="hugeicons:home-11" className="size-4" />
-                                        {t("auth.home")}
-                                    </Link>
-                                </DropdownMenu.Item>
-                                <DropdownMenu.Item asChild>
-                                    <Link
-                                        href="/editor"
-                                        className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer outline-none"
-                                    >
-                                        <Icon icon="solar:video-frame-cut-2-linear" className="size-4" />
-                                        {t("auth.editor")}
-                                    </Link>
-                                </DropdownMenu.Item>
+
                                 <DropdownMenu.Item asChild>
                                     <button
                                         onClick={handleSignOut}

@@ -847,6 +847,9 @@
       "noBackground": "transparent",
       "solidBackground": "SOLID BACKGROUND",
       "gifNotice": "Solid black background",
+      "downloadOriginal": "Download original video",
+      "instant": "Instant",
+      "downloadOriginalDesc": "Download raw recording instantly without rendering.",
       "qualities": {
         "4k": {
           "label": "4K Ultra HD",

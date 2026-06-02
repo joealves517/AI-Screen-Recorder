@@ -814,6 +814,9 @@
       "noBackground": "прозрачный",
       "solidBackground": "СПЛОШНОЙ ФОН",
       "gifNotice": "Сплошной чёрный фон",
+      "downloadOriginal": "Скачать оригинал видео",
+      "instant": "Мгновенно",
+      "downloadOriginalDesc": "Прямая загрузка исходного файла thô gốc без рендеринга.",
       "qualities": {
         "4k": {
           "label": "4K Ultra HD",

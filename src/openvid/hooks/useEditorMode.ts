@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
 import type { EditorMode, EditorModeConfig } from "@/types/editor-mode.types";
 import { getEditorModeConfig } from "@/types/editor-mode.types";
 
@@ -14,20 +13,15 @@ interface UseEditorModeReturn {
 }
 
 export function useEditorMode(): UseEditorModeReturn {
-    const searchParams = useSearchParams();
-    const modeParam = searchParams.get("mode");
-    
-    const mode: EditorMode = modeParam === "photo" ? "photo" : "video";
+    const mode: EditorMode = "video";
 
     const config = useMemo(() => getEditorModeConfig(mode), [mode]);
     
-    const isVideoMode = mode === "video";
-    const isPhotoMode = mode === "photo";
+    const isVideoMode = true;
+    const isPhotoMode = false;
 
     const setMode = useCallback((newMode: EditorMode) => {
-        const url = new URL(window.location.href);
-        url.searchParams.set("mode", newMode);
-        window.history.replaceState({}, "", url.toString());
+        // Photo mode disabled
     }, []);
 
     return {
@@ -38,4 +32,5 @@ export function useEditorMode(): UseEditorModeReturn {
         setMode,
     };
 }
+
 

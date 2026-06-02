@@ -1409,6 +1409,17 @@ const ContentState = (props) => {
       ) {
         shouldUpdateTimer = true;
       }
+      
+      const newValues = {};
+      if (changes.qualityValue) newValues.qualityValue = changes.qualityValue.newValue;
+      if (changes.fpsValue) newValues.fpsValue = changes.fpsValue.newValue;
+      if (changes.systemAudio) newValues.systemAudio = changes.systemAudio.newValue;
+      if (changes.useWebCodecsRecorder) newValues.useWebCodecsRecorder = changes.useWebCodecsRecorder.newValue;
+      
+      if (Object.keys(newValues).length > 0) {
+        setContentState(prev => ({ ...prev, ...newValues }));
+      }
+
       if (shouldUpdateTimer) {
         updateTimerFromStorage();
       }
