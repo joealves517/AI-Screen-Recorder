@@ -535,7 +535,7 @@ const GuestView = ({
         </button>
 
         {/* Privacy & License Link */}
-        <div style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "4px", marginBottom: "0px" }}>
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "-4px", marginBottom: "-6px" }}>
           <span 
             onClick={() => {
               chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
@@ -753,7 +753,7 @@ const LoggedInView = ({
         </div>
 
         {/* Privacy & License Link */}
-        <div style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "4px", marginBottom: "0px" }}>
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "-4px", marginBottom: "-6px" }}>
           <span 
             onClick={() => {
               chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
