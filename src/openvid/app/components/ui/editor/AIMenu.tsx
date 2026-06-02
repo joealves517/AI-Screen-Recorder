@@ -485,22 +485,28 @@ export function AIMenu({
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <select
-                    value={targetLang}
-                    onChange={(e) => setTargetLang(e.target.value)}
-                    className="flex-1 bg-[#09090B] border border-white/10 rounded-lg p-2 text-[11px] text-white/80 outline-none focus:border-purple-500/50 transition-colors"
-                  >
-                    {LANGUAGE_GROUPS.map((group) => (
-                      <optgroup key={group.label} label={group.label}>
-                        {group.languages.map((code) => (
-                          <option key={code} value={code}>
-                            {code === "original" ? "Original Language" : supportedLanguages[code as keyof typeof supportedLanguages] || code}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
+                <div className="flex gap-2 w-full">
+                  <div className="relative flex-1">
+                    <select
+                      value={targetLang}
+                      onChange={(e) => setTargetLang(e.target.value)}
+                      className="w-full bg-[#09090B] border border-white/10 rounded-lg p-2 pr-8 text-[11px] text-white/80 outline-none focus:border-purple-500/50 transition-colors appearance-none"
+                    >
+                      {LANGUAGE_GROUPS.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.languages.map((code) => (
+                            <option key={code} value={code}>
+                              {code === "original" ? "Original Language" : supportedLanguages[code as keyof typeof supportedLanguages] || code}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <Icon
+                      icon="solar:alt-arrow-down-bold"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3 text-white/40 pointer-events-none"
+                    />
+                  </div>
                   <Button 
                     onClick={handleTranslate} 
                     disabled={isTranslating || targetLang === "original"}
@@ -669,15 +675,21 @@ export function AIMenu({
               <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold">
                 {t("voiceover.voice") || "Select Voice"}
               </label>
-              <select
-                value={selectedVoice}
-                onChange={(e) => setSelectedVoice(e.target.value)}
-                className="w-full bg-[#09090B] border border-white/10 rounded-lg p-2.5 text-xs text-white/80 outline-none focus:border-purple-500/50 transition-colors"
-              >
-                <option value="austin">Austin (Male - Deep)</option>
-                <option value="daniel">Daniel (Male - Standard)</option>
-                <option value="troy">Troy (Female - Expressive)</option>
-              </select>
+              <div className="relative w-full">
+                <select
+                  value={selectedVoice}
+                  onChange={(e) => setSelectedVoice(e.target.value)}
+                  className="w-full bg-[#09090B] border border-white/10 rounded-lg p-2.5 pr-8 text-xs text-white/80 outline-none focus:border-purple-500/50 transition-colors appearance-none"
+                >
+                  <option value="austin">Austin (Male - Deep)</option>
+                  <option value="daniel">Daniel (Male - Standard)</option>
+                  <option value="troy">Troy (Female - Expressive)</option>
+                </select>
+                <Icon
+                  icon="solar:alt-arrow-down-bold"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-white/40 pointer-events-none"
+                />
+              </div>
             </div>
 
             <Button
@@ -724,15 +736,21 @@ export function AIMenu({
                 <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold">
                   Select AI Voice
                 </label>
-                <select
-                  value={selectedDubVoice}
-                  onChange={(e) => setSelectedDubVoice(e.target.value)}
-                  className="w-full bg-[#18181B] border border-white/10 rounded-lg p-2.5 text-xs text-white/85 outline-none focus:border-purple-500/50 transition-colors"
-                >
-                  <option value="austin">Austin (Male - Deep)</option>
-                  <option value="daniel">Daniel (Male - Standard)</option>
-                  <option value="troy">Troy (Female - Expressive)</option>
-                </select>
+                <div className="relative w-full">
+                  <select
+                    value={selectedDubVoice}
+                    onChange={(e) => setSelectedDubVoice(e.target.value)}
+                    className="w-full bg-[#18181B] border border-white/10 rounded-lg p-2.5 pr-8 text-xs text-white/85 outline-none focus:border-purple-500/50 transition-colors appearance-none"
+                  >
+                    <option value="austin">Austin (Male - Deep)</option>
+                    <option value="daniel">Daniel (Male - Standard)</option>
+                    <option value="troy">Troy (Female - Expressive)</option>
+                  </select>
+                  <Icon
+                    icon="solar:alt-arrow-down-bold"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-white/40 pointer-events-none"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2.5 mt-2">
