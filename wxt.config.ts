@@ -1,5 +1,7 @@
 import { defineConfig } from 'wxt';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
   srcDir: 'src',
@@ -110,7 +112,26 @@ export default defineConfig({
     }
   },
   vite: () => ({
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        'next/image': path.resolve(__dirname, './src/mocks/next-image.tsx'),
+        'next/link': path.resolve(__dirname, './src/mocks/next-link.tsx'),
+        'next/navigation': path.resolve(__dirname, './src/mocks/next-navigation.tsx'),
+        'next/dynamic': path.resolve(__dirname, './src/mocks/next-dynamic.tsx'),
+        'next/script': path.resolve(__dirname, './src/mocks/next-script.tsx'),
+        'next-intl': path.resolve(__dirname, './src/mocks/next-intl.ts'),
+        'next-intl/server': path.resolve(__dirname, './src/mocks/next-intl.ts'),
+        '@/navigation': path.resolve(__dirname, './src/mocks/next-navigation.tsx'),
+        '@/components': path.resolve(__dirname, './src/openvid/components'),
+        '@/lib': path.resolve(__dirname, './src/openvid/lib'),
+        '@/hooks': path.resolve(__dirname, './src/openvid/hooks'),
+        '@/types': path.resolve(__dirname, './src/openvid/types'),
+        '@/app': path.resolve(__dirname, './src/openvid/app'),
+        '@/utils': path.resolve(__dirname, './src/openvid/utils'),
+        '@': path.resolve(__dirname, './src'),
+      }
+    },
     esbuild: {
       loader: 'jsx',
       include: /src\/.*\.jsx?$/,

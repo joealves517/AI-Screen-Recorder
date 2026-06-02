@@ -136,20 +136,96 @@ const Sandbox = () => {
     return () => clearTimeout(t);
   }, []);
 
-  // Regenerate frame when entering crop mode to reflect current blob
+  // Intercept the reconstructed video blob and redirect to the advanced OpenVid Editor
   useEffect(() => {
-    if (
-      contentState.mode === "crop" &&
-      contentState.getFrame &&
-      contentState.blob &&
-      contentState.useProcessor
-    ) {
-      // Small delay to ensure state updates have propagated
-      setTimeout(() => {
-        contentState.getFrame();
-      }, 50);
+    if (contentState.ready && (contentState.blob || contentState.webm)) {
+      const finalBlob = contentState.blob || contentState.webm;
+      const duration = contentState.duration || 0;
+      
+      console.log("[AISR][Sandbox] Intercepting ready video for OpenVid Editor!", {
+        size: finalBlob.size,
+        type: finalBlob.type,
+        duration,
+      });
+
+      const dbName = "VidFlowDB";
+      const storeName = "videos";
+      const version = 2;
+
+      const request = indexedDB.open(dbName, version);
+
+      request.onupgradeneeded = (event) => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.createObjectStore(storeName);
+        }
+      };
+
+      request.onsuccess = () => {
+        const db = request.result;
+        
+        if (!db.objectStoreNames.contains(storeName)) {
+          db.close();
+          const retryRequest = indexedDB.open(dbName, version + 1);
+          retryRequest.onupgradeneeded = (e) => {
+            const retryDb = e.target.result;
+            if (!retryDb.objectStoreNames.contains(storeName)) {
+              retryDb.createObjectStore(storeName);
+            }
+          };
+          retryRequest.onsuccess = () => {
+            saveAndRedirect(retryRequest.result);
+          };
+          return;
+        }
+
+        saveAndRedirect(db);
+      };
+
+      request.onerror = (e) => {
+        console.error("[AISR][Sandbox] Failed to open VidFlowDB:", e);
+      };
+
+      const saveAndRedirect = (db) => {
+        try {
+          const transaction = db.transaction([storeName], "readwrite");
+          const store = transaction.objectStore(storeName);
+
+          const videoData = {
+            blob: finalBlob,
+            duration: duration,
+            videoId: `vid_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+            timestamp: Date.now(),
+            isRecordedVideo: true,
+            cameraBlob: null,
+            cameraConfig: null,
+          };
+
+          const putRequest = store.put(videoData, "currentVideo");
+
+          putRequest.onsuccess = () => {
+            db.close();
+            console.log("[AISR][Sandbox] Successfully saved video to VidFlowDB! Redirecting parent to openvideditor...");
+            
+            const targetUrl = chrome.runtime.getURL("/openvideditor.html?page=editor");
+            if (window.parent && window.parent !== window) {
+              window.parent.location.href = targetUrl;
+            } else {
+              window.location.href = targetUrl;
+            }
+          };
+
+          putRequest.onerror = (err) => {
+            db.close();
+            console.error("[AISR][Sandbox] Failed to put video in VidFlowDB:", err);
+          };
+        } catch (err) {
+          db.close();
+          console.error("[AISR][Sandbox] Error in saveAndRedirect transaction:", err);
+        }
+      };
     }
-  }, [contentState.mode]);
+  }, [contentState.ready, contentState.blob, contentState.webm, contentState.duration]);
 
   return (
     <div ref={parentRef}>
