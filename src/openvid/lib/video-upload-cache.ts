@@ -41,13 +41,33 @@ async function openDB(): Promise<IDBDatabase> {
     if (dbInstance) return dbInstance;
 
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        const request = indexedDB.open(DB_NAME);
 
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
-            dbInstance = request.result;
-            cleanupOldUploadCache(dbInstance).catch(() => { });
-            resolve(request.result);
+            const db = request.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                const currentVersion = db.version;
+                db.close();
+                const retryRequest = indexedDB.open(DB_NAME, currentVersion + 1);
+                retryRequest.onupgradeneeded = (event) => {
+                    const retryDb = (event.target as IDBOpenDBRequest).result;
+                    if (!retryDb.objectStoreNames.contains(STORE_NAME)) {
+                        const store = retryDb.createObjectStore(STORE_NAME, { keyPath: "key" });
+                        store.createIndex("uploadedAt", "uploadedAt", { unique: false });
+                    }
+                };
+                retryRequest.onsuccess = () => {
+                    dbInstance = retryRequest.result;
+                    cleanupOldUploadCache(dbInstance).catch(() => { });
+                    resolve(retryRequest.result);
+                };
+                retryRequest.onerror = () => reject(retryRequest.error);
+            } else {
+                dbInstance = db;
+                cleanupOldUploadCache(dbInstance).catch(() => { });
+                resolve(db);
+            }
         };
 
         request.onupgradeneeded = (event) => {

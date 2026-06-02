@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/popover";
 import type { ImageMaskConfig } from "@/types/photo.types";
 import { ImageMaskEditorProps, MaskPreset, MASK_PRESETS } from "@/types/ImageMask.types";
-import { TooltipAction } from "@/components/ui/tooltip-action";
+
 import { useTranslations } from "next-intl";
 import { GetMediaMaskStyles } from "./GetMediaMaskStyles";
 
@@ -80,22 +80,21 @@ export function ImageMaskEditor({
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <TooltipAction label={t("tooltip")}>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        className={`gap-2 text-xs transition-all duration-200 ${maskConfig.enabled
-                            ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
-                            : ""
-                            }`}
-                        size="sm"
-                    >
-                        <Icon icon="material-symbols:gradient-outline" width="16" />
-                        {t("trigger")}
-                        <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
-                    </Button>
-                </PopoverTrigger>
-            </TooltipAction>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={`gap-2 text-xs transition-all duration-200 ${maskConfig.enabled
+                        ? "bg-gradient-radial-primary text-cyan-500 border border-cyan-500/50!"
+                        : ""
+                        }`}
+                    size="sm"
+                    title={t("tooltip")}
+                >
+                    <Icon icon="material-symbols:gradient-outline" width="16" />
+                    {t("trigger")}
+                    <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
+                </Button>
+            </PopoverTrigger>
 
             <PopoverContent align="end" className="w-100 bg-[#0A0A0A] border-white/10 shadow-2xl p-0 rounded-xl overflow-hidden">
                 <div className="flex flex-col">

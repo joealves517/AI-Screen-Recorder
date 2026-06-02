@@ -182,6 +182,14 @@ const Sandbox = () => {
                 const uploadDbName = "VidFlow-uploaded-videos";
                 const uploadRequest = indexedDB.open(uploadDbName);
                 
+                uploadRequest.onupgradeneeded = (evt) => {
+                  const db = evt.target.result;
+                  if (!db.objectStoreNames.contains("videos")) {
+                    const store = db.createObjectStore("videos", { keyPath: "key" });
+                    store.createIndex("uploadedAt", "uploadedAt", { unique: false });
+                  }
+                };
+
                 uploadRequest.onsuccess = (e) => {
                   const uploadDb = e.target.result;
                   try {

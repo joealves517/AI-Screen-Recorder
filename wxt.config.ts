@@ -2,6 +2,7 @@ import { defineConfig } from 'wxt';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import fs from 'fs';
 
 export default defineConfig({
   srcDir: 'src',
@@ -105,6 +106,20 @@ export default defineConfig({
         // If no sandbox pages remain, delete the sandbox key to keep it clean
         if (manifest.sandbox.pages.length === 0) {
           delete manifest.sandbox;
+        }
+      }
+    },
+    'build:done': (wxt) => {
+      const outDir = wxt.config.outDir;
+      const pathsToDelete = [
+        path.join(outDir, 'images/backgrounds'),
+        path.join(outDir, 'elements'),
+      ];
+
+      for (const p of pathsToDelete) {
+        if (fs.existsSync(p)) {
+          fs.rmSync(p, { recursive: true, force: true });
+          console.log(`[WXT Hook] Deleted local directory to reduce bundle size: ${p}`);
         }
       }
     }

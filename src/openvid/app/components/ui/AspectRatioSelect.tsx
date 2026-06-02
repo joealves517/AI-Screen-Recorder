@@ -5,7 +5,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Icon } from "@iconify/react";
 import { useTranslations } from "next-intl";
 import type { AspectRatio } from "@/types";
-import { TooltipAction } from "@/components/ui/tooltip-action";
 import { Button } from "@/components/ui/button";
 
 interface AspectRatioSelectProps {
@@ -90,17 +89,18 @@ export function AspectRatioSelect({
 
     return (
         <Popover open={isOpen} onOpenChange={handleOpenChange}>
-            <TooltipAction label={t("tooltip")}>
-                <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-xs">
-                        <Icon icon="mynaui:layout" width="16" className="shrink-0" />
-                        <span className="truncate">{displayLabel}</span>
-                        <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
-                    </Button>
-                </PopoverTrigger>
-            </TooltipAction>
+            <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs" title={t("tooltip")}>
+                    <Icon icon="mynaui:layout" width="16" className="shrink-0" />
+                    <span className="truncate">{displayLabel}</span>
+                    <Icon icon="lucide:chevron-down" width="14" className="ml-auto opacity-50 shrink-0" />
+                </Button>
+            </PopoverTrigger>
 
-            <PopoverContent className="w-72 p-3" align="start">
+            <PopoverContent 
+                className="w-72 p-3" 
+                align="start"
+            >
                 <div className="flex flex-col gap-4">
 
                     <div className="grid grid-cols-3 gap-2">
@@ -111,8 +111,8 @@ export function AspectRatioSelect({
                                     key={item.id}
                                     onClick={() => handleStandardRatioClick(item.id)}
                                     className={`group flex flex-col items-center justify-center gap-2 p-2.5 squircle-element border transition-all ${isSelected
-                                            ? "border-primary bg-gradient-radial-primary text-primary"
-                                            : "border-white/20 bg-transparent hover:border-border hover:bg-accent text-muted-foreground"
+                                        ? "border-primary bg-gradient-radial-primary text-primary"
+                                        : "border-white/20 bg-transparent hover:border-border hover:bg-accent text-muted-foreground"
                                         }`}
                                 >
                                     <div className="h-10 flex items-center justify-center">

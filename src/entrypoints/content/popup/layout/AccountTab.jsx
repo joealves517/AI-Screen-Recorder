@@ -118,7 +118,7 @@ const SettingsSection = ({
 
       {/* Settings Title */}
       <div style={{
-        fontSize: "11px",
+        fontSize: "12px",
         fontFamily: '"Satoshi-Bold", sans-serif',
         color: "#64748b",
         textTransform: "uppercase",
@@ -142,8 +142,10 @@ const SettingsSection = ({
           cursor: "default"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <MonitorCheckIcon size={13} color="#6366f1" strokeWidth={2.5} />
-            <span style={{ fontSize: "10.5px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#475569" }}>Resolution</span>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+              <MonitorCheckIcon size={13} color="#6366f1" strokeWidth={2} />
+            </span>
+            <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', color: "#475569", lineHeight: 1 }}>Resolution</span>
           </div>
           <div style={{ position: "relative", width: "100%" }}>
             <select
@@ -160,7 +162,7 @@ const SettingsSection = ({
                 border: "none",
                 borderRadius: "9999px",
                 padding: "0 28px 0 12px",
-                fontSize: "11px",
+                fontSize: "12px",
                 fontFamily: '"Satoshi-Medium", sans-serif',
                 color: "#1e293b",
                 cursor: "pointer",
@@ -200,8 +202,10 @@ const SettingsSection = ({
           cursor: "default"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-            <GaugeIcon size={13} color="#db2777" strokeWidth={2.5} />
-            <span style={{ fontSize: "10.5px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#475569" }}>Frame Rate</span>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+              <GaugeIcon size={13} color="#db2777" strokeWidth={2} />
+            </span>
+            <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', color: "#475569", lineHeight: 1 }}>Frame Rate</span>
           </div>
           <div style={{ position: "relative", width: "100%" }}>
             <select
@@ -218,7 +222,7 @@ const SettingsSection = ({
                 border: "none",
                 borderRadius: "9999px",
                 padding: "0 28px 0 12px",
-                fontSize: "11px",
+                fontSize: "12px",
                 fontFamily: '"Satoshi-Medium", sans-serif',
                 color: "#1e293b",
                 cursor: "pointer",
@@ -263,8 +267,10 @@ const SettingsSection = ({
         {/* Switch 1: Include System Audio */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <VolumeIcon size={14} color="#4b5563" strokeWidth={2.5} />
-            <span style={{ fontSize: "11.5px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#334155" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+              <VolumeIcon size={14} color="#64748b" strokeWidth={2} />
+            </span>
+            <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', color: "#475569", lineHeight: 1 }}>
               Include system audio
             </span>
           </div>
@@ -284,8 +290,10 @@ const SettingsSection = ({
         {fastRecorderInfo?.probe?.ok === true && fastRecorderInfo?.probe?.details?.selectedVideoConfig ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <ZapIcon size={14} color="#f59e0b" strokeWidth={2.5} />
-              <span style={{ fontSize: "11.5px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#334155" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+                <ZapIcon size={14} color="#f59e0b" strokeWidth={2} />
+              </span>
+              <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', color: "#475569", lineHeight: 1 }}>
                 Fast MP4 export
               </span>
             </div>
@@ -303,8 +311,10 @@ const SettingsSection = ({
         ) : (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <ZapIcon size={14} color="#94a3b8" strokeWidth={2.5} />
-              <span style={{ fontSize: "11.5px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#94a3b8" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+                <ZapIcon size={14} color="#94a3b8" strokeWidth={2} />
+              </span>
+              <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', color: "#94a3b8", lineHeight: 1 }}>
                 Fast MP4 export (Unsupported)
               </span>
             </div>
@@ -331,8 +341,10 @@ const SettingsSection = ({
           cursor: "default"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <MaximizeIcon size={14} color="#3b82f6" strokeWidth={2.5} />
-            <span style={{ fontSize: "11.5px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#334155" }}>Resize</span>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+              <MaximizeIcon size={14} color="#3b82f6" strokeWidth={2} />
+            </span>
+            <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', color: "#475569", lineHeight: 1 }}>Resize</span>
           </div>
           <div style={{ position: "relative", width: "60%" }}>
             <select
@@ -345,7 +357,7 @@ const SettingsSection = ({
                 border: "none",
                 borderRadius: "9999px",
                 padding: "0 20px 0 8px",
-                fontSize: "11px",
+                fontSize: "12px",
                 fontFamily: '"Satoshi-Medium", sans-serif',
                 color: "#475569",
                 cursor: "pointer",
@@ -409,8 +421,10 @@ const SettingsSection = ({
               e.currentTarget.style.color = "#475569";
             }}
           >
-            <HistoryIcon size={15} color="currentColor" strokeWidth={2.5} />
-            <span style={{ fontSize: "12.5px", fontFamily: '"Satoshi-Bold", sans-serif' }}>Restore</span>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", transform: "translateY(1px)" }}>
+              <HistoryIcon size={15} color="currentColor" strokeWidth={2} />
+            </span>
+            <span style={{ fontSize: "12px", fontFamily: '"Satoshi-Medium", sans-serif', lineHeight: 1 }}>Restore</span>
           </div>
         )}
       </div>
@@ -471,7 +485,7 @@ const GuestView = ({
           </div>
           <div>
             <div style={{ fontSize: "13px", fontFamily: '"Satoshi-Bold", sans-serif', color: "#1e293b" }}>Account</div>
-            <p style={{ fontSize: "10.5px", color: "#64748b", margin: 0, fontFamily: '"Satoshi-Medium", sans-serif', marginTop: "1px" }}>
+            <p style={{ fontSize: "12px", color: "#64748b", margin: 0, fontFamily: '"Satoshi-Medium", sans-serif', marginTop: "1px" }}>
               Sign in to unlock AI features.
             </p>
           </div>
@@ -488,7 +502,7 @@ const GuestView = ({
             color: "#3080f8",
             border: "none",
             borderRadius: "9999px",
-            fontSize: "11.5px",
+            fontSize: "12px",
             fontFamily: '"Satoshi-Bold", sans-serif',
             cursor: isLoggingIn ? "default" : "pointer",
             display: "flex",
@@ -634,7 +648,7 @@ const LoggedInView = ({
                 {name}
               </div>
               <div style={{
-                fontSize: "10.5px",
+                fontSize: "12px",
                 color: "#64748b",
                 fontFamily: '"Satoshi-Medium", sans-serif',
                 whiteSpace: "nowrap",
@@ -655,7 +669,7 @@ const LoggedInView = ({
                 background: "#f1f5f9",
                 border: "1px solid #cbd5e1",
                 borderRadius: "9999px",
-                fontSize: "10px",
+                fontSize: "11px",
                 fontFamily: '"Satoshi-Bold", sans-serif',
                 color: "#475569",
                 textTransform: "uppercase",
@@ -674,7 +688,7 @@ const LoggedInView = ({
                   color: "#ffffff",
                   border: "none",
                   borderRadius: "9999px",
-                  fontSize: "11px",
+                  fontSize: "12px",
                   fontFamily: '"Satoshi-Bold", sans-serif',
                   cursor: "pointer",
                   transition: "background 0.15s ease",
@@ -693,7 +707,7 @@ const LoggedInView = ({
 
         {/* Plan status & Sign out button */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-          <span style={{ fontSize: "10.5px", color: "#64748b", fontFamily: '"Satoshi-Medium", sans-serif' }}>
+          <span style={{ fontSize: "12px", color: "#64748b", fontFamily: '"Satoshi-Medium", sans-serif' }}>
             {quotaExhausted ? "AI quota exceeded" : isPro ? "Premium features active" : "Free Plan"}
           </span>
           <span
@@ -701,7 +715,7 @@ const LoggedInView = ({
             onMouseEnter={() => setLogoutHovered(true)}
             onMouseLeave={() => setLogoutHovered(false)}
             style={{
-              fontSize: "11px",
+              fontSize: "12px",
               fontFamily: '"Satoshi-Bold", sans-serif',
               color: logoutHovered ? "#ef4444" : "#64748b",
               cursor: "pointer",
@@ -711,7 +725,9 @@ const LoggedInView = ({
               transition: "color 0.15s ease"
             }}
           >
-            <LogoutIcon size={12} strokeWidth={2.5} />
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+              <LogoutIcon size={12} strokeWidth={2} />
+            </span>
             Sign out
           </span>
         </div>

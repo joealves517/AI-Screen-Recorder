@@ -28,11 +28,13 @@ interface CategoryConfig {
 }
 
 const CATEGORY_CONFIGS: CategoryConfig[] = [
-  { id: 'desktop', label: 'desktop', icon: 'heroicons:computer-desktop-solid', primary: true, count: 66 },
-  { id: 'gradient', label: 'gradient', icon: 'solar:mirror-left-bold', primary: true, count: 90 },
-  { id: 'pattern', label: 'pattern', icon: 'solar:palette-round-bold', primary: false, count: 49 },
-  { id: 'minimal', label: 'minimal', icon: 'solar:sun-2-bold', primary: false, count: 65 },
+    { id: 'desktop', label: 'desktop', icon: 'heroicons:computer-desktop-solid', primary: true, count: 66 },
+    { id: 'gradient', label: 'gradient', icon: 'solar:mirror-left-bold', primary: true, count: 90 },
+    { id: 'pattern', label: 'pattern', icon: 'solar:palette-round-bold', primary: false, count: 49 },
+    { id: 'minimal', label: 'minimal', icon: 'solar:sun-2-bold', primary: false, count: 65 },
 ];
+
+const CDN_BASE_URL = "https://cdn.jsdelivr.net/gh/joealves517/AI-Screen-Recorder@master/public";
 
 let globalIndex = 0;
 export const WALLPAPER_CATEGORIES: WallpaperCategory[] = CATEGORY_CONFIGS.map(config => {
@@ -40,11 +42,15 @@ export const WALLPAPER_CATEGORIES: WallpaperCategory[] = CATEGORY_CONFIGS.map(co
     
     for (let i = 1; i <= config.count; i++) {
         const slug = `${config.id}-${i.toString().padStart(2, '0')}`;
+        
+        const fullPath = `/images/backgrounds/${config.id}/${slug}.jpg`;
+        const previewPath = `/images/backgrounds/${config.id}/${slug}.avif`;
+        
         items.push({
             index: globalIndex++,
             filename: slug,
-            fullUrl: `/images/backgrounds/${config.id}/${slug}.jpg`,
-            previewUrl: `/images/backgrounds/${config.id}/${slug}.avif`,
+            fullUrl: `${CDN_BASE_URL}${fullPath}`,
+            previewUrl: `${CDN_BASE_URL}${previewPath}`,
         });
     }
     

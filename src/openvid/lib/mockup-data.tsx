@@ -440,9 +440,11 @@ export const MOCKUPS: Mockup[] = [
     },
 ];
 
+const CDN_BASE_URL = "https://cdn.jsdelivr.net/gh/joealves517/AI-Screen-Recorder@master/public";
+
 export const MOCKUP_CATEGORIES = [
     { id: "all" as const, label: "Todos", icon: "ph:grid-four-bold" },
-    { id: "browser" as const, label: "Browser", icon: "hugeicons:ai-browser", bgUrl: "/images/mockups/bg-browser.avif" },
-    { id: "mobile" as const, label: "Mobile", icon: "ph:device-mobile-bold", bgUrl: "/images/mockups/bg-mobile.avif" },
-    { id: "ide" as const, label: "IDE", icon: "ph:code-bold", bgUrl: "/images/mockups/bg-ide.avif" },
+    { id: "browser" as const, label: "Browser", icon: "hugeicons:ai-browser", bgUrl: `${CDN_BASE_URL}/images/mockups/bg-browser.avif` },
+    { id: "mobile" as const, label: "Mobile", icon: "ph:device-mobile-bold", bgUrl: `${CDN_BASE_URL}/images/mockups/bg-mobile.avif` },
+    { id: "ide" as const, label: "IDE", icon: "ph:code-bold", bgUrl: `${CDN_BASE_URL}/images/mockups/bg-ide.avif` },
 ];

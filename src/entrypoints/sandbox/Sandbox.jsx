@@ -3,8 +3,6 @@ import "./styles/global/_app.scss";
 
 import React, { useEffect, useRef, useContext } from "react";
 // Layout
-import Editor from "./layout/editor/Editor";
-import Player from "./layout/player/Player";
 import Modal from "./components/global/Modal";
 
 
@@ -156,45 +154,11 @@ const Sandbox = () => {
           blob: finalBlob,
           duration: duration,
         }, "*");
+        return;
       }
 
       const dbName = "VidFlowDB";
       const storeName = "videos";
-      const version = 2;
-
-      const request = indexedDB.open(dbName, version);
-
-      request.onupgradeneeded = (event) => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(storeName)) {
-          db.createObjectStore(storeName);
-        }
-      };
-
-      request.onsuccess = () => {
-        const db = request.result;
-        
-        if (!db.objectStoreNames.contains(storeName)) {
-          db.close();
-          const retryRequest = indexedDB.open(dbName, version + 1);
-          retryRequest.onupgradeneeded = (e) => {
-            const retryDb = e.target.result;
-            if (!retryDb.objectStoreNames.contains(storeName)) {
-              retryDb.createObjectStore(storeName);
-            }
-          };
-          retryRequest.onsuccess = () => {
-            saveAndRedirect(retryRequest.result);
-          };
-          return;
-        }
-
-        saveAndRedirect(db);
-      };
-
-      request.onerror = (e) => {
-        console.error("[AISR][Sandbox] Failed to open VidFlowDB:", e);
-      };
 
       const saveAndRedirect = (db) => {
         try {
@@ -234,6 +198,34 @@ const Sandbox = () => {
           console.error("[AISR][Sandbox] Error in saveAndRedirect transaction:", err);
         }
       };
+
+      const request = indexedDB.open(dbName);
+      request.onsuccess = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          const currentVersion = db.version;
+          db.close();
+          const retryRequest = indexedDB.open(dbName, currentVersion + 1);
+          retryRequest.onupgradeneeded = (evt) => {
+            const retryDb = evt.target.result;
+            if (!retryDb.objectStoreNames.contains(storeName)) {
+              retryDb.createObjectStore(storeName);
+            }
+          };
+          retryRequest.onsuccess = (evt) => {
+            saveAndRedirect(evt.target.result);
+          };
+          retryRequest.onerror = (err) => {
+            console.error("[AISR][Sandbox] Failed to upgrade VidFlowDB:", err);
+          };
+        } else {
+          saveAndRedirect(db);
+        }
+      };
+
+      request.onerror = (e) => {
+        console.error("[AISR][Sandbox] Failed to open VidFlowDB:", e);
+      };
     }
   }, [contentState.ready, contentState.blob, contentState.webm, contentState.duration]);
 
@@ -244,30 +236,25 @@ const Sandbox = () => {
       )}
       <Modal />
       <video></video>
-      {/* Render the WaveformGenerator component and pass the ffmpeg instance as a prop */}
-      {contentState.useProcessor &&
-        contentState.ready &&
-        contentState.mode === "edit" && <Editor />}
-      {contentState.mode != "edit" && contentState.ready && <Player />}
-      {!contentState.ready && (
-        <div className="wrap">
-          <div className="middle-area">
-            <img src="/assets/record-tab-active.svg" />
-            <div className="title">
-              {chrome.i18n.getMessage("sandboxProgressTitle") +
-                " " +
-                (contentState.processingProgress > 0
-                  ? `(${Math.round(contentState.processingProgress)}%)`
-                  : progress.current)}
-            </div>
-            <div className="subtitle">
-              {chrome.i18n.getMessage("sandboxProgressDescription")}
-            </div>
+      <div className="wrap">
+        <div className="middle-area">
+          <img src="/assets/record-tab-active.svg" />
+          <div className="title">
+            {chrome.i18n.getMessage("sandboxProgressTitle") +
+              " " +
+              (contentState.processingProgress > 0
+                ? `(${Math.round(contentState.processingProgress)}%)`
+                : progress.current)}
           </div>
-
-          <div className="setupBackgroundSVG"></div>
+          <div className="subtitle">
+            {contentState.ready
+              ? "Saving video and opening editor..."
+              : chrome.i18n.getMessage("sandboxProgressDescription")}
+          </div>
         </div>
-      )}
+
+        <div className="setupBackgroundSVG"></div>
+      </div>
       <style>
         {`
 				

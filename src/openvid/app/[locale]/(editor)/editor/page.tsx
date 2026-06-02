@@ -2564,6 +2564,14 @@ export default function Editor() {
                     setTrimRange(prev => prev.end === 0 ? { start: 0, end: duration } : prev);
                 }
             }
+
+            // Sync actual video width and height with videoDimensions state 
+            // to make sure "Auto" aspect ratio is computed perfectly on page refresh/initial load
+            const width = videoRef.current.videoWidth;
+            const height = videoRef.current.videoHeight;
+            if (width && height) {
+                setVideoDimensions({ width, height });
+            }
         }
     }, []);
 

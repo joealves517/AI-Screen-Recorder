@@ -355,7 +355,11 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
             WebkitMaskImage: masks.join(', '),
             WebkitMaskComposite: 'source-in',
             maskImage: masks.join(', '),
-            maskComposite: 'intersect'
+            maskComposite: 'intersect',
+            // Force hardware 3D acceleration and isolate rendering layer 
+            // to ensure WebkitMaskImage applies correctly on decoding hardware-accelerated video elements
+            transform: 'translateZ(0)',
+            willChange: 'transform',
         };
     }, [mediaType, videoMaskConfig, imageMaskConfig]);
 
