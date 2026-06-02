@@ -13,3 +13,5 @@ node_modules/
 build/
 docs/
 tools/
+.output/
+.wxt/

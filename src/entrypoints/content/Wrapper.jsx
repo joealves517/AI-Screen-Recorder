@@ -1,0 +1,405 @@
+import React, { useContext, useRef, useEffect } from "react";
+
+import PopupContainer from "./popup/PopupContainer";
+import Toolbar from "./toolbar/Toolbar";
+import Camera from "./camera/Camera";
+import CameraOnly from "./camera-only/CameraOnly";
+import Canvas from "./canvas/Canvas";
+import Countdown from "./countdown/Countdown";
+import Modal from "./modal/Modal";
+import Warning from "./warning/Warning";
+
+import Region from "./region/Region";
+
+// Using ShadowDOM
+import root from "react-shadow";
+
+// Import styles raw to add into the ShadowDOM
+import styles from "./styles/app.css?inline";
+
+import ZoomContainer from "./utils/ZoomContainer";
+import BlurTool from "./utils/BlurTool";
+import CursorModes from "./utils/CursorModes";
+
+import { contentStateContext } from "./context/ContentState";
+
+import { startClickTracking } from "./cursor/trackClicks";
+
+const safeUrls = (() => {
+  try {
+    return {
+      permissions: chrome.runtime.getURL("permissions.html"),
+      region: chrome.runtime.getURL("region.html"),
+      setup: chrome.runtime.getURL("setup.html"),
+      playground: chrome.runtime.getURL("playground.html"),
+    };
+  } catch {
+    return {
+      permissions: "", region: "", setup: "", playground: ""
+    };
+  }
+})();
+
+const RecordingLoader = () => {
+  const label = chrome.i18n.getMessage("preparingLabel") || "Preparing...";
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 99999999999,
+      }}
+      aria-label="Loading overlay"
+      role="alert"
+    >
+      <div
+        style={{
+          background: "rgba(255, 255, 255, 0.15)",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          borderRadius: 20,
+          padding: 40,
+          width: 160,
+          height: 160,
+          boxShadow: `
+        0 8px 32px 0 rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1)
+      `,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          fontFamily:
+            'Satoshi-Medium, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif',
+          userSelect: "none",
+          animation: "fadeIn 0.3s ease-out",
+        }}
+      >
+        <div
+          style={{
+            width: 60,
+            height: 60,
+            border: "3px solid rgba(255, 255, 255, 0.2)",
+            borderTop: "3px solid rgba(255, 255, 255, 0.8)",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+          }}
+        />
+        <div
+          style={{
+            marginTop: 20,
+            fontSize: 15,
+            fontWeight: 500,
+            color: "#FFFFFF",
+            textAlign: "center",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {label}
+        </div>
+        <style>
+          {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+          0% { opacity: 0; transform: scale(0.95); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 0.8; }
+          50% { opacity: 1; }
+        }
+      `}
+        </style>
+      </div>
+    </div>
+  );
+};
+
+const Wrapper = () => {
+  const [contentState, setContentState] = useContext(contentStateContext);
+  const shadowRef = useRef(null);
+  const parentRef = useRef(null);
+  const permissionsRef = useRef(null);
+  const regionCaptureRef = useRef(null);
+  const contentStateRef = useRef(contentState);
+  const showExtensionAtRef = useRef(0);
+
+  useEffect(() => {
+    contentStateRef.current = contentState;
+  }, [contentState]);
+
+  // Track when showExtension becomes true to prevent premature overlay dismissals
+  useEffect(() => {
+    if (contentState.showExtension) {
+      showExtensionAtRef.current = Date.now();
+    }
+  }, [contentState.showExtension]);
+
+  useEffect(() => {
+    if (!parentRef.current) return;
+
+    setContentState((prevContentState) => ({
+      ...prevContentState,
+      parentRef: parentRef.current,
+    }));
+  }, [parentRef.current]);
+
+  useEffect(() => {
+    if (!shadowRef.current) return;
+    setContentState((prevContentState) => ({
+      ...prevContentState,
+      shadowRef: shadowRef.current,
+    }));
+  }, [shadowRef.current]);
+
+  useEffect(() => {
+    if (!regionCaptureRef.current) return;
+    setContentState((prevContentState) => ({
+      ...prevContentState,
+      regionCaptureRef: regionCaptureRef.current,
+    }));
+  }, [regionCaptureRef.current]);
+
+  useEffect(() => {
+    if (!permissionsRef.current) return;
+    if (!permissionsRef.current.contentWindow) return; // Fix null contentWindow crash
+    if (!contentState.showExtension) return;
+    if (!contentState.permissionsLoaded) return;
+
+    const checkPerms = () => {
+      if (permissionsRef.current?.contentWindow) {
+        permissionsRef.current.contentWindow.postMessage(
+          { type: "aisr-get-permissions" },
+          "*"
+        );
+      }
+    };
+
+    if (!contentState.permissionsChecked) {
+      checkPerms();
+      setContentState((prevContentState) => ({
+        ...prevContentState,
+        permissionsChecked: true,
+      }));
+    }
+
+    // Re-check permissions when the user comes back to the tab
+    // (e.g., after granting permissions in Chrome settings)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkPerms();
+      }
+    };
+    
+    const handleFocus = () => {
+      checkPerms();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [
+    permissionsRef.current,
+    contentState.showExtension,
+    contentState.permissionsLoaded,
+    contentState.permissionsChecked,
+  ]);
+
+  useEffect(() => {
+    let stopTracking = null;
+
+    // Start tracking clicks only when recording starts
+    if (contentState.recording) {
+      stopTracking = startClickTracking(
+        contentState.customRegion,
+        contentState.regionWidth,
+        contentState.regionHeight,
+        contentState.regionX,
+        contentState.regionY,
+        contentStateRef
+      );
+    }
+
+    return () => {
+      stopTracking?.();
+    };
+  }, [
+    contentState.recording,
+    contentState.customRegion,
+    contentState.regionWidth,
+    contentState.regionHeight,
+    contentState.regionX,
+    contentState.regionY,
+  ]);
+
+  return (
+    <div ref={parentRef}>
+      {contentState.showExtension && (
+        <iframe
+          className="aisr-iframe"
+          style={{
+            // all: "unset",
+            display: "none",
+            visibility: "hidden",
+          }}
+          ref={permissionsRef}
+          src={safeUrls.permissions}
+          allow="camera *; microphone *"
+        ></iframe>
+      )}
+      {contentState.hasOpenedBefore && (
+        <iframe
+          className="aisr-iframe"
+          style={{
+            // all: "unset",
+            display: "none",
+            visibility: "hidden",
+          }}
+          ref={regionCaptureRef}
+          src={safeUrls.region}
+          allow="camera *; microphone *; display-capture *"
+        ></iframe>
+      )}
+
+      {contentState.zoomEnabled && <ZoomContainer />}
+      <BlurTool />
+      {contentState.showExtension || 
+       contentState.recording || 
+       window.location.href.indexOf(safeUrls.playground) !== -1 || 
+       window.location.href.indexOf(safeUrls.setup) !== -1 ? (
+        <div>
+          {!contentState.recording &&
+            !contentState.drawingMode &&
+            !contentState.blurMode &&
+            !contentState.showPopup && (
+              <div
+                style={{
+                  // all: "unset",
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 999999999,
+                  pointerEvents:
+                    contentState.pendingRecording ||
+                    contentState.preparingRecording ||
+                    window.location.href.indexOf(safeUrls.setup) !== -1 ||
+                    window.location.href.indexOf(safeUrls.playground) !== -1
+                      ? "none"
+                      : "all",
+                  position: "fixed",
+                  background:
+                    window.location.href.indexOf(safeUrls.setup) === -1 &&
+                    window.location.href.indexOf(safeUrls.playground) === -1 &&
+                    !contentState.pendingRecording &&
+                    !contentState.preparingRecording
+                      ? "rgba(0,0,0,0.15)"
+                      : "rgba(0,0,0,0)",
+                  top: 0,
+                  left: 0,
+                }}
+                onClick={() => {
+                  const onboardingActive =
+                    document.documentElement.classList.contains(
+                      "aisr-driver-active"
+                    ) || Boolean(document.querySelector(".driver-overlay"));
+                  if (onboardingActive) return;
+
+                  // Guard: ignore clicks within 400ms of popup opening
+                  // to prevent race condition dismissals
+                  if (Date.now() - showExtensionAtRef.current < 400) return;
+
+                  if (
+                    window.location.href.indexOf(safeUrls.setup) === -1 &&
+                    window.location.href.indexOf(safeUrls.playground) === -1 &&
+                    !contentState.pendingRecording &&
+                    !contentState.customRegion
+                  ) {
+                    setContentState((prevContentState) => ({
+                      ...prevContentState,
+                      showExtension: false,
+                      showPopup: false,
+                    }));
+                  }
+                }}
+              ></div>
+            )}
+          <Canvas />
+          <CursorModes />
+          <root.div
+            className="root-container"
+            id="aisr-root-container"
+            style={{
+              display: "block",
+              width: "100%",
+              height: "100%",
+              position: "fixed",
+              pointerEvents: "none",
+              left: "0px",
+              top: "0px",
+              zIndex: 9999999999,
+              // Isolation: prevent host-page inherited typography from
+              // leaking through the shadow-DOM boundary.
+              fontFamily: "'Satoshi-Medium', sans-serif",
+              fontSize: "16px",
+              lineHeight: "normal",
+              letterSpacing: "normal",
+              wordSpacing: "normal",
+              textTransform: "none",
+              textIndent: "0",
+              textAlign: "left",
+              color: "#29292F",
+              direction: "ltr",
+              whiteSpace: "normal",
+              fontStyle: "normal",
+              fontVariant: "normal",
+              fontWeight: "normal",
+            }}
+            ref={shadowRef}
+          >
+            <div className="container">
+              <Warning />
+              {contentState.recordingType === "region" &&
+                contentState.customRegion && <Region />}
+              {shadowRef.current && <Modal shadowRef={shadowRef} />}
+              {contentState.preparingRecording && (
+                <RecordingLoader />
+              )}
+              <Countdown />
+              {contentState.recordingType != "camera" &&
+                !contentState.onboarding && (
+                  <Camera shadowRef={shadowRef} />
+                )}
+              {contentState.recordingType === "camera" && (
+                <CameraOnly shadowRef={shadowRef} />
+              )}
+              {!(contentState.hideToolbar && contentState.hideUI) &&
+                !contentState.onboarding && (
+                  <Toolbar />
+                )}
+              {contentState.showPopup && (
+                <PopupContainer shadowRef={shadowRef} />
+              )}
+            </div>
+            <style type="text/css">{styles}</style>
+          </root.div>
+        </div>
+      ) : (
+        <div></div>
+      )}
+    </div>
+  );
+};
+
+export default Wrapper;
