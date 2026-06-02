@@ -2133,7 +2133,11 @@ export default function Editor() {
                                     }
                                     videoRef.current?.removeEventListener('canplay', onCanPlay);
                                 };
-                                videoRef.current.addEventListener('canplay', onCanPlay);
+                                if (videoRef.current.readyState >= 3) {
+                                    onCanPlay();
+                                } else {
+                                    videoRef.current.addEventListener('canplay', onCanPlay);
+                                }
                                 setIsPlaying(true);
                                 return;
                             }
@@ -2274,7 +2278,11 @@ export default function Editor() {
                                         }
                                         currentVideo?.removeEventListener('canplay', onCanPlay);
                                     };
-                                    currentVideo.addEventListener('canplay', onCanPlay);
+                                    if (currentVideo.readyState >= 3) {
+                                        onCanPlay();
+                                    } else {
+                                        currentVideo.addEventListener('canplay', onCanPlay);
+                                    }
 
                                     setCurrentTime(nextClipSnapshot.startTime);
                                     animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
@@ -2441,7 +2449,11 @@ export default function Editor() {
                                 }
                                 currentVideo?.removeEventListener('canplay', onCanPlay);
                             };
-                            currentVideo.addEventListener('canplay', onCanPlay);
+                            if (currentVideo.readyState >= 3) {
+                                onCanPlay();
+                            } else {
+                                currentVideo.addEventListener('canplay', onCanPlay);
+                            }
                             return;
                         }
                     } else {
@@ -2559,7 +2571,11 @@ export default function Editor() {
                             }
                             currentVideo?.removeEventListener('canplay', onCanPlay);
                         };
-                        currentVideo.addEventListener('canplay', onCanPlay);
+                        if (currentVideo.readyState >= 3) {
+                            onCanPlay();
+                        } else {
+                            currentVideo.addEventListener('canplay', onCanPlay);
+                        }
                         syncAudioPlayback(time, false);
                         return;
                     } else {
