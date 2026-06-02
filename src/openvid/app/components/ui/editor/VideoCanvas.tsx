@@ -2087,9 +2087,16 @@ export const VideoCanvas = forwardRef<VideoCanvasHandle, VideoCanvasProps>(funct
                             else if (ids.length === 0) handleElementSelect(null);
                         }}
                         onDelete={(idOrIds) => { if (onElementDelete) onElementDelete(idOrIds); }}
-                        onReorder={(orderedIds) => {
+                        onReorder={(orderedIds, videoIndex) => {
                             orderedIds.forEach((id, pos) => {
-                                if (onElementUpdate) onElementUpdate(id, { zIndex: VIDEO_Z_INDEX + 500 - pos });
+                                let newZIndex: number;
+                                const vIndex = videoIndex !== undefined ? videoIndex : orderedIds.length;
+                                if (pos < vIndex) {
+                                    newZIndex = VIDEO_Z_INDEX + 500 - pos;
+                                } else {
+                                    newZIndex = VIDEO_Z_INDEX - 1 - (pos - vIndex);
+                                }
+                                if (onElementUpdate) onElementUpdate(id, { zIndex: newZIndex });
                             });
                         }}
                         onSetGroupId={(id, groupId) => {

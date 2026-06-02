@@ -198,9 +198,12 @@ export function LayersPanel({
             const INTO_ZONE = 0.30;
 
             visualRows.forEach((row, i) => {
-                if (row.kind === "video") return;
+                const key = row.kind === "element" 
+                    ? row.id 
+                    : row.kind === "group" 
+                        ? `group:${row.groupId}` 
+                        : "video-layer";
 
-                const key = row.kind === "element" ? row.id : `group:${row.groupId}`;
                 if (key === drag.id) return;
                 const el = rowRefs.current.get(key);
                 if (!el) return;
@@ -340,6 +343,23 @@ export function LayersPanel({
             const anchorRow = visualRowsWithout[nonDraggedCount];
             let insertAt = without.length;
 
+            let nonDraggedElementsAboveVideo = 0;
+            const videoIdxInWithout = visualRowsWithout.findIndex(r => r.kind === "video");
+            if (videoIdxInWithout !== -1) {
+                for (let i = 0; i < videoIdxInWithout; i++) {
+                    const r = visualRowsWithout[i];
+                    if (r.kind === "element") {
+                        nonDraggedElementsAboveVideo++;
+                    } else if (r.kind === "group") {
+                        const gid = r.groupId;
+                        const groupMembersCount = without.filter(
+                            (did) => elementsById[did]?.groupId === gid
+                        ).length;
+                        nonDraggedElementsAboveVideo += groupMembersCount;
+                    }
+                }
+            }
+
             if (anchorRow) {
                 if (anchorRow.kind === "element") {
                     insertAt = without.indexOf(anchorRow.id);
@@ -348,11 +368,25 @@ export function LayersPanel({
                         (did) => elementsById[did]?.groupId === anchorRow.groupId
                     );
                     if (firstMember) insertAt = without.indexOf(firstMember);
+                } else if (anchorRow.kind === "video") {
+                    insertAt = nonDraggedElementsAboveVideo;
                 }
             }
 
             const next = [...without.slice(0, insertAt), ...movingIds, ...without.slice(insertAt)];
             const changed = next.some((val, i) => val !== displayOrder[i]);
+
+            let videoIndex = next.length;
+            if (videoLayerVisible) {
+                const initialVideoIdx = visualRows.findIndex(r => r.kind === "video");
+                if (initialVideoIdx !== -1) {
+                    if (dropIndex <= initialVideoIdx) {
+                        videoIndex = nonDraggedElementsAboveVideo + movingIds.length;
+                    } else {
+                        videoIndex = nonDraggedElementsAboveVideo;
+                    }
+                }
+            }
 
             if (pendingGroupChange) {
                 ignoreSyncUntilRef.current = Date.now() + 1500;
@@ -361,10 +395,10 @@ export function LayersPanel({
             if (changed) {
                 ignoreSyncUntilRef.current = Math.max(ignoreSyncUntilRef.current, Date.now() + 1500);
                 setDisplayOrder(next);
-                onReorder(next);
+                onReorder(next, videoIndex);
             }
         },
-        [displayOrder, elementsById, visualRows, onReorder, onSetGroupId]
+        [displayOrder, elementsById, visualRows, onReorder, onSetGroupId, videoLayerVisible]
     );
 
     const startPointerDrag = useCallback(
