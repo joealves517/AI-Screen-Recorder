@@ -1,8 +1,8 @@
-# Privacy & License for AI Screen Recorder - Free MP4 Export
+# Privacy & License for AI Screen Recorder - Free 4K Record & Edit
 
 **Effective Date:** May 3, 2026
 
-Thank you for choosing **AI Screen Recorder - Free MP4 Export** ("the Extension"). We respect your privacy and are committed to keeping your data secure. 
+Thank you for choosing **AI Screen Recorder - Free 4K Record & Edit** ("the Extension"). We respect your privacy and are committed to keeping your data secure. 
 
 The core principle of our extension is **Local-First Processing**: we ensure that your core media files (video recordings, and audio files) are never stored, transmitted, or shared to any external servers without your explicit action.
 

@@ -35,7 +35,7 @@ const PrivacyLicense = () => {
         {/* Introduction */}
         <div className="space-y-6 text-sm leading-relaxed text-neutral-300">
           <p>
-            Thank you for choosing <strong>AI Screen Recorder - Free MP4 Export</strong> ("the Extension"). We respect your privacy and are committed to keeping your data secure. The core principle of our extension is <strong>Local-First Processing</strong>: all of your recordings are captured and handled entirely on your own machine.
+            Thank you for choosing <strong>AI Screen Recorder - Free 4K Record & Edit</strong> ("the Extension"). We respect your privacy and are committed to keeping your data secure. The core principle of our extension is <strong>Local-First Processing</strong>: all of your recordings are captured and handled entirely on your own machine.
           </p>
 
           <hr className="border-white/5 my-8" />
