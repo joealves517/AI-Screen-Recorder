@@ -56,7 +56,7 @@ const GeminiIcon = ({ size = 40 }) => {
 // 3D Apple style card foundation with box-sizing border-box to prevent overflow
 const bentoCardStyle = (bg, borderColor) => ({
   background: bg,
-  borderRadius: "12px",
+  borderRadius: "18px",
   border: "1px solid rgba(255, 255, 255, 0.9)",
   display: "flex",
   boxSizing: "border-box",
@@ -443,7 +443,7 @@ const GuestView = ({
       {/* Elegant Standard Account Sign-in Card */}
       <div style={{
         background: "#ffffff",
-        borderRadius: "12px",
+        borderRadius: "24px",
         border: "1px solid rgba(0, 0, 0, 0.08)",
         padding: "14px",
         marginBottom: "12px",
@@ -568,7 +568,7 @@ const LoggedInView = ({
       {/* Elegant Standard Profile Card */}
       <div style={{
         background: "#ffffff",
-        borderRadius: "12px",
+        borderRadius: "24px",
         border: "1px solid rgba(0, 0, 0, 0.08)",
         padding: "14px",
         marginBottom: "12px",
