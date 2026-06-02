@@ -112,13 +112,13 @@
   background-clip: content-box;
   -webkit-mask-image: radial-gradient(
     circle at center top,
-    transparent 31px,
-    #000 31px
+    transparent 30.5px,
+    #000 31.5px
   );
   mask-image: radial-gradient(
     circle at center top,
-    transparent 31px,
-    #000 31px
+    transparent 30.5px,
+    #000 31.5px
   );
   background-position: center bottom 50px;
   border-radius: $container-border-radius;
@@ -133,8 +133,8 @@
 	height: 100%;
 	background: $color-background;
 	background-clip: content-box;
-  -webkit-mask-image: radial-gradient(circle at center top, transparent 31px, #000 31px);
-  mask-image: radial-gradient(circle at center top, transparent 31px, #000 31px);
+  -webkit-mask-image: radial-gradient(circle at center top, transparent 30.5px, #000 31.5px);
+  mask-image: radial-gradient(circle at center top, transparent 30.5px, #000 31.5px);
   background-position: center bottom 50px;
 	border-radius: $container-border-radius;
 	position: relative;
