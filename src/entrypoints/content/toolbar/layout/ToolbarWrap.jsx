@@ -319,7 +319,7 @@ const ToolbarWrap = () => {
           </div>
           {!contentState.recording && (
             <div
-              className={`popup-controls toolbar-controls ${
+              className={`toolbar-controls ${
                 hovering ? "open" : ""
               }`}
               onClick={() => {
@@ -361,8 +361,8 @@ const ToolbarWrap = () => {
                 }, 3000); // match your toast duration
               }}
             >
-              <div className="popup-control popup-close">
-                <CloseIconPopup />
+              <div className="toolbar-close-btn">
+                <CloseIconPopup width="10" height="10" />
               </div>
             </div>
           )}

@@ -31,23 +31,11 @@ iframe.aisr-iframe {
   opacity: 0;
   cursor: pointer;
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: -6px;
+  right: -6px;
   box-sizing: border-box;
-  border-radius: $container-border-radius;
-  border: 1px solid $color-border;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   z-index: 99999999999999;
-  background: rgba(240, 238, 238, 1);
-  backdrop-filter: blur(10px);
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
   pointer-events: none;
 
   &.open {
@@ -55,10 +43,36 @@ iframe.aisr-iframe {
     pointer-events: auto;
   }
 
-  .popup-control {
+  &:hover {
+    transform: scale(1.08);
+  }
+
+  .toolbar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
     svg {
-      color: $color-icon;
-      margin-bottom: -2px;
+      color: #64748b;
+      display: block;
+      margin: 0;
+      padding: 0;
+      transition: color 0.2s ease;
+    }
+
+    &:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      svg {
+        color: #334155;
+      }
     }
   }
 }

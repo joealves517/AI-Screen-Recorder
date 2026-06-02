@@ -69,32 +69,45 @@ iframe.aisr-iframe {
   opacity: 0;
   cursor: pointer;
   position: absolute;
-  top: -10px;
-  right: -10px;
+  top: -6px;
+  right: -6px;
   box-sizing: border-box;
-  border-radius: 30px;
-  border: 1px solid #e8e8e8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   z-index: 99999999999999;
-  background: rgb(240, 238, 238);
-  backdrop-filter: blur(10px);
-  padding-left: 8px;
-  padding-right: 8px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
   pointer-events: none;
 }
 .toolbar-controls.open {
   opacity: 1 !important;
   pointer-events: auto;
 }
-.toolbar-controls .popup-control svg {
-  color: #9797a4;
-  margin-bottom: -2px;
+.toolbar-controls:hover {
+  transform: scale(1.08);
+}
+.toolbar-controls .toolbar-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+.toolbar-controls .toolbar-close-btn svg {
+  color: #64748b;
+  display: block;
+  margin: 0;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+.toolbar-controls .toolbar-close-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.toolbar-controls .toolbar-close-btn:hover svg {
+  color: #334155;
 }
 
 .ToolbarBounds {
