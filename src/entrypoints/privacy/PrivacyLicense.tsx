@@ -181,7 +181,7 @@ const PrivacyLicense = () => {
 
         {/* Footer info */}
         <div className="mt-12 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-          <span>AI Screen Recorder v0.2.8</span>
+          <span>AI Screen Recorder v0.2.9</span>
           <span>© 2026. Distributed under the GNU GPL v3.0 license.</span>
         </div>
       </div>
