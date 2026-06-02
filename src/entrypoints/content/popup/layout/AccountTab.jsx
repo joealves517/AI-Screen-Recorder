@@ -534,11 +534,8 @@ const GuestView = ({
           {isLoggingIn ? "Signing in..." : "Sign in with Google"}
         </button>
 
-        {/* Divider inside Profile card */}
-        <div style={{ height: "1px", background: "#f1f5f9", width: "100%" }} />
-
         {/* Privacy & License Link */}
-        <div style={{ display: "flex", justifyContent: "center", width: "100%", paddingTop: "2px" }}>
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "4px", marginBottom: "0px" }}>
           <span 
             onClick={() => {
               chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
@@ -755,11 +752,8 @@ const LoggedInView = ({
           </span>
         </div>
 
-        {/* Divider inside Profile card */}
-        <div style={{ height: "1px", background: "#f1f5f9", width: "100%" }} />
-
         {/* Privacy & License Link */}
-        <div style={{ display: "flex", justifyContent: "center", width: "100%", paddingTop: "2px" }}>
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", marginTop: "4px", marginBottom: "0px" }}>
           <span 
             onClick={() => {
               chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
