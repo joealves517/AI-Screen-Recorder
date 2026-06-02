@@ -2068,6 +2068,24 @@ export default function Editor() {
         return () => window.removeEventListener('paste', handlePaste);
     }, [isPhotoMode, handleImageUploadToCanvas]);
 
+    const safePlay = useCallback((videoEl: HTMLVideoElement) => {
+        const playPromise = videoEl.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                if (error.name === 'NotAllowedError') {
+                    console.warn('[AISR][Editor] Autoplay restricted. Retrying muted...', error);
+                    videoEl.muted = true;
+                    setMuteOriginalAudio(true);
+                    videoEl.play().catch(err => {
+                        console.error('[AISR][Editor] Play failed even when muted:', err);
+                    });
+                } else if (error.name !== 'AbortError') {
+                    console.warn('[AISR][Editor] Play interrupted:', error);
+                }
+            });
+        }
+    }, []);
+
     const togglePlayPause = useCallback(() => {
         if (videoRef.current) {
             if (isPlaying) {
@@ -2110,7 +2128,7 @@ export default function Editor() {
                                         videoRef.current.currentTime = clipTime;
                                         const clipHasAudio = clipAudioStateRef.current.get(clipAtTime.libraryVideoId);
                                         videoRef.current.muted = muteOriginalAudioRef.current || clipHasAudio === false;
-                                        videoRef.current.play().catch(() => { });
+                                        safePlay(videoRef.current);
                                         syncAudioPlayback(startTime, true);
                                     }
                                     videoRef.current?.removeEventListener('canplay', onCanPlay);
@@ -2136,19 +2154,12 @@ export default function Editor() {
                     videoRef.current.currentTime = startTime;
                 }
 
-                const playPromise = videoRef.current.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        if (error.name !== 'AbortError') {
-                            console.warn('Play interrupted:', error);
-                        }
-                    });
-                }
+                safePlay(videoRef.current);
                 syncAudioPlayback(startTime, true);
             }
             setIsPlaying(!isPlaying);
         }
-    }, [isPlaying, currentTime, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime]);
+    }, [isPlaying, currentTime, trimRange.start, trimRange.end, syncAudioPlayback, findActiveClipAtTime, timelineToClipTime, safePlay]);
 
     const updateTimeSmoothRef = useRef<() => void>(() => { });
 
@@ -2241,9 +2252,7 @@ export default function Editor() {
                                         currentVideo.playbackRate = 1.0;
                                         const nextClipHasAudio = clipAudioStateRef.current.get(nextClipSnapshot.libraryVideoId);
                                         currentVideo.muted = muteOriginalAudioRef.current || nextClipHasAudio === false;
-                                        currentVideo.play().catch(e => {
-                                            if (e.name !== 'AbortError') console.warn('Play interrupted:', e);
-                                        });
+                                        safePlay(currentVideo);
                                         setIsPlaying(true);
                                         animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
                                     };
@@ -2423,9 +2432,7 @@ export default function Editor() {
                                     currentVideo.muted = muteOriginalAudioRef.current || clipHasAudio === false;
                                     isSeekingToClipRef.current = false;
                                     if (shouldPlay) {
-                                        currentVideo.play().catch(e => {
-                                            if (e.name !== 'AbortError') console.warn('Play interrupted:', e);
-                                        });
+                                        safePlay(currentVideo);
                                         setIsPlaying(true);
                                         syncAudioPlayback(finalTime, true);
                                     } else {
@@ -2447,14 +2454,7 @@ export default function Editor() {
         }
 
         if (wasPlayingBeforeDragRef.current && videoRef.current) {
-            const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    if (error.name !== 'AbortError') {
-                        console.warn('Play interrupted:', error);
-                    }
-                });
-            }
+            safePlay(videoRef.current);
             setIsPlaying(true);
             syncAudioPlayback(finalTime, true);
         } else {
@@ -2553,9 +2553,7 @@ export default function Editor() {
                                 clipSwitchTimeRef.current = null;
 
                                 if (wasPlaying) {
-                                    currentVideo.play().catch(e => {
-                                        if (e.name !== 'AbortError') console.warn('Play interrupted:', e);
-                                    });
+                                    safePlay(currentVideo);
                                     animationFrameRef.current = requestAnimationFrame(updateTimeSmoothRef.current);
                                 }
                             }
