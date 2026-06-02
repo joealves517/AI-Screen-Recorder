@@ -53,12 +53,16 @@ export function useRouter() {
           window.location.href = `${basePath}?${params.toString()}`;
         }
       } else if (destPath.startsWith('/privacy')) {
-        if (typeof window !== 'undefined' && (window as any).navigateExtension) {
-          (window as any).navigateExtension('privacy', extensionParams.toString());
+        if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.create) {
+          chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
         } else {
-          params.set('page', 'privacy');
-          const basePath = window.location.pathname === '/' ? '/index.html' : window.location.pathname;
-          window.location.href = `${basePath}?${params.toString()}`;
+          if (typeof window !== 'undefined' && (window as any).navigateExtension) {
+            (window as any).navigateExtension('privacy', extensionParams.toString());
+          } else {
+            params.set('page', 'privacy');
+            const basePath = window.location.pathname === '/' ? '/index.html' : window.location.pathname;
+            window.location.href = `${basePath}?${params.toString()}`;
+          }
         }
       } else if (destPath.startsWith('/terms')) {
         if (typeof window !== 'undefined' && (window as any).navigateExtension) {

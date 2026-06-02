@@ -533,6 +533,29 @@ const GuestView = ({
           )}
           {isLoggingIn ? "Signing in..." : "Sign in with Google"}
         </button>
+
+        {/* Divider inside Profile card */}
+        <div style={{ height: "1px", background: "#f1f5f9", width: "100%" }} />
+
+        {/* Privacy & License Link */}
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", paddingTop: "2px" }}>
+          <span 
+            onClick={() => {
+              chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
+            }}
+            style={{ 
+              cursor: "pointer", 
+              textDecoration: "underline", 
+              color: "#94a3b8", 
+              fontSize: "11px",
+              fontFamily: '"Satoshi-Medium", sans-serif'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = "#64748b"}
+            onMouseOut={(e) => e.currentTarget.style.color = "#94a3b8"}
+          >
+            Privacy & License
+          </span>
+        </div>
       </div>
 
       {/* Settings Grid */}
@@ -729,6 +752,29 @@ const LoggedInView = ({
               <LogoutIcon size={12} strokeWidth={2} />
             </span>
             Sign out
+          </span>
+        </div>
+
+        {/* Divider inside Profile card */}
+        <div style={{ height: "1px", background: "#f1f5f9", width: "100%" }} />
+
+        {/* Privacy & License Link */}
+        <div style={{ display: "flex", justifyContent: "center", width: "100%", paddingTop: "2px" }}>
+          <span 
+            onClick={() => {
+              chrome.tabs.create({ url: chrome.runtime.getURL("privacy.html") });
+            }}
+            style={{ 
+              cursor: "pointer", 
+              textDecoration: "underline", 
+              color: "#94a3b8", 
+              fontSize: "11px",
+              fontFamily: '"Satoshi-Medium", sans-serif'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.color = "#64748b"}
+            onMouseOut={(e) => e.currentTarget.style.color = "#94a3b8"}
+          >
+            Privacy & License
           </span>
         </div>
       </div>
