@@ -2380,7 +2380,7 @@ export default function Editor() {
     }, [syncAudioPlayback, isDraggingPlayhead]);
 
     const handleTimeUpdate = () => {
-        if (videoRef.current && !isPlaying && !justEndedRef.current && !isSeekingToClipRef.current) {
+        if (videoRef.current && !justEndedRef.current && !isSeekingToClipRef.current) {
             const clips = videoClipsRef.current;
             if (clips.length > 0 && activeClipDataRef.current) {
                 const activeClip = activeClipDataRef.current;
